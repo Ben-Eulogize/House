@@ -289,11 +289,11 @@ fascia(FF_W+ROVER*2, 0.08, 0, ffY, FF_S-ROVER);
 // ══════════════════════════════════════════
 var garZ = GF_N - 4.0; // roughly in the north portion of west wall
 var garDoor = bx(0.08, 2.38, 5.0, M.monument);
-garDoor.position.set(LF_Wst+WALL/2, GF_Y+2.38/2, garZ); house.add(garDoor);
+garDoor.position.set(LF_Wst-WALL/2-0.02, GF_Y+2.38/2, garZ); house.add(garDoor);
 // Madrid profile horizontal lines
 for (var gi=1;gi<5;gi++){
   var gl=bx(0.1,0.02,4.9,M.render);
-  gl.position.set(LF_Wst+WALL/2+0.05, GF_Y+gi*2.38/5, garZ);house.add(gl);
+  gl.position.set(LF_Wst-WALL/2-0.05, GF_Y+gi*2.38/5, garZ);house.add(gl);
 }
 
 // ══════════════════════════════════════════
@@ -302,9 +302,9 @@ for (var gi=1;gi<5;gi++){
 // ══════════════════════════════════════════
 var entryZ = garZ - 4.5;
 var entDoor = bx(0.06, 2.34, 1.2, M.timber);
-entDoor.position.set(LF_Wst+WALL/2, GF_Y+2.34/2, entryZ); house.add(entDoor);
+entDoor.position.set(LF_Wst-WALL/2-0.02, GF_Y+2.34/2, entryZ); house.add(entDoor);
 var entGlass = bx(0.02, 1.6, 0.4, M.glass);
-entGlass.position.set(LF_Wst+WALL/2-0.02, GF_Y+0.5+1.6/2, entryZ); house.add(entGlass);
+entGlass.position.set(LF_Wst-WALL/2-0.04, GF_Y+0.5+1.6/2, entryZ); house.add(entGlass);
 
 // Porch (west side near entry) with 3 timber posts
 var porchSlab = bx(1.5, 0.15, 3.0, M.concrete);
@@ -321,34 +321,34 @@ porchRoof.position.set(LF_Wst-0.75, GF_Y+GF_H+0.05, entryZ); house.add(porchRoof
 // D2 — Stacking slider on NORTH wall (3.25m wide × 3.0m tall)
 var d2w=3.25, d2h=Math.min(3.0,GF_H-0.15);
 var d2f = bx(d2w, d2h, 0.06, M.monument);
-d2f.position.set(2.0, GF_Y+0.1+d2h/2, GF_N); house.add(d2f);
+d2f.position.set(2.0, GF_Y+0.1+d2h/2, GF_N+WALL/2+0.02); house.add(d2f);
 var d2g = bx(d2w-0.1, d2h-0.1, 0.02, M.glass);
-d2g.position.set(2.0, GF_Y+0.15+d2h/2-0.05, GF_N); house.add(d2g);
+d2g.position.set(2.0, GF_Y+0.15+d2h/2-0.05, GF_N+WALL/2+0.02); house.add(d2g);
 
 // D3 — Stacking slider on EAST wall (4.7m wide × 3.0m tall) lower floor
 var d3h=Math.min(3.0,LF_H-0.15);
 var d3f = bx(0.06, d3h, 4.7, M.monument);
-d3f.position.set(LF_E, LF_Y+0.1+d3h/2, -3.0); house.add(d3f);
+d3f.position.set(LF_E+WALL/2+0.02, LF_Y+0.1+d3h/2, -3.0); house.add(d3f);
 var d3g = bx(0.02, d3h-0.1, 4.6, M.glass);
-d3g.position.set(LF_E, LF_Y+0.15+d3h/2-0.05, -3.0); house.add(d3g);
+d3g.position.set(LF_E+WALL/2+0.02, LF_Y+0.15+d3h/2-0.05, -3.0); house.add(d3g);
 
 // D1 — Laundry door on SOUTH wall (0.9m × 2.1m)
 var d1f = bx(0.9, 2.1, 0.06, M.render);
-d1f.position.set(-3.0, LF_Y+2.1/2, LF_S); house.add(d1f);
+d1f.position.set(-3.0, LF_Y+2.1/2, LF_S-WALL/2-0.02); house.add(d1f);
 var d1g = bx(0.6, 1.4, 0.02, M.glass);
-d1g.position.set(-3.0, LF_Y+0.5+1.4/2, LF_S); house.add(d1g);
+d1g.position.set(-3.0, LF_Y+0.5+1.4/2, LF_S-WALL/2-0.02); house.add(d1g);
 
 // D6 — Stacking slider on WEST wall, first floor (3.61m wide × 2.4m tall)
 var d6f = bx(0.06, 2.2, 3.61, M.monument);
-d6f.position.set(FF_Wst, FF_Y+0.1+2.2/2, FF_CZ-1.5); house.add(d6f);
+d6f.position.set(FF_Wst-WALL/2-0.02, FF_Y+0.1+2.2/2, FF_CZ-1.5); house.add(d6f);
 var d6g = bx(0.02, 2.1, 3.5, M.glass);
-d6g.position.set(FF_Wst, FF_Y+0.15+2.1/2, FF_CZ-1.5); house.add(d6g);
+d6g.position.set(FF_Wst-WALL/2-0.02, FF_Y+0.15+2.1/2, FF_CZ-1.5); house.add(d6g);
 
 // D7 — Stacking slider on EAST wall (1.81m wide × 2.1m tall) ground floor
 var d7f = bx(0.06, 2.1, 1.81, M.monument);
-d7f.position.set(LF_E, GF_Y+0.1+2.1/2, 5.0); house.add(d7f);
+d7f.position.set(LF_E+WALL/2+0.02, GF_Y+0.1+2.1/2, 5.0); house.add(d7f);
 var d7g = bx(0.02, 2.0, 1.7, M.glass);
-d7g.position.set(LF_E, GF_Y+0.15+2.0/2, 5.0); house.add(d7g);
+d7g.position.set(LF_E+WALL/2+0.02, GF_Y+0.15+2.0/2, 5.0); house.add(d7g);
 
 // ══════════════════════════════════════════
 // WINDOWS — all 27 from schedule
@@ -356,22 +356,23 @@ d7g.position.set(LF_E, GF_Y+0.15+2.0/2, 5.0); house.add(d7g);
 // In model: winW = horizontal, winH = vertical
 // ══════════════════════════════════════════
 function addWin(face, wallX, wallZ, baseY, cx, winW, winH, sillH) {
-  // face: 'N','S' → window on XY plane; 'E','W' → window on ZY plane
-  // cx: position along the wall face
-  // wallX/wallZ: the wall's fixed coordinate
   sillH = sillH || 0.9;
   var wy = baseY + sillH + winH/2;
   var frame, glass;
+  // Offset windows to sit on OUTER surface of wall (not buried inside)
+  var outOff = WALL/2 + 0.02; // push just outside the wall face
   if (face==='N'||face==='S') {
+    var zOff = face==='N' ? outOff : -outOff; // north=+Z, south=-Z → outward
     frame = bx(winW, winH, 0.05, M.monument);
     glass = bx(winW-0.06, winH-0.06, 0.02, M.glass);
-    frame.position.set(cx, wy, wallZ);
-    glass.position.set(cx, wy, wallZ);
+    frame.position.set(cx, wy, wallZ + zOff);
+    glass.position.set(cx, wy, wallZ + zOff);
   } else {
+    var xOff = face==='E' ? outOff : -outOff; // east=+X, west=-X → outward
     frame = bx(0.05, winH, winW, M.monument);
     glass = bx(0.02, winH-0.06, winW-0.06, M.glass);
-    frame.position.set(wallX, wy, cx);
-    glass.position.set(wallX, wy, cx);
+    frame.position.set(wallX + xOff, wy, cx);
+    glass.position.set(wallX + xOff, wy, cx);
   }
   house.add(frame); house.add(glass);
   return {frame:frame, glass:glass};
@@ -512,28 +513,56 @@ for (var vsx=-1;vsx<=1;vsx+=2){
 // ══════════════════════════════════════════
 // EXTERNAL STAIRS (south elevation) — concrete, GF down to LF
 // ══════════════════════════════════════════
-var stairW=1.2, stairRun=4.0, nSteps=18;
-var stX = LF_E+stairW/2+0.2;
+// External stairs on south elevation — against the east end of the south wall
+// Run south (away from building) and descend from GF level to LF level
+var stairW=1.2, stairRun=4.5, nSteps=18;
+var stX = LF_E - stairW/2 - 0.3; // against east end of south wall, inside building width
 var stRise = GF_Y/nSteps, stGoing = stairRun/nSteps;
+// Stair landing at GF level against south wall
+var stLanding = bx(stairW+0.4, 0.15, 1.0, M.concrete);
+stLanding.position.set(stX, GF_Y-0.075, LF_S-0.5); house.add(stLanding);
+// Steps descending southward
 for (var sti=0; sti<nSteps; sti++) {
   var step = bx(stairW, stRise, stGoing, M.concrete);
-  step.position.set(stX, sti*stRise+stRise/2, LF_S-0.5-sti*stGoing);
+  step.position.set(stX, GF_Y - sti*stRise - stRise/2, LF_S-1.0-sti*stGoing);
   house.add(step);
 }
+// Stringer/side wall for stairs (so they don't float)
+var stringerH = GF_Y;
+var stringerGeo = new THREE.BufferGeometry();
+var sv = [
+  // Triangle strip forming the stringer side
+  stX+stairW/2+0.05, GF_Y, LF_S-1.0,
+  stX+stairW/2+0.05, 0, LF_S-1.0-stairRun,
+  stX+stairW/2+0.05, 0, LF_S-1.0,
+  stX+stairW/2+0.05, GF_Y, LF_S-1.0,
+  stX+stairW/2+0.05, GF_Y, LF_S-1.0-stairRun,
+  stX+stairW/2+0.05, 0, LF_S-1.0-stairRun
+];
+stringerGeo.setAttribute('position', new THREE.Float32BufferAttribute(sv, 3));
+stringerGeo.computeVertexNormals();
+var stringer = new THREE.Mesh(stringerGeo, M.concrete);
+house.add(stringer);
 // Stair balustrade — Monument Panorama (vertical bars + top rail)
-var balRailLen = Math.sqrt(stairRun*stairRun + GF_Y*GF_Y);
-var balAngle = Math.atan2(GF_Y, stairRun);
-var stBal = bx(0.05, 0.05, balRailLen, M.monument);
-stBal.position.set(stX+stairW/2+0.05, GF_Y/2+0.5, LF_S-0.5-stairRun/2);
-stBal.rotation.x = balAngle;
-house.add(stBal);
 for (var sbi=0; sbi<=8; sbi++) {
-  var sbz = LF_S-0.5-sbi*stairRun/8;
-  var sby = (sbi/8)*GF_Y;
+  var sbFrac = sbi/8;
+  var sbz = LF_S-1.0-sbFrac*stairRun;
+  var sby = GF_Y - sbFrac*GF_Y;
   var bar = bx(0.02, 1.0, 0.02, M.monument);
   bar.position.set(stX+stairW/2+0.05, sby+0.5, sbz);
   house.add(bar);
+  // Inner side bars too
+  var bar2 = bx(0.02, 1.0, 0.02, M.monument);
+  bar2.position.set(stX-stairW/2-0.05, sby+0.5, sbz);
+  house.add(bar2);
 }
+// Top rail
+var balRailLen = Math.sqrt(stairRun*stairRun + GF_Y*GF_Y);
+var balAngle = Math.atan2(GF_Y, stairRun);
+var stBal = bx(0.05, 0.05, balRailLen, M.monument);
+stBal.position.set(stX+stairW/2+0.05, GF_Y/2+0.5, LF_S-1.0-stairRun/2);
+stBal.rotation.x = -balAngle;
+house.add(stBal);
 
 // ══════════════════════════════════════════
 // DETAILS

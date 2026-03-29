@@ -1,0 +1,161 @@
+Category,Item,Plan Value,Model Value,Status,Notes
+,,,,
+FLOOR LEVELS,,,,
+Level,Lower Floor RL,28.890 (Y=0 datum),Y=0,OK,Datum correctly set
+Level,Lower Floor Ceiling RL,31.890 (Y=3.0),Y=3.0 (LF_H=3.0),OK,
+Level,Ground Floor RL,32.340 (Y=3.45),Y=3.45 (GF_Y=3.45),OK,
+Level,Ground Floor Ceiling RL,35.090 (Y=6.2),Y=6.2 (GF_Y+GF_H=3.45+2.75),OK,
+Level,First Floor RL,35.540 (Y=6.65),Y=6.65 (FF_Y=6.65),OK,
+Level,First Floor Ceiling RL,38.140 (Y=9.25),Y=9.25 (FF_Y+FF_H=6.65+2.6),OK,
+Level,Finished Ridge RL,38.970 (Y=10.08),~Y=9.325 (FF_Y+FF_H+0.075),ERROR,"Ridge height too low. Roof slab at FF ceiling+0.075 = 9.325 vs required 10.08. Missing ~0.75m — roof pitch should raise ridge to 10.08"
+,,,,
+LOWER FLOOR,,,,
+Dimension,Width (E-W),12010mm,12.01m (LF_W),OK,
+Dimension,Depth (N-S),18710mm,18.71m (LF_D),OK,
+Dimension,Floor-to-ceiling height,3000mm,3.0m (LF_H),OK,
+Dimension,Wall thickness,270mm cavity brick,0.27m (WALL),OK,
+Area,Floor area,191.4 m²,"12.01×18.71=224.7 m²",QUERY,"Plan says 191.4 m² — implies L-shape or excluded areas (alfresco?). Model uses full rectangle"
+Feature,Alfresco 28.6 m²,South side separate covered area,Not modelled as separate area,ERROR,"Alfresco should be a separate open area on the south. Currently merged into main rectangular footprint"
+Colour,West wall,Monument (Scyon Axon),M.monument,OK,
+Colour,North wall,Rendered Grey Pebble,M.render,OK,
+Colour,East wall,Rendered Grey Pebble,M.render,OK,
+Colour,South wall,Rendered Grey Pebble,M.render,OK,
+,,,,
+LOWER FLOOR WINDOWS,,,,
+Window,W1 Bath South,H=600 W=1510 → 1.51m wide × 0.6m tall,addWin 1.51 wide 0.6 tall,OK,
+Window,W2 Laundry South,H=1200 W=450 → 0.45m wide × 1.2m tall,addWin 0.45 wide 1.2 tall,OK,
+Window,W3 Pantry South,H=600 W=1570 → 1.57m wide × 0.6m tall,addWin 1.57 wide 0.6 tall,OK,
+Window,W4 Dining East,H=3000 W=4000 → 4.0m wide × 3.0m tall,"addWin 4.0 wide 2.7 tall (capped at wall height-sill)",WARN,"Height capped from 3.0m to 2.7m due to 3.0m wall + 0.15m sill. Should be virtually full height"
+Window,W5 Family North,H=1800 W=1570 → 1.57m wide × 1.8m tall,addWin 1.57 wide 1.8 tall,OK,
+Window,W6 Family North,H=1800 W=1570 → 1.57m wide × 1.8m tall,addWin 1.57 wide 1.8 tall,OK,
+Window,W7 Family West,H=1800 W=1810 → 1.81m wide × 1.8m tall,addWin 1.81 wide 1.8 tall,OK,
+Window,W8 Media East,H=1200 W=1810 → 1.81m wide × 1.2m tall,addWin 1.81 wide 1.2 tall,OK,
+Window,W9 Guest West,H=1800 W=2170 → 2.17m wide × 1.8m tall,addWin 2.17 wide 1.8 tall,OK,
+Position,W1 cx along south wall,-4.0m from centre,Estimated — no plan dimension,QUERY,Position is approximate. Need floor plan dimension for exact placement
+Position,W2 cx along south wall,-2.0m from centre,Estimated,QUERY,Position approximate
+Position,W3 cx along south wall,+0.5m from centre,Estimated,QUERY,Position approximate
+Position,W4 cz along east wall,+2.0m from centre,Estimated,QUERY,Position approximate
+Position,W5 cx along north wall,+1.5m from centre,Estimated,QUERY,"All window positions along walls are estimated — exact positions require measuring from dimensioned floor plans at higher resolution"
+Position,W6 cx along north wall,+4.0m from centre,Estimated,QUERY,
+Position,W7 cz along west wall,+3.0m from centre,Estimated,QUERY,
+Position,W8 cz along east wall,-4.0m from centre,Estimated,QUERY,
+Position,W9 cz along west wall,-4.0m from centre,Estimated,QUERY,
+,,,,
+LOWER FLOOR DOORS,,,,
+Door,D1 Laundry South,"H=2100 W=900 → 0.9m×2.1m, Hume XF3","0.9m×2.1m, M.render colour",OK,Colour matches Grey Pebble per schedule
+Door,D3 East Stacker,"H=3000 W=4700 → 4.7m×3.0m, alum",4.7m wide × 2.85m tall (capped),WARN,Height capped to fit 3.0m wall minus sill
+Position,D1 cx,-3.0m from centre,Estimated,QUERY,
+Position,D3 cz,-3.0m from centre,Estimated,QUERY,
+,,,,
+GROUND FLOOR,,,,
+Dimension,Width (E-W),12010mm,12.01m (GF_W),OK,
+Dimension,Depth (N-S),~21020mm,21.02m (GF_D),OK,Matches plan dimension chain on page 9 (21020mm on left edge)
+Dimension,Floor-to-ceiling height,2750mm (35.090-32.340),2.75m (GF_H),OK,
+Dimension,Wall thickness,270mm,0.27m,OK,
+Area,Ground Floor,163.0 m²,"12.01×21.02=252.3 m²",ERROR,"Model is full rectangle. Plan says 163.0 m². Ground floor is NOT a full rectangle — it has the garage as a separate volume and internal voids/stairs"
+Feature,Garage,"~5000mm × 8460mm = 46.2 m², NW corner",Not carved out — garage door on west wall,ERROR,"Garage should be an identifiable volume in the NW corner. Currently just a door on the west wall with no volume distinction"
+Feature,Porch,2.8 m² near entry,1.5m × 3.0m = 4.5 m²,WARN,"Porch area oversized. Plan says 2.8 m², model shows ~4.5 m²"
+Alignment,South edge,Aligns with Lower Floor south,GF_S = LF_S = -9.355,OK,
+Alignment,North edge,Extends north of LF for garage,GF_N = +11.665 (2.31m north of LF),OK,
+,,,,
+GROUND FLOOR WINDOWS,,,,
+Window,W10 Bath South,H=600 W=1810 → 1.81m wide × 0.6m tall,addWin 1.81 wide 0.6 tall,OK,
+Window,W14 Bed2 East,H=1370 W=3000 → 3.0m wide × 1.37m tall,addWin 3.0 wide 1.37 tall,OK,
+Window,W15 Bed2 North,H=900 W=2410 → 2.41m wide × 0.9m tall,addWin 2.41 wide 0.9 tall,OK,
+Window,W16 Bed3 North,H=900 W=2410 → 2.41m wide × 0.9m tall,addWin 2.41 wide 0.9 tall,OK,
+Window,W17 Bed3 West,H=1370 W=1000 → 1.0m wide × 1.37m tall,addWin 1.0 wide 1.37 tall,OK,
+Window,W18 Stairs North,H=2950 W=1810 → 1.81m wide × 2.95m tall,"addWin 1.81 wide 2.5 tall (capped at GF_H-0.25)",WARN,"Height capped from 2.95m to 2.5m. May span across floor slab in reality (stairwell)"
+Window,W19 Garage North,H=600 W=3010 → 3.01m wide × 0.6m tall,addWin 3.01 wide 0.6 tall,OK,
+Window,W22 Stairs North,"H=3680 W=1810 → 1.81m wide × 3.68m tall, spans LF/GF","addWin on LF_N wall, 1.81 wide × 3.0 tall (capped)",WARN,"Height capped from 3.68m to 3.0m. This window spans two floors — should extend from LF through GF. Currently only 3.0m on LF north wall"
+Window,W23 Powder North,H=600 W=1210 → 1.21m wide × 0.6m tall,addWin 1.21 wide 0.6 tall,OK,
+Position,W15 on GF_N wall,"cx=+4.5, but GF_N=+11.665","Window at Z=+11.665, X=+4.5",QUERY,"X position +4.5 means 4.5m east of centre. Bed2 is on east side so plausible but unverified"
+Position,W18 on GF_N wall,"cx=-1.5, GF_N=+11.665",X=-1.5 (1.5m west of centre),QUERY,Stairs are central-west so plausible
+Position,W19 on GF_N wall,"cx=-4.5, GF_N=+11.665",X=-4.5 (4.5m west — in garage zone),OK,Garage is on west side
+Position,W22 on LF_N wall,"cx=-3.0, LF_N=+9.355",X=-3.0,QUERY,"Should this be on GF_N (+11.665) not LF_N (+9.355)? Stairs connect both levels but the window is on the north wall. The GF north wall is 2.3m further north."
+,,,,
+GROUND FLOOR DOORS,,,,
+Door,D2 North Stacker,"H=3000 W=3250 → 3.25m×3.0m, alum","3.25m wide × 2.6m tall (capped at GF_H-0.15)",WARN,Height capped from 3.0m to 2.6m
+Door,D4 Garage West,"H=2380 W=5000 → 5.0m×2.38m, B&D Madrid","5.0m wide × 2.38m tall on west wall",OK,Dimensions match. West wall per door schedule
+Door,D5 Entry West,"H=2340 W=1200 → 1.2m×2.34m, Hume Savoy",1.2m × 2.34m on west wall,OK,Timber colour applied
+Door,D7 East Stacker,"H=2100 W=1810 → 1.81m×2.1m, alum",1.81m wide × 2.1m tall on east wall,OK,
+Position,D4 garage Z,garZ = GF_N - 4.0 = +7.665,Estimated — garage in NW,QUERY,Should be verified against floor plan
+Position,D5 entry Z,entryZ = garZ - 4.5 = +3.165,Estimated,QUERY,Entry should be south of garage but exact position unverified
+Position,D2 cx on north wall,+2.0m east of centre,Estimated,QUERY,
+Position,D7 cz on east wall,+5.0m north of centre,Estimated,QUERY,
+,,,,
+FIRST FLOOR,,,,
+Dimension,Width (E-W),8260mm,8.26m (FF_W),OK,
+Dimension,Depth (N-S),~11370mm,11.37m (FF_D),OK,
+Dimension,Floor-to-ceiling height,2600mm (38.140-35.540),2.6m (FF_H),OK,
+Dimension,Wall thickness,"185mm EPS clad framed wall (per plan note: EXTERNAL WALL 185 EPS CLAD FRAMED WALL)",0.27m (uses WALL=0.27),ERROR,"First floor uses 185mm EPS walls not 270mm cavity brick. Model uses 270mm for all floors"
+Area,First Floor,65.9 m²,"8.26×11.37=93.9 m²",ERROR,"Model full rectangle = 93.9 m². Plan says 65.9 m² — first floor has voids, stairwell, irregular shape"
+Alignment,FF north edge,Per sections: roughly aligns with LF north edge,FF_N = LF_N = +9.355,OK,"Reasonable assumption from Section A-A"
+Alignment,FF E-W centering,Centred on building,FF_E=+4.13 FF_Wst=-4.13 (centred),QUERY,"First floor may not be centred E-W. From elevations it appears offset. Need high-res plan to confirm"
+Feature,Front Balcony,6.5 m²,"8.26m × 1.0m = 8.26 m²",WARN,"Balcony area oversized: 8.26 m² vs plan's 6.5 m². Width may not span full FF width"
+Feature,Rear Balcony,15.6 m²,"5.5m × 2.8m = 15.4 m²",OK,Close match (15.4 vs 15.6 m²)
+,,,,
+FIRST FLOOR WINDOWS,,,,
+Window,W11 Ensuite South,H=600 W=1570 → 1.57m wide × 0.6m tall,"addWin on FF_S, 1.57 wide × 0.6 tall",OK,Correctly placed on first floor
+Window,W12 Master East,H=1800 W=4000 → 4.0m wide × 1.8m tall,"addWin on FF_E, 4.0 wide × 1.8 tall",OK,
+Window,W13 Master North,H=1800 W=1810 → 1.81m wide × 1.8m tall,"addWin on FF_N, 1.81 wide × 1.8 tall",OK,
+Window,W20 Guest West,H=1800 W=3120 → 3.12m wide × 1.8m tall,"addWin on FF_Wst, 3.12 wide × 1.8 tall",OK,
+Window,W21 Stairs East,H=900 W=4560 → 4.56m wide × 0.9m tall,"addWin on FF_E, 4.56 wide × 0.9 tall",OK,
+Window,W24 Guest North,H=1200 W=2410 → 2.41m wide × 1.2m tall,"addWin on FF_N, 2.41 wide × 1.2 tall",OK,
+Window,W27 Stairs North,H=2950 W=1810 → 1.81m wide × 2.95m tall,"addWin on FF_N, 1.81 wide × 2.4 tall (capped)",WARN,Height capped from 2.95m to 2.4m to fit 2.6m wall
+Window,W12 wallX,Uses FF_E = +4.13,"LF_E = +6.005 for GF east wall, but FF_E = +4.13",QUERY,"W12 is on the first floor east wall at X=+4.13 — correct for FF. But the plan may show it projecting further east if master has a bump-out"
+,,,,
+FIRST FLOOR DOORS,,,,
+Door,D6 West Stacker,"H=2400 W=3610 → 3.61m×2.4m, alum","3.61m wide × 2.2m tall (capped from 2.4m)",WARN,Height slightly reduced
+,,,,
+ROOF,,,,
+Dimension,Roof pitch main,5°,"rotation.x = 5°×π/180",OK,
+Dimension,Roof pitch secondary,2°,"rotation.x = 2°×π/180",OK,Applied to south GF roof section
+Dimension,Finished Ridge height,RL 38.970 (Y=10.08),"Roof slab at Y ≈ 9.325 (FF_Y+FF_H+0.075)",ERROR,"Ridge ~0.755m too low. With 5° pitch over ~6m half-span, rise = 6×tan(5°) = 0.52m. So ridge should be at 9.25+0.52 = 9.77m. Still short of 10.08m. Parapet height makes up some difference but ridge itself is under-height"
+Feature,Kliplock profile,Sheet metal,Surfmist material applied,OK,Colour correct
+Feature,Skylights W25 W26,"2× FCM 2230, 720×550mm","2× boxes 0.72×0.55m on roof",OK,Dimensions match
+Feature,PV panels 6.63kW,East-facing roof section,"3×6 panel array on east roof",OK,General indication present
+Feature,Parapet west,Full-length west parapet,"WALL thick × 0.8m tall, full GF_D",OK,
+Feature,Parapet cap,Colorbond Surfmist,M.surfmist 0.35m wide cap,OK,
+,,,,
+EXTERNAL FEATURES,,,,
+Feature,Vergola,"S&I Lifestyle Louvres 200mm, Surfmist, over alfresco","5.5m×5.2m louvre structure, Surfmist",QUERY,"Size estimated — alfresco is 28.6 m². Vergola sized at 28.6 m² = ~5.5×5.2m is reasonable"
+Feature,External stairs,"Concrete + tile, south elevation, from GF to LF","18 steps, 1.2m wide, east of south elevation",OK,General form correct
+Feature,Stair balustrade,PC Aluminium Monument Panorama,Monument vertical bars + top rail,OK,
+Feature,Venetian blind W20,Motorised LLV80 Monument west elevation,0.05×2.0×3.2m box on west of FF,OK,General indication
+Feature,Glass balustrade front,"12mm toughened glass + U-channel, Monument","Glass panel + Monument U-channel + top rail",OK,
+Feature,Privacy screen,"70×16mm slat, Monument, balcony","12 slats on each side of front balcony",OK,
+Feature,Timber posts porch,"3× 180×65 dressed, Monument","3 posts 0.065×0.18m, Monument",OK,Dimensions match
+Feature,Timber posts balcony,"3× 180×65 dressed, Monument","3 posts on front balcony",OK,
+Feature,Downpipes,"90mm PVC painted Grey Pebble",4 corner downpipes r=45mm M.render colour,OK,
+Feature,Guttering,"Round line flatback half round, Monument",Cylinder mesh M.monument,OK,
+Feature,Eaves lining,Grey Pebble 1/2 Strength,"Single soffit panel, M.render",WARN,Only one eaves soffit modelled (south FF). Should be on all eaves
+,,,,
+COLOURS,,,,
+Colour,Render walls,Dulux Grey Pebble 1/2 Str S14B1H #cec8c1,0xcec8c1,OK,
+Colour,Monument,Colorbond Monument #3d4040,0x3d4040,OK,
+Colour,Surfmist,Colorbond Surfmist #e8e1d4,0xe8e1d4,OK,
+Colour,Timber entry door,Pacific Maple clear stain #8b6f47,0x8b6f47,OK,
+Colour,Glass tint,N/A (visual representation),0x8ec8d8,OK,Stylistic choice
+Colour,Concrete stairs,N/A #b0a898,0xb0a898,OK,
+Colour,Discrepancy flag,"Plans say Quarter (S14B1Q #e3e0da), Schedule says 1/2 Str (S14B1H #cec8c1)",Flagged in legend,OK,Warning present in UI
+Colour,25yr powder coat note,Required for all PC alum items,Noted in legend,OK,
+,,,,
+ORIENTATION & SITE,,,,
+Site,Ground slope,"North=high(street RL~32-33), South=low(harbour RL~28-29)","Terrain slopes N-high to S-low, north≈Y=3.5 south≈Y=0.5",OK,Correct direction
+Site,LF burial,"LF north wall mostly buried in hillside","Ground terrain at Z=+9.4 is at Y≈2.45, LF north wall top at Y=3.0 — partially buried",OK,Reasonable representation
+Site,GF at street level,"Ground floor entry at street level","GF_Y=3.45, terrain at north≈3.5",OK,
+,,,,
+MISSING FEATURES,,,,
+Missing,Lower floor is not L-shaped,Plans show non-rectangular lower floor (191.4 vs 224.7 m²),Modelled as full rectangle,ERROR,Should have recesses or excluded areas
+Missing,Ground floor is not rectangular,Plans show 163.0 m² vs model 252.3 m²,Modelled as full rectangle,ERROR,"Ground floor has significant void areas, stairwell, garage separation"
+Missing,First floor is not rectangular,Plans show 65.9 m² vs model 93.9 m²,Modelled as full rectangle,ERROR,"First floor has stairwell void, irregular shape"
+Missing,Internal courtyard/void,Sections show void areas between floors,Not modelled,WARN,Some sections show double-height voids
+Missing,Alfresco as distinct area,28.6 m² separate covered area on south,Merged into LF rectangle,ERROR,Should be shown as separate open-sided area
+Missing,GF-to-FF intermediate walls,"Where GF is wider than FF, there should be visible step-back",Side roof strips cover it but no visible wall step,WARN,The setback between GF (12.01m) and FF (8.26m) should show exposed GF roof
+,,,,
+SUMMARY,,,,
+Total items checked,~80,,,,
+OK,~45,,,,"Dimensions, colours, and features that match plans"
+WARN,~10,,,,"Minor discrepancies: capped heights, approximate sizes"
+QUERY,~16,,,,Window/door positions estimated — need higher-res plans to verify exact placement along walls
+ERROR,~8,,,,"Significant issues: floor shapes all rectangles vs actual irregular footprints; ridge height; FF wall thickness; alfresco not distinct"
