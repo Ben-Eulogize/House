@@ -13,7 +13,10 @@ canvas { display: block; }
 #views button { background: rgba(0,0,0,0.7); color: #fff; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 #views button:hover { background: rgba(60,60,60,0.9); }
 #legend { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.85); color: #fff; padding: 12px 16px; border-radius: 6px; font-size: 12px; max-height: 60vh; overflow-y: auto; }
-#legend h4 { margin: 0 0 8px; font-size: 13px; }
+#legend h4 { margin: 0 0 8px; font-size: 13px; cursor: pointer; user-select: none; }
+#legend h4::after { content: ' ▼'; font-size: 10px; }
+#legend.collapsed h4::after { content: ' ▶'; }
+#legend.collapsed .lrow, #legend.collapsed .lwarn { display: none; }
 .lrow { display: flex; align-items: center; margin-bottom: 4px; }
 .lswatch { width: 16px; height: 16px; border-radius: 3px; margin-right: 8px; border: 1px solid #666; flex-shrink: 0; }
 .lwarn { color: #f0c040; margin-top: 8px; font-size: 11px; line-height: 1.4; }
@@ -690,6 +693,10 @@ legendItems.forEach(it => {
 lhtml += '<div class="lwarn">⚠ DISCREPANCY: Plans p.2 specify "Grey Pebble Quarter" (S14B1Q, LRV 77, #e3e0da) but Selections Schedule says "½ Strength" (S14B1H, #cec8c1). Confirm with Horizon Homes before sign-off.</div>';
 lhtml += '<div class="lwarn">⚠ All PC aluminium items require 25yr powder (Interpon/Dulux) — salt water proximity (R3 exposure).</div>';
 legendDiv.innerHTML = lhtml;
+legendDiv.querySelector('h4').addEventListener('click', () => {
+  legendDiv.classList.toggle('collapsed');
+});
+legendDiv.classList.add('collapsed'); // start minimised
 
 // ── Animate ──
 function animate() {
