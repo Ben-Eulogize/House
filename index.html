@@ -231,13 +231,16 @@ w = bx(FF_W, 0.2, FF_D, M.concrete);
 w.position.set(0, FF_Y-0.1, FF_CZ); house.add(w);
 
 // ══════════════════════════════════════════
-// ROOF
+// ROOF — with prominent north canopy over front balcony
 // ══════════════════════════════════════════
-var ROVER = 0.5; // overhang
+var ROVER = 0.5; // side/south overhang
+var NOVER = 1.8; // north overhang — canopy over front balcony (key feature)
 
-// Main roof over first floor — 5° pitch
-var mainRoof = bx(FF_W+ROVER*2, 0.15, FF_D+ROVER*2, M.surfmist);
-mainRoof.position.set(0, FF_Y+FF_H+0.29, FF_CZ);
+// Main roof over first floor — 5° pitch, extended north for canopy
+var mainRoofD = FF_D + NOVER + ROVER;
+var mainRoofCZ = FF_S - ROVER + mainRoofD/2;
+var mainRoof = bx(FF_W+ROVER*2, 0.15, mainRoofD, M.surfmist);
+mainRoof.position.set(0, FF_Y+FF_H+0.25, mainRoofCZ);
 mainRoof.rotation.x = 5 * Math.PI / 180; // slopes down toward south
 mainRoof.castShadow = true; house.add(mainRoof);
 
@@ -259,11 +262,9 @@ if (gfRoofNorthD > 0.5) {
 // Side flat roofs over GF areas not under FF (east and west strips)
 var sideRoofW = (GF_W - FF_W)/2;
 if (sideRoofW > 0.3) {
-  // East side roof strip
   var srE = bx(sideRoofW+0.2, 0.12, FF_D+0.4, M.surfmist);
   srE.position.set(FF_E + sideRoofW/2, GF_Y+GF_H+0.06, FF_CZ);
   srE.castShadow = true; house.add(srE);
-  // West side roof strip
   var srW = bx(sideRoofW+0.2, 0.12, FF_D+0.4, M.surfmist);
   srW.position.set(FF_Wst - sideRoofW/2, GF_Y+GF_H+0.06, FF_CZ);
   srW.castShadow = true; house.add(srW);
@@ -277,22 +278,25 @@ w.position.set(LF_Wst, FF_Y+FF_H+parH/2, GF_CZ); house.add(w);
 // West parapet cap (Surfmist)
 w = bx(0.35, 0.06, GF_D+0.4, M.surfmist);
 w.position.set(LF_Wst, FF_Y+FF_H+parH+0.03, GF_CZ); house.add(w);
-// North parapet on first floor
-w = bx(FF_W, parH*0.6, WALL, M.render);
-w.position.set(0, FF_Y+FF_H+parH*0.3, FF_N); house.add(w);
-w = bx(FF_W, 0.06, 0.35, M.surfmist);
-w.position.set(0, FF_Y+FF_H+parH*0.6+0.03, FF_N); house.add(w);
 
-// ── Fascia (Monument) ──
+// ── Fascia (Monument) — thick dark edges, key architectural feature ──
 function fascia(fw,fd,fx,fy,fz){var f=bx(fw,0.12,fd,M.monument);f.position.set(fx,fy,fz);house.add(f)}
+// GF level fascia
 var fY = GF_Y+GF_H;
 fascia(0.08, GF_D+0.4, LF_E+0.2, fY, GF_CZ);
 fascia(GF_W+0.4, 0.08, 0, fY, GF_S-0.2);
 fascia(GF_W+0.4, 0.08, 0, fY, GF_N+0.2);
+// FF level fascia — THICK north fascia (prominent canopy edge from renders)
 var ffY = FF_Y+FF_H;
-fascia(0.08, FF_D+ROVER*2, FF_E+ROVER, ffY, FF_CZ);
-fascia(0.08, FF_D+ROVER*2, FF_Wst-ROVER, ffY, FF_CZ);
+var nFas = bx(FF_W+ROVER*2, 0.40, 0.12, M.monument);
+nFas.position.set(0, ffY+0.05, FF_N+NOVER); house.add(nFas);
+// East fascia
+fascia(0.08, mainRoofD, FF_E+ROVER, ffY, mainRoofCZ);
+// South fascia
 fascia(FF_W+ROVER*2, 0.08, 0, ffY, FF_S-ROVER);
+// Soffit under north canopy (render colour — visible from below)
+var soffit = bx(FF_W+ROVER*2, 0.03, NOVER, M.render);
+soffit.position.set(0, ffY-0.02, FF_N+NOVER/2); house.add(soffit);
 
 // ══════════════════════════════════════════
 // GARAGE DOOR — D4 on NORTH wall (west half), GF level
@@ -453,44 +457,61 @@ house.add(blindW20);
 // ══════════════════════════════════════════
 // BALCONIES
 // ══════════════════════════════════════════
-// Front balcony (north side, first floor) — ~6.5m² ≈ 6.5m × 1.0m
-var balcFW = FF_W, balcFD = 1.0;
+// Front balcony (north side, first floor) — 6.5m² ≈ 4.1m × 1.6m
+// Positioned on EAST portion of FF north face (per FF plan + renders)
+var balcFW = 4.1, balcFD = 1.6;
+var balcFX = FF_E - balcFW/2; // aligned to east half of FF
 var balcFSlab = bx(balcFW, 0.15, balcFD, M.concrete);
-balcFSlab.position.set(0, FF_Y-0.075, FF_N+balcFD/2); house.add(balcFSlab);
+balcFSlab.position.set(balcFX, FF_Y-0.075, FF_N+balcFD/2); house.add(balcFSlab);
 // Glass balustrade (12mm glass + Monument U-channel)
 var balcGlass = bx(balcFW, 1.0, 0.012, M.glass);
-balcGlass.position.set(0, FF_Y+0.5, FF_N+balcFD); house.add(balcGlass);
+balcGlass.position.set(balcFX, FF_Y+0.5, FF_N+balcFD); house.add(balcGlass);
 var uCh = bx(balcFW, 0.06, 0.05, M.monument);
-uCh.position.set(0, FF_Y+0.03, FF_N+balcFD); house.add(uCh);
+uCh.position.set(balcFX, FF_Y+0.03, FF_N+balcFD); house.add(uCh);
 var topR = bx(balcFW, 0.04, 0.05, M.monument);
-topR.position.set(0, FF_Y+1.02, FF_N+balcFD); house.add(topR);
+topR.position.set(balcFX, FF_Y+1.02, FF_N+balcFD); house.add(topR);
+// East side glass return on balcony
+var balcSideG = bx(0.012, 1.0, balcFD, M.glass);
+balcSideG.position.set(balcFX+balcFW/2, FF_Y+0.5, FF_N+balcFD/2); house.add(balcSideG);
 
-// Privacy screen slats on sides of front balcony (Monument 70×16mm)
-for (var side=-1; side<=1; side+=2) {
-  for (var si=0; si<12; si++) {
-    var slat = bx(0.016, 0.07, balcFD, M.monument);
-    slat.position.set(side*balcFW/2, FF_Y+0.15+si*0.085, FF_N+balcFD/2);
-    house.add(slat);
-  }
+// Privacy screen — WEST portion of FF north face (solid horizontal slats)
+// From renders: privacy screen covers the west half of FF front, from floor to near roof
+var privW = FF_W - balcFW - 0.3; // width of privacy screen zone
+var privX = FF_Wst + privW/2 + 0.1; // centered on west side of FF
+var privH = FF_H - 0.2; // nearly full floor height
+// Solid backing panel
+var privPanel = bx(privW, privH, 0.04, M.monument);
+privPanel.position.set(privX, FF_Y+0.1+privH/2, FF_N+FF_WALL/2+0.04); house.add(privPanel);
+// Horizontal slats (visual detail)
+for (var si=0; si<22; si++) {
+  var slat = bx(privW, 0.04, 0.06, M.monument);
+  slat.position.set(privX, FF_Y+0.15+si*0.11, FF_N+FF_WALL/2+0.06);
+  house.add(slat);
 }
-// 3 timber posts on front balcony
-for (var bi=0; bi<3; bi++) {
-  var bpx = -balcFW/2+0.3+bi*(balcFW-0.6)/2;
+
+// Posts supporting canopy at front balcony edge
+for (var bi=0; bi<2; bi++) {
+  var bpx = balcFX - balcFW/3 + bi*(balcFW*2/3);
   var bpost = bx(0.065, FF_H, 0.18, M.monument);
   bpost.position.set(bpx, FF_Y+FF_H/2, FF_N+balcFD-0.1); house.add(bpost);
 }
 
-// Rear balcony (south side, first floor) — ~15.6m² ≈ 5.5m × 2.8m
-var balcRW=5.5, balcRD=2.8;
+// Rear balcony (south side, first floor) — ~15.9m² ≈ 5.5m × 2.9m
+var balcRW=5.5, balcRD=2.9;
 var balcRSlab = bx(balcRW, 0.15, balcRD, M.concrete);
-balcRSlab.position.set(0, FF_Y-0.075, FF_S-balcRD/2); house.add(balcRSlab);
-// Rear railing
-var rRail = bx(balcRW, 0.05, 0.05, M.monument);
-rRail.position.set(0, FF_Y+1.0, FF_S-balcRD); house.add(rRail);
-for (var ri=0; ri<=4; ri++) {
-  var rp = bx(0.04, 1.0, 0.04, M.monument);
-  rp.position.set(-balcRW/2+ri*balcRW/4, FF_Y+0.5, FF_S-balcRD); house.add(rp);
-}
+balcRSlab.position.set(0.5, FF_Y-0.075, FF_S-balcRD/2); house.add(balcRSlab);
+// Glass balustrade on rear balcony (matching front style)
+var rGlass = bx(balcRW, 1.0, 0.012, M.glass);
+rGlass.position.set(0.5, FF_Y+0.5, FF_S-balcRD); house.add(rGlass);
+var rUch = bx(balcRW, 0.06, 0.05, M.monument);
+rUch.position.set(0.5, FF_Y+0.03, FF_S-balcRD); house.add(rUch);
+var rTopR = bx(balcRW, 0.04, 0.05, M.monument);
+rTopR.position.set(0.5, FF_Y+1.02, FF_S-balcRD); house.add(rTopR);
+// Side glass returns
+var rSideL = bx(0.012, 1.0, balcRD, M.glass);
+rSideL.position.set(0.5-balcRW/2, FF_Y+0.5, FF_S-balcRD/2); house.add(rSideL);
+var rSideR = bx(0.012, 1.0, balcRD, M.glass);
+rSideR.position.set(0.5+balcRW/2, FF_Y+0.5, FF_S-balcRD/2); house.add(rSideR);
 
 // ══════════════════════════════════════════
 // VERGOLA over alfresco (south, lower floor) — S&I Surfmist
