@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>49 Balls Head Road, Waverton — 3D Model</title>
+<style>
+body{margin:0;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+canvas{display:block}
+#info{position:absolute;top:10px;left:10px;color:#fff;background:rgba(0,0,0,.7);padding:10px 14px;border-radius:6px;font-size:13px;max-width:260px}
+#info h3{margin:0 0 4px;font-size:14px}
+#views{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px}
+#views button{background:rgba(0,0,0,.7);color:#fff;border:1px solid #555;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:12px}
+#views button:hover{background:rgba(60,60,60,.9)}
+#legend{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.85);color:#fff;padding:12px 16px;border-radius:6px;font-size:12px;max-height:60vh;overflow-y:auto}
+#legend h4{margin:0 0 8px;font-size:13px;cursor:pointer;user-select:none}
+#legend h4::after{content:' ▼';font-size:10px}
+#legend.collapsed h4::after{content:' ▶'}
+#legend.collapsed .lrow,#legend.collapsed .lwarn{display:none}
+.lrow{display:flex;align-items:center;margin-bottom:4px}
+.lswatch{width:16px;height:16px;border-radius:3px;margin-right:8px;border:1px solid #666;flex-shrink:0}
+.lwarn{color:#f0c040;margin-top:8px;font-size:11px;line-height:1.4}
+</style>
+</head>
+<body>
+<div id="info">
+  <h3>49 Balls Head Rd, Waverton</h3>
+  Lot 29 Sect 7 DP 6894 — Horizon Homes J1672 Rev S<br>
+  Drag to orbit · Scroll to zoom · Right-drag to pan
+</div>
+<div id="views"></div>
+<div id="legend"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+THREE.OrbitControls=function(o,d){var s=this;this.object=o;this.domElement=d;this.enabled=true;this.target=new THREE.Vector3;this.minDistance=0;this.maxDistance=Infinity;this.enableDamping=false;this.dampingFactor=0.05;this.enableZoom=true;this.zoomSpeed=1;this.enableRotate=true;this.rotateSpeed=1;this.enablePan=true;this.panSpeed=1;var S={NONE:-1,ROTATE:0,DOLLY:1,PAN:2};var state=S.NONE;var spherical=new THREE.Spherical;var sphericalDelta=new THREE.Spherical;var scl=1;var panOff=new THREE.Vector3;var rS=new THREE.Vector2;var rE=new THREE.Vector2;var rD=new THREE.Vector2;var pS=new THREE.Vector2;var pE=new THREE.Vector2;var pD=new THREE.Vector2;var dS=new THREE.Vector2;var dE=new THREE.Vector2;var dD=new THREE.Vector2;var off=new THREE.Vector3;var q=new THREE.Quaternion().setFromUnitVectors(o.up,new THREE.Vector3(0,1,0));var qi=q.clone().invert();this.update=function(){var p=s.object.position;off.copy(p).sub(s.target);off.applyQuaternion(q);spherical.setFromVector3(off);if(s.enableDamping){spherical.theta+=sphericalDelta.theta*s.dampingFactor;spherical.phi+=sphericalDelta.phi*s.dampingFactor}else{spherical.theta+=sphericalDelta.theta;spherical.phi+=sphericalDelta.phi}spherical.phi=Math.max(0.01,Math.min(Math.PI-0.01,spherical.phi));spherical.radius*=scl;spherical.radius=Math.max(s.minDistance,Math.min(s.maxDistance,spherical.radius));s.target.add(panOff);off.setFromSpherical(spherical);off.applyQuaternion(qi);p.copy(s.target).add(off);s.object.lookAt(s.target);if(s.enableDamping){sphericalDelta.theta*=(1-s.dampingFactor);sphericalDelta.phi*=(1-s.dampingFactor)}else{sphericalDelta.set(0,0,0)}scl=1;panOff.set(0,0,0)};function rL(a){sphericalDelta.theta-=a}function rU(a){sphericalDelta.phi-=a}var panL=function(){var v=new THREE.Vector3;return function(dist,m){v.setFromMatrixColumn(m,0);v.multiplyScalar(-dist);panOff.add(v)}}();var panU=function(){var v=new THREE.Vector3;return function(dist,m){v.setFromMatrixColumn(m,1);v.multiplyScalar(dist);panOff.add(v)}}();var pan=function(){return function(dX,dY){var el=s.domElement;if(s.object.isPerspectiveCamera){var ov=new THREE.Vector3;ov.copy(s.object.position).sub(s.target);var tD=ov.length()*Math.tan(s.object.fov/2*Math.PI/180);panL(2*dX*tD/el.clientHeight,s.object.matrix);panU(2*dY*tD/el.clientHeight,s.object.matrix)}}}();function dIn(ds){scl/=ds}function dOut(ds){scl*=ds}function onMD(e){if(!s.enabled)return;e.preventDefault();if(e.button===0){state=S.ROTATE;rS.set(e.clientX,e.clientY)}else if(e.button===1){state=S.DOLLY;dS.set(e.clientX,e.clientY)}else if(e.button===2){state=S.PAN;pS.set(e.clientX,e.clientY)}if(state!==S.NONE){document.addEventListener('mousemove',onMM,false);document.addEventListener('mouseup',onMU,false)}}function onMM(e){if(!s.enabled)return;e.preventDefault();if(state===S.ROTATE){rE.set(e.clientX,e.clientY);rD.subVectors(rE,rS);rL(2*Math.PI*rD.x/d.clientHeight*s.rotateSpeed);rU(2*Math.PI*rD.y/d.clientHeight*s.rotateSpeed);rS.copy(rE)}else if(state===S.DOLLY){dE.set(e.clientX,e.clientY);dD.subVectors(dE,dS);if(dD.y>0)dIn(Math.pow(0.95,s.zoomSpeed));else if(dD.y<0)dOut(Math.pow(0.95,s.zoomSpeed));dS.copy(dE)}else if(state===S.PAN){pE.set(e.clientX,e.clientY);pD.subVectors(pE,pS);pan(pD.x,pD.y);pS.copy(pE)}s.update()}function onMU(){document.removeEventListener('mousemove',onMM,false);document.removeEventListener('mouseup',onMU,false);state=S.NONE}function onW(e){if(!s.enabled||!s.enableZoom)return;e.preventDefault();e.stopPropagation();if(e.deltaY<0)dOut(Math.pow(0.95,s.zoomSpeed));else if(e.deltaY>0)dIn(Math.pow(0.95,s.zoomSpeed));s.update()}function onTS(e){if(!s.enabled)return;switch(e.touches.length){case 1:state=S.ROTATE;rS.set(e.touches[0].pageX,e.touches[0].pageY);break;case 2:state=S.DOLLY;var dx=e.touches[0].pageX-e.touches[1].pageX,dy=e.touches[0].pageY-e.touches[1].pageY;dS.set(0,Math.sqrt(dx*dx+dy*dy));break}}function onTM(e){if(!s.enabled)return;e.preventDefault();e.stopPropagation();switch(e.touches.length){case 1:rE.set(e.touches[0].pageX,e.touches[0].pageY);rD.subVectors(rE,rS);rL(2*Math.PI*rD.x/d.clientHeight*s.rotateSpeed);rU(2*Math.PI*rD.y/d.clientHeight*s.rotateSpeed);rS.copy(rE);break;case 2:var dx=e.touches[0].pageX-e.touches[1].pageX,dy=e.touches[0].pageY-e.touches[1].pageY;dE.set(0,Math.sqrt(dx*dx+dy*dy));dD.subVectors(dE,dS);if(dD.y>0)dOut(Math.pow(0.95,s.zoomSpeed));else if(dD.y<0)dIn(Math.pow(0.95,s.zoomSpeed));dS.copy(dE);break}s.update()}d.addEventListener('mousedown',onMD,false);d.addEventListener('wheel',onW,{passive:false});d.addEventListener('touchstart',onTS,{passive:false});d.addEventListener('touchmove',onTM,{passive:false});d.addEventListener('touchend',function(){state=S.NONE},false);d.addEventListener('contextmenu',function(e){e.preventDefault()},false);this.update()};
+
+// ── END OrbitControls ──
+</script>
+<script>
+// ══════════════════════════════════════════
+// 49 Balls Head Road — 3D House Model
+// ══════════════════════════════════════════
+// Coordinate system: X+=East, X-=West, Z+=North(street/high), Z-=South(harbour/low), Y+=Up
+// Datum: Y=0 = RL 28.890 (Lower Floor level)
+// All dimensions in metres
+
+// ── Colours ──
+var C = {
+  render:   0xcec8c1, // Dulux Grey Pebble 1/2 Str
+  monument: 0x3d4040, // Colorbond Monument
+  surfmist: 0xe8e1d4, // Colorbond Surfmist
+  timber:   0x8b6f47, // Pacific Maple
+  glass:    0x8ec8d8,
+  concrete: 0xb0a898,
+  ground:   0x6b8e5a
+};
+
+// ── Materials ──
+var M = {
+  render:   new THREE.MeshStandardMaterial({color:C.render, roughness:0.85}),
+  monument: new THREE.MeshStandardMaterial({color:C.monument, roughness:0.5}),
+  surfmist: new THREE.MeshStandardMaterial({color:C.surfmist, roughness:0.4, metalness:0.1}),
+  timber:   new THREE.MeshStandardMaterial({color:C.timber, roughness:0.7}),
+  glass:    new THREE.MeshStandardMaterial({color:C.glass, roughness:0.1, metalness:0.1, transparent:true, opacity:0.35, side: THREE.DoubleSide}),
+  concrete: new THREE.MeshStandardMaterial({color:C.concrete, roughness:0.9}),
+  ground:   new THREE.MeshStandardMaterial({color:C.ground, roughness:1}),
+  pv:       new THREE.MeshStandardMaterial({color:0x1a1a2e, roughness:0.3, metalness:0.6})
+};
+
+// ── Scene ──
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 80, 150);
+
+var camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 200);
+camera.position.set(20, 15, -24);
+
+var renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
+
+var controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 4, 0);
+controls.minDistance = 5;
+controls.maxDistance = 80;
+
+// ── Lighting ──
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+var sun = new THREE.DirectionalLight(0xffffff, 1.0);
+sun.position.set(15, 25, -10);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -25; sun.shadow.camera.right = 25;
+sun.shadow.camera.top = 25; sun.shadow.camera.bottom = -25;
+scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xddeeff, 0x8b7d6b, 0.3));
+
+// ── Helpers ──
+var house = new THREE.Group();
+scene.add(house);
+
+function bx(w,h,d,mat) {
+  var m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+
+// ══════════════════════════════════════════
+// GROUND TERRAIN — slopes from north(high ≈Y=3.5) to south(low ≈Y=0)
+// ══════════════════════════════════════════
+var gndGeo = new THREE.PlaneGeometry(80, 80, 30, 30);
+var gndPos = gndGeo.attributes.position;
+for (var i = 0; i < gndPos.count; i++) {
+  var lx = gndPos.getX(i);
+  var ly = gndPos.getY(i); // local Y → world -Z after rotation
+  // ly positive = south in world (after rot -PI/2, localY → -worldZ)
+  // We want north(Z+) high, south(Z-) low
+  // north in local = ly negative, south = ly positive
+  var elevation = -ly * 0.08 + 1.7 + Math.sin(lx*0.08)*0.15;
+  gndPos.setZ(i, elevation);
+}
+gndGeo.computeVertexNormals();
+var gndMesh = new THREE.Mesh(gndGeo, M.ground);
+gndMesh.rotation.x = -Math.PI / 2;
+gndMesh.receiveShadow = true;
+scene.add(gndMesh);
+
+// ══════════════════════════════════════════
+// BUILDING DIMENSIONS
+// ══════════════════════════════════════════
+var WALL = 0.27; // 270mm cavity brick
+
+// Lower Floor: 12.01m wide × 18.71m deep × 3.0m high
+// Base Y = 0 (RL 28.890)
+var LF_W=12.01, LF_D=18.71, LF_H=3.0, LF_Y=0;
+var LF_E=LF_W/2, LF_Wst=-LF_W/2; // ±6.005
+var LF_N=LF_D/2, LF_S=-LF_D/2;    // ±9.355
+
+// Ground Floor: 12.01m wide × 21.02m deep × 2.75m high
+// Base Y = 3.45 (RL 32.340)
+// South edge aligns with lower floor south. Extends further north (garage area)
+var GF_W=12.01, GF_D=21.02, GF_H=2.75, GF_Y=3.45;
+var GF_S=LF_S; // -9.355 (same south edge)
+var GF_N=GF_S+GF_D; // +11.665
+
+// First Floor: 8.26m wide × 11.37m deep × 2.6m high
+// Base Y = 6.65 (RL 35.540)
+// North edge aligns roughly with lower floor north edge
+// First floor walls are 185mm EPS clad framed wall (not 270mm cavity brick)
+var FF_WALL = 0.185;
+var FF_W=8.26, FF_D=11.37, FF_H=2.6, FF_Y=6.65;
+var FF_N=LF_N; // +9.355
+var FF_S=FF_N-FF_D; // -2.015
+
+// ══════════════════════════════════════════
+// LOWER FLOOR WALLS (Y=0 to Y=3.0)
+// ══════════════════════════════════════════
+// North wall (mostly buried in hillside)
+var w;
+w = bx(LF_W, LF_H, WALL, M.render);
+w.position.set(0, LF_Y+LF_H/2, LF_N); house.add(w);
+// South wall — split into two segments with opening for alfresco (south-west area)
+// Alfresco is ~5.5m wide on the west side of the south wall
+var alfrescoW = 5.5;
+var alfrescoWestEdge = LF_Wst; // starts at west edge
+var alfrescoEastEdge = alfrescoWestEdge + alfrescoW; // ends at -0.505
+// East segment of south wall (from alfresco east edge to building east edge)
+var southEastSegW = LF_E - alfrescoEastEdge;
+w = bx(southEastSegW, LF_H, WALL, M.render);
+w.position.set(alfrescoEastEdge + southEastSegW/2, LF_Y+LF_H/2, LF_S); house.add(w);
+// Short wall above alfresco opening (lintel area, top 0.6m)
+w = bx(alfrescoW, 0.6, WALL, M.render);
+w.position.set(alfrescoWestEdge + alfrescoW/2, LF_Y+LF_H-0.3, LF_S); house.add(w);
+// East wall
+w = bx(WALL, LF_H, LF_D, M.render);
+w.position.set(LF_E, LF_Y+LF_H/2, 0); house.add(w);
+// West wall — MONUMENT (Scyon Axon cladding)
+w = bx(WALL, LF_H, LF_D, M.monument);
+w.position.set(LF_Wst, LF_Y+LF_H/2, 0); house.add(w);
+// Floor slab
+w = bx(LF_W, 0.2, LF_D, M.concrete);
+w.position.set(0, LF_Y-0.1, 0); house.add(w);
+
+// ══════════════════════════════════════════
+// GROUND FLOOR WALLS (Y=3.45 to Y=6.2)
+// ══════════════════════════════════════════
+var GF_CZ = (GF_N+GF_S)/2; // centre Z = 1.155
+// North wall
+w = bx(GF_W, GF_H, WALL, M.render);
+w.position.set(0, GF_Y+GF_H/2, GF_N); house.add(w);
+// South wall (same Z as lower floor south)
+w = bx(GF_W, GF_H, WALL, M.render);
+w.position.set(0, GF_Y+GF_H/2, GF_S); house.add(w);
+// East wall
+w = bx(WALL, GF_H, GF_D, M.render);
+w.position.set(LF_E, GF_Y+GF_H/2, GF_CZ); house.add(w);
+// West wall — MONUMENT
+w = bx(WALL, GF_H, GF_D, M.monument);
+w.position.set(LF_Wst, GF_Y+GF_H/2, GF_CZ); house.add(w);
+// Floor slab
+w = bx(GF_W, 0.2, GF_D, M.concrete);
+w.position.set(0, GF_Y-0.1, GF_CZ); house.add(w);
+
+// ══════════════════════════════════════════
+// FIRST FLOOR WALLS (Y=6.65 to Y=9.25)
+// ══════════════════════════════════════════
+var FF_CZ = (FF_N+FF_S)/2; // centre Z = 3.67
+var FF_E=FF_W/2, FF_Wst=-FF_W/2; // ±4.13
+// North wall (185mm EPS)
+w = bx(FF_W, FF_H, FF_WALL, M.render);
+w.position.set(0, FF_Y+FF_H/2, FF_N); house.add(w);
+// South wall (185mm EPS)
+w = bx(FF_W, FF_H, FF_WALL, M.render);
+w.position.set(0, FF_Y+FF_H/2, FF_S); house.add(w);
+// East wall (185mm EPS)
+w = bx(FF_WALL, FF_H, FF_D, M.render);
+w.position.set(FF_E, FF_Y+FF_H/2, FF_CZ); house.add(w);
+// West wall — MONUMENT (185mm EPS)
+w = bx(FF_WALL, FF_H, FF_D, M.monument);
+w.position.set(FF_Wst, FF_Y+FF_H/2, FF_CZ); house.add(w);
+// Floor slab
+w = bx(FF_W, 0.2, FF_D, M.concrete);
+w.position.set(0, FF_Y-0.1, FF_CZ); house.add(w);
+
+// ══════════════════════════════════════════
+// ROOF — with prominent north canopy over front balcony
+// ══════════════════════════════════════════
+var ROVER = 0.5; // side/south overhang
+var NOVER = 1.8; // north overhang — canopy over front balcony (key feature)
+
+// Main roof over first floor — 5° pitch, extended north for canopy
+var mainRoofD = FF_D + NOVER + ROVER;
+var mainRoofCZ = FF_S - ROVER + mainRoofD/2;
+var mainRoof = bx(FF_W+ROVER*2, 0.15, mainRoofD, M.surfmist);
+mainRoof.position.set(0, FF_Y+FF_H+0.25, mainRoofCZ);
+mainRoof.rotation.x = 5 * Math.PI / 180; // slopes down toward south
+mainRoof.castShadow = true; house.add(mainRoof);
+
+// Flat roof over ground floor south section (between LF_S and FF_S)
+var gfRoofSouthD = Math.abs(FF_S - GF_S);
+var gfRoofS = bx(GF_W+0.4, 0.12, gfRoofSouthD+0.4, M.surfmist);
+gfRoofS.position.set(0, GF_Y+GF_H+0.06, (FF_S+GF_S)/2);
+gfRoofS.rotation.x = 2*Math.PI/180;
+gfRoofS.castShadow = true; house.add(gfRoofS);
+
+// Flat roof over ground floor north section (between FF_N and GF_N)
+var gfRoofNorthD = GF_N - FF_N;
+if (gfRoofNorthD > 0.5) {
+  var gfRoofN = bx(GF_W+0.4, 0.12, gfRoofNorthD+0.4, M.surfmist);
+  gfRoofN.position.set(0, GF_Y+GF_H+0.06, (FF_N+GF_N)/2);
+  gfRoofN.castShadow = true; house.add(gfRoofN);
+}
+
+// Side flat roofs over GF areas not under FF (east and west strips)
+var sideRoofW = (GF_W - FF_W)/2;
+if (sideRoofW > 0.3) {
+  var srE = bx(sideRoofW+0.2, 0.12, FF_D+0.4, M.surfmist);
+  srE.position.set(FF_E + sideRoofW/2, GF_Y+GF_H+0.06, FF_CZ);
+  srE.castShadow = true; house.add(srE);
+  var srW = bx(sideRoofW+0.2, 0.12, FF_D+0.4, M.surfmist);
+  srW.position.set(FF_Wst - sideRoofW/2, GF_Y+GF_H+0.06, FF_CZ);
+  srW.castShadow = true; house.add(srW);
+}
+
+// ── Parapets ──
+// West parapet (extends above FF ceiling to ridge level)
+var parH = 0.85;
+w = bx(WALL, parH, GF_D+0.4, M.monument);
+w.position.set(LF_Wst, FF_Y+FF_H+parH/2, GF_CZ); house.add(w);
+// West parapet cap (Surfmist)
+w = bx(0.35, 0.06, GF_D+0.4, M.surfmist);
+w.position.set(LF_Wst, FF_Y+FF_H+parH+0.03, GF_CZ); house.add(w);
+
+// ── Fascia (Monument) — thick dark edges, key architectural feature ──
+function fascia(fw,fd,fx,fy,fz){var f=bx(fw,0.12,fd,M.monument);f.position.set(fx,fy,fz);house.add(f)}
+// GF level fascia
+var fY = GF_Y+GF_H;
+fascia(0.08, GF_D+0.4, LF_E+0.2, fY, GF_CZ);
+fascia(GF_W+0.4, 0.08, 0, fY, GF_S-0.2);
+fascia(GF_W+0.4, 0.08, 0, fY, GF_N+0.2);
+// FF level fascia — THICK north fascia (prominent canopy edge from renders)
+var ffY = FF_Y+FF_H;
+var nFas = bx(FF_W+ROVER*2, 0.40, 0.12, M.monument);
+nFas.position.set(0, ffY+0.05, FF_N+NOVER); house.add(nFas);
+// East fascia
+fascia(0.08, mainRoofD, FF_E+ROVER, ffY, mainRoofCZ);
+// South fascia
+fascia(FF_W+ROVER*2, 0.08, 0, ffY, FF_S-ROVER);
+// Soffit under north canopy (render colour — visible from below)
+var soffit = bx(FF_W+ROVER*2, 0.03, NOVER, M.render);
+soffit.position.set(0, ffY-0.02, FF_N+NOVER/2); house.add(soffit);
+
+// ══════════════════════════════════════════
+// GARAGE DOOR — D4 on NORTH wall (west half), GF level
+// 5.0m wide × 2.38m tall
+// Northern elevation: garage is on left (west) portion of north face
+// ══════════════════════════════════════════
+var garX = -GF_W/4; // centre of west half of north wall
+var garDoor = bx(5.0, 2.38, 0.08, M.monument);
+garDoor.position.set(garX, GF_Y+2.38/2, GF_N+WALL/2+0.02); house.add(garDoor);
+// Madrid profile horizontal lines
+for (var gi=1;gi<5;gi++){
+  var gl=bx(4.9,0.02,0.1,M.render);
+  gl.position.set(garX, GF_Y+gi*2.38/5, GF_N+WALL/2+0.05);house.add(gl);
+}
+
+// ══════════════════════════════════════════
+// ENTRY DOOR — D5 on NORTH wall (east half), Hume Savoy SX45
+// 1.2m wide × 2.34m tall, Pacific Maple timber
+// Northern elevation: entry + porch on right (east) side of north face
+// ══════════════════════════════════════════
+var entryX = GF_W/4; // centre of east half of north wall
+var entDoor = bx(1.2, 2.34, 0.06, M.timber);
+entDoor.position.set(entryX, GF_Y+2.34/2, GF_N+WALL/2+0.02); house.add(entDoor);
+var entGlass = bx(0.4, 1.6, 0.02, M.glass);
+entGlass.position.set(entryX, GF_Y+0.5+1.6/2, GF_N+WALL/2+0.04); house.add(entGlass);
+
+// Porch (north side near entry) with 3 timber posts
+var porchSlab = bx(3.0, 0.15, 1.5, M.concrete);
+porchSlab.position.set(entryX, GF_Y-0.075, GF_N+0.75); house.add(porchSlab);
+for (var pi=0;pi<3;pi++){
+  var px = entryX - 1.2 + pi*1.2;
+  var post = bx(0.18, GF_H, 0.065, M.monument);
+  post.position.set(px, GF_Y+GF_H/2, GF_N+1.4); house.add(post);
+}
+// Porch roof
+var porchRoof = bx(3.4, 0.1, 1.8, M.surfmist);
+porchRoof.position.set(entryX, GF_Y+GF_H+0.05, GF_N+0.75); house.add(porchRoof);
+
+// D01 — Stacker door on EAST wall, LF level (3.25m wide × 3.0m tall)
+// KXF3032 SP — Opens from living/dining area to east garden
+var d01h=Math.min(3.0,LF_H-0.15);
+var d01f = bx(0.06, d01h, 3.25, M.monument);
+d01f.position.set(LF_E+WALL/2+0.02, LF_Y+0.1+d01h/2, -1.0); house.add(d01f);
+var d01g = bx(0.02, d01h-0.1, 3.15, M.glass);
+d01g.position.set(LF_E+WALL/2+0.02, LF_Y+0.15+d01h/2-0.05, -1.0); house.add(d01g);
+
+// D02 — Stacker door on SOUTH wall, LF level (4.7m wide × 3.0m tall)
+// FXX3047 SP — Opens from dining to south (harbour views), east of alfresco
+var d02h=Math.min(3.0,LF_H-0.15);
+var d02f = bx(4.7, d02h, 0.06, M.monument);
+d02f.position.set(1.85, LF_Y+0.1+d02h/2, LF_S-WALL/2-0.02); house.add(d02f);
+var d02g = bx(4.6, d02h-0.1, 0.02, M.glass);
+d02g.position.set(1.85, LF_Y+0.15+d02h/2-0.05, LF_S-WALL/2-0.02); house.add(d02g);
+
+// D03 — Stacker door on SOUTH wall, FF level (3.61m wide × 2.4m tall)
+// FXX2436 — Opens from Guest room to rear balcony
+var d03h=2.4;
+var d03f = bx(3.61, d03h, 0.06, M.monument);
+d03f.position.set(-2.4, FF_Y+0.1+d03h/2, FF_S-FF_WALL/2-0.02); house.add(d03f);
+var d03g = bx(3.5, d03h-0.1, 0.02, M.glass);
+d03g.position.set(-2.4, FF_Y+0.15+d03h/2-0.05, FF_S-FF_WALL/2-0.02); house.add(d03g);
+
+// D04 — Sliding door on NORTH wall, FF level (1.81m wide × 2.1m tall)
+// AF2118 — Opens from rumpus/void area to front balcony
+var d04f = bx(1.81, 2.1, 0.06, M.monument);
+d04f.position.set(2.0, FF_Y+0.1+2.1/2, FF_N+FF_WALL/2+0.02); house.add(d04f);
+var d04g = bx(1.7, 2.0, 0.02, M.glass);
+d04g.position.set(2.0, FF_Y+0.15+2.0/2, FF_N+FF_WALL/2+0.02); house.add(d04g);
+
+// ══════════════════════════════════════════
+// WINDOWS — all 27 from schedule
+// Schedule format: HEIGHT(mm) × WIDTH(mm)
+// In model: winW = horizontal, winH = vertical
+// ══════════════════════════════════════════
+function addWin(face, wallX, wallZ, baseY, cx, winW, winH, sillH, wallThk) {
+  sillH = sillH || 0.9;
+  wallThk = wallThk || WALL; // default 270mm, pass FF_WALL for first floor
+  var wy = baseY + sillH + winH/2;
+  var frame, glass;
+  // Offset windows to sit on OUTER surface of wall (not buried inside)
+  var outOff = wallThk/2 + 0.02; // push just outside the wall face
+  if (face==='N'||face==='S') {
+    var zOff = face==='N' ? outOff : -outOff; // north=+Z, south=-Z → outward
+    frame = bx(winW, winH, 0.05, M.monument);
+    glass = bx(winW-0.06, winH-0.06, 0.02, M.glass);
+    frame.position.set(cx, wy, wallZ + zOff);
+    glass.position.set(cx, wy, wallZ + zOff);
+  } else {
+    var xOff = face==='E' ? outOff : -outOff; // east=+X, west=-X → outward
+    frame = bx(0.05, winH, winW, M.monument);
+    glass = bx(0.02, winH-0.06, winW-0.06, M.glass);
+    frame.position.set(wallX + xOff, wy, cx);
+    glass.position.set(wallX + xOff, wy, cx);
+  }
+  house.add(frame); house.add(glass);
+  return {frame:frame, glass:glass};
+}
+
+// ── Lower Floor windows (baseY = 0) ──
+// W1: Bath, H=600 W=1510, East — bath at south-east corner
+addWin('E', LF_E, 0, 0, -8.5, 1.51, 0.6, 1.5);
+// W2: Laundry, H=1200 W=600, South — east of D02 on south wall
+addWin('S', 0, LF_S, 0, 4.8, 0.6, 1.2, 1.0);
+// W3: Pantry, H=600 W=1570, East — pantry faces east
+addWin('E', LF_E, 0, 0, 5.0, 1.57, 0.6, 1.5);
+// W4: Dining, H=3000 W=4200, East — large dining window
+addWin('E', LF_E, 0, 0, -5.0, 4.2, 2.7, 0.15);
+// W5: Family/Dining, H=1800 W=1810, North — west side
+addWin('N', 0, LF_N, 0, -0.5, 1.81, 1.8, 0.6);
+// W6: Family/Dining, H=1800 W=1810, North — further west
+addWin('N', 0, LF_N, 0, -5.0, 1.81, 1.8, 0.6);
+// W7: Family/Dining, H=1800 W=2170, West — south portion
+addWin('W', LF_Wst, 0, 0, -3.0, 2.17, 1.8, 0.6);
+// W8: Media Room, H=1200 W=2170, West — north portion
+addWin('W', LF_Wst, 0, 0, 6.0, 2.17, 1.2, 0.9);
+// W9: Media Room/Cellar, H=1800 W=2410, West — north end
+addWin('W', LF_Wst, 0, 0, 8.0, 2.41, 1.8, 0.6);
+
+// ── Ground Floor windows (baseY = 3.45) ──
+// W10: Bed2, H=600 W=1810, South — west portion of GF south wall
+addWin('S', 0, GF_S, GF_Y, -2.0, 1.81, 0.6, 1.5);
+// W11: Ensuite, H=600 W=1570, South — near Master bathroom (GF south-east)
+addWin('S', 0, GF_S, GF_Y, 3.0, 1.57, 0.6, 1.5);
+// W12: Master, H=1800 W=5200, East — large window at south-east (Master on GF)
+addWin('E', LF_E, 0, GF_Y, -6.0, 5.2, 1.8, 0.3);
+// W14: Bath/WIR, H=1370 W=3000, East — center of east wall
+addWin('E', LF_E, 0, GF_Y, 0.0, 3.0, 1.37, 0.6);
+// W15: Bath, H=900 W=2410, North — on main north wall (LF_N), east side
+addWin('N', 0, LF_N, GF_Y, 2.0, 2.41, 0.9, 1.5);
+// W16: Bed3, H=900 W=2410, North — on main north wall (LF_N), west side
+addWin('N', 0, LF_N, GF_Y, -5.1, 2.41, 0.9, 0.9);
+// W17: Bed3, H=1370 W=1000, West — north portion of west wall
+addWin('W', LF_Wst, 0, GF_Y, 6.0, 1.0, 1.37, 0.6);
+// W19: Garage, H=600 W=3010, North — strip window above garage door
+addWin('N', 0, GF_N, GF_Y, -3.0, 3.01, 0.6, 2.45);
+// W22: Stairs, H=3680 W=1810, North (fixed, very tall — spans LF/GF)
+addWin('N', 0, LF_N, 0, -3.0, 1.81, 3.5, 0.2);
+// W23: Powder room, H=600 W=1210, North — east of entry door
+addWin('N', 0, GF_N, GF_Y, 4.8, 1.21, 0.6, 1.5);
+// W24: Guest/Study, H=1200 W=2410, East — north-east (GF extension)
+addWin('E', LF_E, 0, GF_Y, 9.5, 2.41, 1.2, 0.5);
+
+// ── First Floor windows (baseY = 6.65, FF_WALL = 185mm) ──
+// W13: H=1800 W=1810, North — west side of FF north wall
+addWin('N', 0, FF_N, FF_Y, -3.0, 1.81, 1.8, 0.3, FF_WALL);
+// W18: Stairs, H=2950 W=1810, West (fixed) — near stairs, north portion
+addWin('W', FF_Wst, 0, FF_Y, 5.5, 1.81, 2.5, 0.05, FF_WALL);
+// W20: Guest, H=1800 W=3170, West (has venetian blind) — south portion
+addWin('W', FF_Wst, 0, FF_Y, -0.2, 3.17, 1.8, 0.3, FF_WALL);
+// W21: Rumpus/Balcony, H=900 W=4760, North (fixed) — large window behind balcony
+addWin('N', 0, FF_N, FF_Y, 0.5, 4.76, 0.9, 0.6, FF_WALL);
+
+// Venetian blind on W20 (Monument, west elevation)
+var blindW20 = bx(0.05, 2.0, 3.2, M.monument);
+blindW20.position.set(FF_Wst-FF_WALL-0.1, FF_Y+0.3+2.0/2, -0.2);
+house.add(blindW20);
+
+// ══════════════════════════════════════════
+// BALCONIES
+// ══════════════════════════════════════════
+// Front balcony (north side, first floor) — 6.5m² ≈ 4.1m × 1.6m
+// Positioned on EAST portion of FF north face (per FF plan + renders)
+var balcFW = 4.1, balcFD = 1.6;
+var balcFX = FF_E - balcFW/2; // aligned to east half of FF
+var balcFSlab = bx(balcFW, 0.15, balcFD, M.concrete);
+balcFSlab.position.set(balcFX, FF_Y-0.075, FF_N+balcFD/2); house.add(balcFSlab);
+// Glass balustrade (12mm glass + Monument U-channel)
+var balcGlass = bx(balcFW, 1.0, 0.012, M.glass);
+balcGlass.position.set(balcFX, FF_Y+0.5, FF_N+balcFD); house.add(balcGlass);
+var uCh = bx(balcFW, 0.06, 0.05, M.monument);
+uCh.position.set(balcFX, FF_Y+0.03, FF_N+balcFD); house.add(uCh);
+var topR = bx(balcFW, 0.04, 0.05, M.monument);
+topR.position.set(balcFX, FF_Y+1.02, FF_N+balcFD); house.add(topR);
+// East side glass return on balcony
+var balcSideG = bx(0.012, 1.0, balcFD, M.glass);
+balcSideG.position.set(balcFX+balcFW/2, FF_Y+0.5, FF_N+balcFD/2); house.add(balcSideG);
+
+// Privacy screen — WEST portion of FF north face (solid horizontal slats)
+// From renders: privacy screen covers the west half of FF front, from floor to near roof
+var privW = FF_W - balcFW - 0.3; // width of privacy screen zone
+var privX = FF_Wst + privW/2 + 0.1; // centered on west side of FF
+var privH = FF_H - 0.2; // nearly full floor height
+// Solid backing panel
+var privPanel = bx(privW, privH, 0.04, M.monument);
+privPanel.position.set(privX, FF_Y+0.1+privH/2, FF_N+FF_WALL/2+0.04); house.add(privPanel);
+// Horizontal slats (visual detail)
+for (var si=0; si<22; si++) {
+  var slat = bx(privW, 0.04, 0.06, M.monument);
+  slat.position.set(privX, FF_Y+0.15+si*0.11, FF_N+FF_WALL/2+0.06);
+  house.add(slat);
+}
+
+// Posts supporting canopy at front balcony edge
+for (var bi=0; bi<2; bi++) {
+  var bpx = balcFX - balcFW/3 + bi*(balcFW*2/3);
+  var bpost = bx(0.065, FF_H, 0.18, M.monument);
+  bpost.position.set(bpx, FF_Y+FF_H/2, FF_N+balcFD-0.1); house.add(bpost);
+}
+
+// Rear balcony (south side, first floor) — ~15.9m² ≈ 5.5m × 2.9m
+var balcRW=5.5, balcRD=2.9;
+var balcRSlab = bx(balcRW, 0.15, balcRD, M.concrete);
+balcRSlab.position.set(0.5, FF_Y-0.075, FF_S-balcRD/2); house.add(balcRSlab);
+// Glass balustrade on rear balcony (matching front style)
+var rGlass = bx(balcRW, 1.0, 0.012, M.glass);
+rGlass.position.set(0.5, FF_Y+0.5, FF_S-balcRD); house.add(rGlass);
+var rUch = bx(balcRW, 0.06, 0.05, M.monument);
+rUch.position.set(0.5, FF_Y+0.03, FF_S-balcRD); house.add(rUch);
+var rTopR = bx(balcRW, 0.04, 0.05, M.monument);
+rTopR.position.set(0.5, FF_Y+1.02, FF_S-balcRD); house.add(rTopR);
+// Side glass returns
+var rSideL = bx(0.012, 1.0, balcRD, M.glass);
+rSideL.position.set(0.5-balcRW/2, FF_Y+0.5, FF_S-balcRD/2); house.add(rSideL);
+var rSideR = bx(0.012, 1.0, balcRD, M.glass);
+rSideR.position.set(0.5+balcRW/2, FF_Y+0.5, FF_S-balcRD/2); house.add(rSideR);
+
+// ══════════════════════════════════════════
+// VERGOLA over alfresco (south, lower floor) — S&I Surfmist
+// ══════════════════════════════════════════
+var vergW=5.5, vergD=5.2;
+var vergY2 = LF_H+0.3;
+var vergX = LF_Wst + vergW/2; // aligned to west side (alfresco is south-west)
+// Main frame
+var vFrame = bx(vergW, 0.12, vergD, M.surfmist);
+vFrame.position.set(vergX, vergY2, LF_S-vergD/2);
+vFrame.material = M.surfmist.clone();
+vFrame.material.transparent = true; vFrame.material.opacity = 0.6;
+house.add(vFrame);
+// Louvre slats
+for (var li=0; li<14; li++) {
+  var lv = bx(vergW-0.2, 0.02, 0.2, M.surfmist);
+  lv.position.set(vergX, vergY2+0.08, LF_S-0.3-li*(vergD-0.6)/13);
+  lv.rotation.x = 15*Math.PI/180;
+  house.add(lv);
+}
+// Vergola posts
+for (var vsx=-1;vsx<=1;vsx+=2){
+  for(var vsz=0;vsz<=1;vsz++){
+    var vp=bx(0.1,vergY2,0.1,M.monument);
+    vp.position.set(vergX+vsx*(vergW/2-0.1),vergY2/2,LF_S-0.2-vsz*(vergD-0.4));
+    house.add(vp);
+  }
+}
+
+// ══════════════════════════════════════════
+// EXTERNAL STAIRS (south elevation) — concrete, GF down to LF
+// ══════════════════════════════════════════
+// External stairs on south elevation — against the WEST end of the south wall
+// Southern elevation shows stairs on the RIGHT side (= WEST when viewed from south)
+// Run south (away from building) and descend from GF level to LF level
+var stairW=1.2, stairRun=4.5, nSteps=18;
+var stX = LF_Wst + stairW/2 + 0.3; // against west end of south wall
+var stRise = GF_Y/nSteps, stGoing = stairRun/nSteps;
+// Stair landing at GF level against south wall
+var stLanding = bx(stairW+0.4, 0.15, 1.0, M.concrete);
+stLanding.position.set(stX, GF_Y-0.075, LF_S-0.5); house.add(stLanding);
+// Steps descending southward
+for (var sti=0; sti<nSteps; sti++) {
+  var step = bx(stairW, stRise, stGoing, M.concrete);
+  step.position.set(stX, GF_Y - sti*stRise - stRise/2, LF_S-1.0-sti*stGoing);
+  house.add(step);
+}
+// Stringer/side wall for stairs (so they don't float)
+var stringerH = GF_Y;
+var stringerGeo = new THREE.BufferGeometry();
+var sv = [
+  // Triangle strip forming the stringer side
+  stX+stairW/2+0.05, GF_Y, LF_S-1.0,
+  stX+stairW/2+0.05, 0, LF_S-1.0-stairRun,
+  stX+stairW/2+0.05, 0, LF_S-1.0,
+  stX+stairW/2+0.05, GF_Y, LF_S-1.0,
+  stX+stairW/2+0.05, GF_Y, LF_S-1.0-stairRun,
+  stX+stairW/2+0.05, 0, LF_S-1.0-stairRun
+];
+stringerGeo.setAttribute('position', new THREE.Float32BufferAttribute(sv, 3));
+stringerGeo.computeVertexNormals();
+var stringer = new THREE.Mesh(stringerGeo, M.concrete);
+house.add(stringer);
+// Stair balustrade — Monument Panorama (vertical bars + top rail)
+for (var sbi=0; sbi<=8; sbi++) {
+  var sbFrac = sbi/8;
+  var sbz = LF_S-1.0-sbFrac*stairRun;
+  var sby = GF_Y - sbFrac*GF_Y;
+  var bar = bx(0.02, 1.0, 0.02, M.monument);
+  bar.position.set(stX+stairW/2+0.05, sby+0.5, sbz);
+  house.add(bar);
+  // Inner side bars too
+  var bar2 = bx(0.02, 1.0, 0.02, M.monument);
+  bar2.position.set(stX-stairW/2-0.05, sby+0.5, sbz);
+  house.add(bar2);
+}
+// Top rail
+var balRailLen = Math.sqrt(stairRun*stairRun + GF_Y*GF_Y);
+var balAngle = Math.atan2(GF_Y, stairRun);
+var stBal = bx(0.05, 0.05, balRailLen, M.monument);
+stBal.position.set(stX+stairW/2+0.05, GF_Y/2+0.5, LF_S-1.0-stairRun/2);
+stBal.rotation.x = -balAngle;
+house.add(stBal);
+
+// ══════════════════════════════════════════
+// DETAILS
+// ══════════════════════════════════════════
+// Downpipes (Grey Pebble 90mm) at corners
+var dpGeo = new THREE.CylinderGeometry(0.045,0.045,GF_Y+GF_H,8);
+var dpPositions = [
+  [LF_E+0.1, (GF_Y+GF_H)/2, LF_N],
+  [LF_E+0.1, (GF_Y+GF_H)/2, LF_S],
+  [LF_Wst-0.1, (GF_Y+GF_H)/2, LF_N],
+  [LF_Wst-0.1, (GF_Y+GF_H)/2, LF_S]
+];
+dpPositions.forEach(function(p){
+  var dp = new THREE.Mesh(dpGeo, M.render);
+  dp.position.set(p[0],p[1],p[2]); house.add(dp);
+});
+
+// Guttering (Monument half-round)
+var gutGeo = new THREE.CylinderGeometry(0.06,0.06,GF_W+0.4,8);
+gutGeo.rotateZ(Math.PI/2);
+var gutS = new THREE.Mesh(gutGeo, M.monument);
+gutS.position.set(0, GF_Y+GF_H-0.03, GF_S-0.2); house.add(gutS);
+var gutN = new THREE.Mesh(gutGeo.clone(), M.monument);
+gutN.position.set(0, GF_Y+GF_H-0.03, GF_N+0.2); house.add(gutN);
+
+// Skylights (W25, W26) on roof
+for (var ski=0; ski<2; ski++) {
+  var sky = bx(0.72, 0.08, 0.55, M.glass);
+  sky.position.set(1.5+ski*2.0, FF_Y+FF_H+0.2, FF_CZ+1.5); house.add(sky);
+  var skf = bx(0.82, 0.04, 0.65, M.monument);
+  skf.position.set(1.5+ski*2.0, FF_Y+FF_H+0.17, FF_CZ+1.5); house.add(skf);
+}
+
+// PV panels on east-facing roof (6.63kW)
+var pvG = new THREE.Group();
+for (var pr=0;pr<3;pr++){
+  for(var pc=0;pc<6;pc++){
+    var pnl=bx(0.99,0.04,1.65,M.pv);
+    pnl.position.set(FF_E-0.8-pc*1.05, 0.05, FF_CZ-2+pr*1.75);
+    pvG.add(pnl);
+  }
+}
+pvG.position.y = FF_Y+FF_H+0.15;
+pvG.rotation.x = -5*Math.PI/180;
+house.add(pvG);
+
+// Eaves soffit (Grey Pebble)
+var eave = bx(FF_W+ROVER*2, 0.03, ROVER, M.render);
+eave.position.set(0, FF_Y+FF_H-0.02, FF_S-ROVER/2); house.add(eave);
+
+// ══════════════════════════════════════════
+// VIEW PRESETS
+// ══════════════════════════════════════════
+var viewsDiv = document.getElementById('views');
+var presets = [
+  {name:'North (Street)',   pos:[0,8,28],    tgt:[0,4,0]},
+  {name:'South (Harbour)',  pos:[0,8,-28],   tgt:[0,4,0]},
+  {name:'East',             pos:[28,8,0],    tgt:[0,4,0]},
+  {name:'West',             pos:[-28,8,0],   tgt:[0,4,0]},
+  {name:'Aerial',           pos:[15,30,-15], tgt:[0,3,0]},
+  {name:'SE Default',       pos:[20,15,-24], tgt:[0,4,0]}
+];
+presets.forEach(function(p){
+  var btn=document.createElement('button');
+  btn.textContent=p.name;
+  btn.onclick=function(){
+    camera.position.set(p.pos[0],p.pos[1],p.pos[2]);
+    controls.target.set(p.tgt[0],p.tgt[1],p.tgt[2]);
+    controls.update();
+  };
+  viewsDiv.appendChild(btn);
+});
+
+// ══════════════════════════════════════════
+// COLOUR LEGEND
+// ══════════════════════════════════════════
+var legendDiv = document.getElementById('legend');
+var legendItems = [
+  {c:'#cec8c1', l:'Render — Dulux Grey Pebble 1/2 Strength (N/E/S walls)'},
+  {c:'#3d4040', l:'Cladding — Colorbond Monument (W elevation, Scyon Axon 133mm)'},
+  {c:'#e8e1d4', l:'Roof — Colorbond Surfmist (Kliplock)'},
+  {c:'#e8e1d4', l:'Parapet Capping — Surfmist'},
+  {c:'#3d4040', l:'Fascia & Guttering — Monument'},
+  {c:'#cec8c1', l:'Downpipes & Eaves — Grey Pebble 1/2 Str'},
+  {c:'#3d4040', l:'Windows & Doors — PC Aluminium Monument'},
+  {c:'#3d4040', l:'Garage Door — B&D Madrid Woodgrain Monument'},
+  {c:'#8b6f47', l:'Entry Door — Hume Savoy SX45 Pacific Maple'},
+  {c:'#cec8c1', l:'Laundry Door — Hume XF3 Grey Pebble 1/2 Str'},
+  {c:'#3d4040', l:'Balustrade — 12mm Glass + Monument U-channel'},
+  {c:'#3d4040', l:'Privacy Screen — 70x16mm Monument slats'},
+  {c:'#3d4040', l:'Stair Balustrade — Monument Panorama'},
+  {c:'#3d4040', l:'Venetian Blind — Monument (W20, west)'},
+  {c:'#e8e1d4', l:'Vergola — S&I Surfmist 200mm louvres'},
+  {c:'#b0a898', l:'External Stairs — Concrete + tile'},
+  {c:'#3d4040', l:'Timber Posts — Monument (180x65 dressed)'}
+];
+var lh = '<h4>Colour & Finishes Schedule</h4>';
+legendItems.forEach(function(it){
+  lh += '<div class="lrow"><div class="lswatch" style="background:'+it.c+'"></div><span>'+it.l+'</span></div>';
+});
+lh += '<div class="lwarn">⚠ DISCREPANCY: Plans p.2 specify "Grey Pebble Quarter" (S14B1Q, LRV 77, ~#e3e0da) but Selections Schedule says "1/2 Strength" (S14B1H, ~#cec8c1). Confirm with Horizon Homes.</div>';
+lh += '<div class="lwarn">⚠ All PC aluminium requires 25yr powder (Interpon/Dulux) — salt water proximity (R3 exposure).</div>';
+legendDiv.innerHTML = lh;
+legendDiv.querySelector('h4').addEventListener('click', function(){
+  legendDiv.classList.toggle('collapsed');
+});
+legendDiv.classList.add('collapsed');
+
+// ── Animate ──
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', function(){
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
