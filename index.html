@@ -237,7 +237,7 @@ var ROVER = 0.5; // overhang
 
 // Main roof over first floor — 5° pitch
 var mainRoof = bx(FF_W+ROVER*2, 0.15, FF_D+ROVER*2, M.surfmist);
-mainRoof.position.set(0, FF_Y+FF_H+0.075, FF_CZ);
+mainRoof.position.set(0, FF_Y+FF_H+0.29, FF_CZ);
 mainRoof.rotation.x = 5 * Math.PI / 180; // slopes down toward south
 mainRoof.castShadow = true; house.add(mainRoof);
 
@@ -270,13 +270,13 @@ if (sideRoofW > 0.3) {
 }
 
 // ── Parapets ──
-// West parapet (full length of ground floor)
-var parH = 0.8;
+// West parapet (extends above FF ceiling to ridge level)
+var parH = 0.85;
 w = bx(WALL, parH, GF_D+0.4, M.monument);
-w.position.set(LF_Wst, GF_Y+GF_H+parH/2, GF_CZ); house.add(w);
+w.position.set(LF_Wst, FF_Y+FF_H+parH/2, GF_CZ); house.add(w);
 // West parapet cap (Surfmist)
 w = bx(0.35, 0.06, GF_D+0.4, M.surfmist);
-w.position.set(LF_Wst, GF_Y+GF_H+parH+0.03, GF_CZ); house.add(w);
+w.position.set(LF_Wst, FF_Y+FF_H+parH+0.03, GF_CZ); house.add(w);
 // North parapet on first floor
 w = bx(FF_W, parH*0.6, WALL, M.render);
 w.position.set(0, FF_Y+FF_H+parH*0.3, FF_N); house.add(w);
@@ -331,41 +331,36 @@ for (var pi=0;pi<3;pi++){
 var porchRoof = bx(3.4, 0.1, 1.8, M.surfmist);
 porchRoof.position.set(entryX, GF_Y+GF_H+0.05, GF_N+0.75); house.add(porchRoof);
 
-// D2 — Stacking slider on SOUTH wall, GF level (3.25m wide × 3.0m tall)
-// Opens from bedroom to south-facing deck/balcony over lower floor roof (harbour views)
-var d2w=3.25, d2h=Math.min(3.0,GF_H-0.15);
-var d2f = bx(d2w, d2h, 0.06, M.monument);
-d2f.position.set(2.0, GF_Y+0.1+d2h/2, GF_S-WALL/2-0.02); house.add(d2f);
-var d2g = bx(d2w-0.1, d2h-0.1, 0.02, M.glass);
-d2g.position.set(2.0, GF_Y+0.15+d2h/2-0.05, GF_S-WALL/2-0.02); house.add(d2g);
+// D01 — Stacker door on EAST wall, LF level (3.25m wide × 3.0m tall)
+// KXF3032 SP — Opens from living/dining area to east garden
+var d01h=Math.min(3.0,LF_H-0.15);
+var d01f = bx(0.06, d01h, 3.25, M.monument);
+d01f.position.set(LF_E+WALL/2+0.02, LF_Y+0.1+d01h/2, -1.0); house.add(d01f);
+var d01g = bx(0.02, d01h-0.1, 3.15, M.glass);
+d01g.position.set(LF_E+WALL/2+0.02, LF_Y+0.15+d01h/2-0.05, -1.0); house.add(d01g);
 
-// D3 — Stacking slider on EAST wall (4.7m wide × 3.0m tall) lower floor
-var d3h=Math.min(3.0,LF_H-0.15);
-var d3f = bx(0.06, d3h, 4.7, M.monument);
-d3f.position.set(LF_E+WALL/2+0.02, LF_Y+0.1+d3h/2, -3.0); house.add(d3f);
-var d3g = bx(0.02, d3h-0.1, 4.6, M.glass);
-d3g.position.set(LF_E+WALL/2+0.02, LF_Y+0.15+d3h/2-0.05, -3.0); house.add(d3g);
+// D02 — Stacker door on SOUTH wall, LF level (4.7m wide × 3.0m tall)
+// FXX3047 SP — Opens from dining to south (harbour views), east of alfresco
+var d02h=Math.min(3.0,LF_H-0.15);
+var d02f = bx(4.7, d02h, 0.06, M.monument);
+d02f.position.set(1.85, LF_Y+0.1+d02h/2, LF_S-WALL/2-0.02); house.add(d02f);
+var d02g = bx(4.6, d02h-0.1, 0.02, M.glass);
+d02g.position.set(1.85, LF_Y+0.15+d02h/2-0.05, LF_S-WALL/2-0.02); house.add(d02g);
 
-// D1 — Laundry door on SOUTH wall (0.9m × 2.1m) — east of alfresco opening
-var d1x = 4.0; // east side of south wall (between W2 and W1)
-var d1f = bx(0.9, 2.1, 0.06, M.render);
-d1f.position.set(d1x, LF_Y+2.1/2, LF_S-WALL/2-0.02); house.add(d1f);
-var d1g = bx(0.6, 1.4, 0.02, M.glass);
-d1g.position.set(d1x, LF_Y+0.5+1.4/2, LF_S-WALL/2-0.02); house.add(d1g);
+// D03 — Stacker door on SOUTH wall, FF level (3.61m wide × 2.4m tall)
+// FXX2436 — Opens from Guest room to rear balcony
+var d03h=2.4;
+var d03f = bx(3.61, d03h, 0.06, M.monument);
+d03f.position.set(-2.4, FF_Y+0.1+d03h/2, FF_S-FF_WALL/2-0.02); house.add(d03f);
+var d03g = bx(3.5, d03h-0.1, 0.02, M.glass);
+d03g.position.set(-2.4, FF_Y+0.15+d03h/2-0.05, FF_S-FF_WALL/2-0.02); house.add(d03g);
 
-// D6 — Stacking slider on WEST wall, first floor (3.61m wide × 2.4m tall)
-// Opens to rear (south) balcony area — positioned near south end of FF west wall
-var d6z = FF_S + 2.0; // near south end, opens to rear balcony
-var d6f = bx(0.06, 2.2, 3.61, M.monument);
-d6f.position.set(FF_Wst-FF_WALL/2-0.02, FF_Y+0.1+2.2/2, d6z); house.add(d6f);
-var d6g = bx(0.02, 2.1, 3.5, M.glass);
-d6g.position.set(FF_Wst-FF_WALL/2-0.02, FF_Y+0.15+2.1/2, d6z); house.add(d6g);
-
-// D7 — Stacking slider on EAST wall (1.81m wide × 2.1m tall) ground floor
-var d7f = bx(0.06, 2.1, 1.81, M.monument);
-d7f.position.set(LF_E+WALL/2+0.02, GF_Y+0.1+2.1/2, 5.0); house.add(d7f);
-var d7g = bx(0.02, 2.0, 1.7, M.glass);
-d7g.position.set(LF_E+WALL/2+0.02, GF_Y+0.15+2.0/2, 5.0); house.add(d7g);
+// D04 — Sliding door on NORTH wall, FF level (1.81m wide × 2.1m tall)
+// AF2118 — Opens from rumpus/void area to front balcony
+var d04f = bx(1.81, 2.1, 0.06, M.monument);
+d04f.position.set(2.0, FF_Y+0.1+2.1/2, FF_N+FF_WALL/2+0.02); house.add(d04f);
+var d04g = bx(1.7, 2.0, 0.02, M.glass);
+d04g.position.set(2.0, FF_Y+0.15+2.0/2, FF_N+FF_WALL/2+0.02); house.add(d04g);
 
 // ══════════════════════════════════════════
 // WINDOWS — all 27 from schedule
@@ -397,69 +392,62 @@ function addWin(face, wallX, wallZ, baseY, cx, winW, winH, sillH, wallThk) {
 }
 
 // ── Lower Floor windows (baseY = 0) ──
-// W1: Bath, H=600 W=1510, South — far east of south wall
-addWin('S', 0, LF_S, 0, 5.2, 1.51, 0.6, 1.5);
-// W2: Laundry, H=1200 W=450, South — east-central south wall
-addWin('S', 0, LF_S, 0, 3.0, 0.45, 1.2, 1.0);
-// W3: Pantry, H=600 W=1570, South — central south wall, just east of alfresco
-addWin('S', 0, LF_S, 0, 1.5, 1.57, 0.6, 1.5);
-// W4: Dining, H=3000 W=4000, East — massive window
-addWin('E', LF_E, 0, 0, 2.0, 4.0, 2.7, 0.15);
-// W5: Family/Dining, H=1800 W=1570, North — west side where wall is exposed
-addWin('N', 0, LF_N, 0, -0.5, 1.57, 1.8, 0.6);
-// W6: Family/Dining, H=1800 W=1570, North — further west (clear of W22 at X=-3)
-addWin('N', 0, LF_N, 0, -5.0, 1.57, 1.8, 0.6);
-// W7: Family/Dining, H=1800 W=1810, West — south portion (family room faces harbour)
-addWin('W', LF_Wst, 0, 0, -3.0, 1.81, 1.8, 0.6);
-// W8: Media Room, H=1200 W=1810, East — north portion (away from D3)
-addWin('E', LF_E, 0, 0, 6.0, 1.81, 1.2, 0.9);
-// W9: Guest/Study, H=1800 W=2170, West — north portion (guest room is NW)
-addWin('W', LF_Wst, 0, 0, 4.0, 2.17, 1.8, 0.6);
+// W1: Bath, H=600 W=1510, East — bath at south-east corner
+addWin('E', LF_E, 0, 0, -8.5, 1.51, 0.6, 1.5);
+// W2: Laundry, H=1200 W=600, South — east of D02 on south wall
+addWin('S', 0, LF_S, 0, 4.8, 0.6, 1.2, 1.0);
+// W3: Pantry, H=600 W=1570, East — pantry faces east
+addWin('E', LF_E, 0, 0, 5.0, 1.57, 0.6, 1.5);
+// W4: Dining, H=3000 W=4200, East — large dining window
+addWin('E', LF_E, 0, 0, -5.0, 4.2, 2.7, 0.15);
+// W5: Family/Dining, H=1800 W=1810, North — west side
+addWin('N', 0, LF_N, 0, -0.5, 1.81, 1.8, 0.6);
+// W6: Family/Dining, H=1800 W=1810, North — further west
+addWin('N', 0, LF_N, 0, -5.0, 1.81, 1.8, 0.6);
+// W7: Family/Dining, H=1800 W=2170, West — south portion
+addWin('W', LF_Wst, 0, 0, -3.0, 2.17, 1.8, 0.6);
+// W8: Media Room, H=1200 W=2170, West — north portion
+addWin('W', LF_Wst, 0, 0, 6.0, 2.17, 1.2, 0.9);
+// W9: Media Room/Cellar, H=1800 W=2410, West — north end
+addWin('W', LF_Wst, 0, 0, 8.0, 2.41, 1.8, 0.6);
 
 // ── Ground Floor windows (baseY = 3.45) ──
-// W10: Bath, H=600 W=1810, South — west of D2 (D2 spans X=0.4 to 3.6)
+// W10: Bed2, H=600 W=1810, South — west portion of GF south wall
 addWin('S', 0, GF_S, GF_Y, -2.0, 1.81, 0.6, 1.5);
-// W11: Ensuite, H=600 W=1570, South — on FIRST floor actually (ensuite = FF)
-// (placed below with first floor windows)
-// W14: Bed2, H=1370 W=3000, East — south portion (Bed2 is south-east area)
-addWin('E', LF_E, 0, GF_Y, -5.0, 3.0, 1.37, 0.6);
-// W15: Bed2, H=900 W=2410, North — on main north wall (LF_N), east side
-// Bed2 is in main building, not garage extension
-addWin('N', 0, LF_N, GF_Y, 4.0, 2.41, 0.9, 0.9);
+// W11: Ensuite, H=600 W=1570, South — near Master bathroom (GF south-east)
+addWin('S', 0, GF_S, GF_Y, 3.0, 1.57, 0.6, 1.5);
+// W12: Master, H=1800 W=5200, East — large window at south-east (Master on GF)
+addWin('E', LF_E, 0, GF_Y, -6.0, 5.2, 1.8, 0.3);
+// W14: Bath/WIR, H=1370 W=3000, East — center of east wall
+addWin('E', LF_E, 0, GF_Y, 0.0, 3.0, 1.37, 0.6);
+// W15: Bath, H=900 W=2410, North — on main north wall (LF_N), east side
+addWin('N', 0, LF_N, GF_Y, 2.0, 2.41, 0.9, 1.5);
 // W16: Bed3, H=900 W=2410, North — on main north wall (LF_N), west side
-addWin('N', 0, LF_N, GF_Y, -3.5, 2.41, 0.9, 0.9);
+addWin('N', 0, LF_N, GF_Y, -5.1, 2.41, 0.9, 0.9);
 // W17: Bed3, H=1370 W=1000, West — north portion of west wall
 addWin('W', LF_Wst, 0, GF_Y, 6.0, 1.0, 1.37, 0.6);
-// W18: Stairs, H=2950 W=1810, North — between garage and entry (X≈0.5)
-// Tall stair window visible on northern elevation between openings
-addWin('N', 0, LF_N, GF_Y, 0.5, 1.81, 2.5, 0.1);
 // W19: Garage, H=600 W=3010, North — strip window above garage door
 addWin('N', 0, GF_N, GF_Y, -3.0, 3.01, 0.6, 2.45);
 // W22: Stairs, H=3680 W=1810, North (fixed, very tall — spans LF/GF)
-// On LF north wall, west side where wall is exposed
-addWin('N', 0, LF_N, 0, -3.0, 1.81, 3.0, 0.2);
+addWin('N', 0, LF_N, 0, -3.0, 1.81, 3.5, 0.2);
 // W23: Powder room, H=600 W=1210, North — east of entry door
 addWin('N', 0, GF_N, GF_Y, 4.8, 1.21, 0.6, 1.5);
+// W24: Guest/Study, H=1200 W=2410, East — north-east (GF extension)
+addWin('E', LF_E, 0, GF_Y, 9.5, 2.41, 1.2, 0.5);
 
 // ── First Floor windows (baseY = 6.65, FF_WALL = 185mm) ──
-// W11: Ensuite, H=600 W=1570, South
-addWin('S', 0, FF_S, FF_Y, -1.5, 1.57, 0.6, 1.5, FF_WALL);
-// W12: Master, H=1800 W=4000, East — large window, south portion of FF east wall
-addWin('E', FF_E, 0, FF_Y, FF_CZ-2.0, 4.0, 1.8, 0.3, FF_WALL);
-// W13: Master, H=1800 W=1810, North — west side (clear of W27)
-addWin('N', 0, FF_N, FF_Y, -2.5, 1.81, 1.8, 0.3, FF_WALL);
-// W20: Guest, H=1800 W=3120, West (has venetian blind)
-addWin('W', FF_Wst, 0, FF_Y, FF_CZ+2.0, 3.12, 1.8, 0.3, FF_WALL);
-// W21: Stairs, H=900 W=4560, East
-addWin('E', FF_E, 0, FF_Y, FF_CZ+2.5, 4.56, 0.9, 0.6, FF_WALL);
-// W24: Guest, H=1200 W=2410, North — east side (clear of W27)
-addWin('N', 0, FF_N, FF_Y, 2.8, 2.41, 1.2, 0.5, FF_WALL);
-// W27: Stairs, H=2950 W=1810, North (fixed) — central, clear of W13 and W24
-addWin('N', 0, FF_N, FF_Y, 0.5, 1.81, 2.4, 0.1, FF_WALL);
+// W13: H=1800 W=1810, North — west side of FF north wall
+addWin('N', 0, FF_N, FF_Y, -3.0, 1.81, 1.8, 0.3, FF_WALL);
+// W18: Stairs, H=2950 W=1810, West (fixed) — near stairs, north portion
+addWin('W', FF_Wst, 0, FF_Y, 5.5, 1.81, 2.5, 0.05, FF_WALL);
+// W20: Guest, H=1800 W=3170, West (has venetian blind) — south portion
+addWin('W', FF_Wst, 0, FF_Y, -0.2, 3.17, 1.8, 0.3, FF_WALL);
+// W21: Rumpus/Balcony, H=900 W=4760, North (fixed) — large window behind balcony
+addWin('N', 0, FF_N, FF_Y, 0.5, 4.76, 0.9, 0.6, FF_WALL);
 
 // Venetian blind on W20 (Monument, west elevation)
 var blindW20 = bx(0.05, 2.0, 3.2, M.monument);
-blindW20.position.set(FF_Wst-FF_WALL-0.1, FF_Y+0.3+2.0/2, FF_CZ+2.0);
+blindW20.position.set(FF_Wst-FF_WALL-0.1, FF_Y+0.3+2.0/2, -0.2);
 house.add(blindW20);
 
 // ══════════════════════════════════════════
