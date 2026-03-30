@@ -213,13 +213,17 @@ w.position.set(0, GF_Y-0.1, GF_CZ); house.add(w);
 // FIRST FLOOR WALLS (Y=6.65 to Y=9.25)
 // ══════════════════════════════════════════
 var FF_CZ = (FF_N+FF_S)/2; // centre Z = 3.67
-var FF_E=FF_W/2, FF_Wst=-FF_W/2; // ±4.13
+// FF west wall aligns with building west wall (continuous cladding per western elevation)
+// This creates a courtyard step-back on the east side
+var FF_Wst=LF_Wst; // -6.005
+var FF_E=FF_Wst+FF_W; // 2.255
+var FF_CX=(FF_E+FF_Wst)/2; // -1.875
 // North wall (185mm EPS)
 w = bx(FF_W, FF_H, FF_WALL, M.render);
-w.position.set(0, FF_Y+FF_H/2, FF_N); house.add(w);
+w.position.set(FF_CX, FF_Y+FF_H/2, FF_N); house.add(w);
 // South wall (185mm EPS)
 w = bx(FF_W, FF_H, FF_WALL, M.render);
-w.position.set(0, FF_Y+FF_H/2, FF_S); house.add(w);
+w.position.set(FF_CX, FF_Y+FF_H/2, FF_S); house.add(w);
 // East wall (185mm EPS)
 w = bx(FF_WALL, FF_H, FF_D, M.render);
 w.position.set(FF_E, FF_Y+FF_H/2, FF_CZ); house.add(w);
@@ -228,20 +232,22 @@ w = bx(FF_WALL, FF_H, FF_D, M.monument);
 w.position.set(FF_Wst, FF_Y+FF_H/2, FF_CZ); house.add(w);
 // Floor slab
 w = bx(FF_W, 0.2, FF_D, M.concrete);
-w.position.set(0, FF_Y-0.1, FF_CZ); house.add(w);
+w.position.set(FF_CX, FF_Y-0.1, FF_CZ); house.add(w);
 
 // ══════════════════════════════════════════
 // ROOF — with prominent north canopy over front balcony
 // ══════════════════════════════════════════
-var ROVER = 0.5; // side/south overhang
+var ROVER = 0.5; // east/south overhang
 var NOVER = 1.8; // north overhang — canopy over front balcony (key feature)
 
-// Main roof over first floor — 5° pitch, extended north for canopy
+// Main roof over first floor — 5° pitch, ridge at west parapet, slopes down to east
 var mainRoofD = FF_D + NOVER + ROVER;
+var mainRoofW = FF_W + ROVER; // no overhang on west (parapet), ROVER on east
 var mainRoofCZ = FF_S - ROVER + mainRoofD/2;
-var mainRoof = bx(FF_W+ROVER*2, 0.15, mainRoofD, M.surfmist);
-mainRoof.position.set(0, FF_Y+FF_H+0.25, mainRoofCZ);
-mainRoof.rotation.x = 5 * Math.PI / 180; // slopes down toward south
+var mainRoofCX = FF_Wst + mainRoofW/2;
+var mainRoof = bx(mainRoofW, 0.15, mainRoofD, M.surfmist);
+mainRoof.position.set(mainRoofCX, FF_Y+FF_H+0.25, mainRoofCZ);
+mainRoof.rotation.z = -5 * Math.PI / 180; // ridge at west parapet, slopes down to east
 mainRoof.castShadow = true; house.add(mainRoof);
 
 // Flat roof over ground floor south section (between LF_S and FF_S)
@@ -259,15 +265,12 @@ if (gfRoofNorthD > 0.5) {
   gfRoofN.castShadow = true; house.add(gfRoofN);
 }
 
-// Side flat roofs over GF areas not under FF (east and west strips)
-var sideRoofW = (GF_W - FF_W)/2;
-if (sideRoofW > 0.3) {
-  var srE = bx(sideRoofW+0.2, 0.12, FF_D+0.4, M.surfmist);
-  srE.position.set(FF_E + sideRoofW/2, GF_Y+GF_H+0.06, FF_CZ);
+// East side flat roof over GF area not under FF (courtyard step-back)
+var eastRoofW = LF_E - FF_E; // 6.005 - 2.255 = 3.75m
+if (eastRoofW > 0.3) {
+  var srE = bx(eastRoofW+0.2, 0.12, FF_D+0.4, M.surfmist);
+  srE.position.set(FF_E + eastRoofW/2, GF_Y+GF_H+0.06, FF_CZ);
   srE.castShadow = true; house.add(srE);
-  var srW = bx(sideRoofW+0.2, 0.12, FF_D+0.4, M.surfmist);
-  srW.position.set(FF_Wst - sideRoofW/2, GF_Y+GF_H+0.06, FF_CZ);
-  srW.castShadow = true; house.add(srW);
 }
 
 // ── Parapets ──
@@ -288,15 +291,15 @@ fascia(GF_W+0.4, 0.08, 0, fY, GF_S-0.2);
 fascia(GF_W+0.4, 0.08, 0, fY, GF_N+0.2);
 // FF level fascia — THICK north fascia (prominent canopy edge from renders)
 var ffY = FF_Y+FF_H;
-var nFas = bx(FF_W+ROVER*2, 0.40, 0.12, M.monument);
-nFas.position.set(0, ffY+0.05, FF_N+NOVER); house.add(nFas);
+var nFas = bx(mainRoofW, 0.40, 0.12, M.monument);
+nFas.position.set(mainRoofCX, ffY+0.05, FF_N+NOVER); house.add(nFas);
 // East fascia
 fascia(0.08, mainRoofD, FF_E+ROVER, ffY, mainRoofCZ);
 // South fascia
-fascia(FF_W+ROVER*2, 0.08, 0, ffY, FF_S-ROVER);
+fascia(mainRoofW, 0.08, mainRoofCX, ffY, FF_S-ROVER);
 // Soffit under north canopy (render colour — visible from below)
-var soffit = bx(FF_W+ROVER*2, 0.03, NOVER, M.render);
-soffit.position.set(0, ffY-0.02, FF_N+NOVER/2); house.add(soffit);
+var soffit = bx(mainRoofW, 0.03, NOVER, M.render);
+soffit.position.set(mainRoofCX, ffY-0.02, FF_N+NOVER/2); house.add(soffit);
 
 // ══════════════════════════════════════════
 // GARAGE DOOR — D4 on NORTH wall (west half), GF level
@@ -623,9 +626,9 @@ gutN.position.set(0, GF_Y+GF_H-0.03, GF_N+0.2); house.add(gutN);
 // Skylights (W25, W26) on roof
 for (var ski=0; ski<2; ski++) {
   var sky = bx(0.72, 0.08, 0.55, M.glass);
-  sky.position.set(1.5+ski*2.0, FF_Y+FF_H+0.2, FF_CZ+1.5); house.add(sky);
+  sky.position.set(FF_CX+1.5+ski*2.0, FF_Y+FF_H+0.2, FF_CZ+1.5); house.add(sky);
   var skf = bx(0.82, 0.04, 0.65, M.monument);
-  skf.position.set(1.5+ski*2.0, FF_Y+FF_H+0.17, FF_CZ+1.5); house.add(skf);
+  skf.position.set(FF_CX+1.5+ski*2.0, FF_Y+FF_H+0.17, FF_CZ+1.5); house.add(skf);
 }
 
 // PV panels on east-facing roof (6.63kW)
@@ -638,12 +641,12 @@ for (var pr=0;pr<3;pr++){
   }
 }
 pvG.position.y = FF_Y+FF_H+0.15;
-pvG.rotation.x = -5*Math.PI/180;
+pvG.rotation.z = -5*Math.PI/180;
 house.add(pvG);
 
 // Eaves soffit (Grey Pebble)
-var eave = bx(FF_W+ROVER*2, 0.03, ROVER, M.render);
-eave.position.set(0, FF_Y+FF_H-0.02, FF_S-ROVER/2); house.add(eave);
+var eave = bx(mainRoofW, 0.03, ROVER, M.render);
+eave.position.set(mainRoofCX, FF_Y+FF_H-0.02, FF_S-ROVER/2); house.add(eave);
 
 // ══════════════════════════════════════════
 // VIEW PRESETS
