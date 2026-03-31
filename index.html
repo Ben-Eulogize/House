@@ -134,7 +134,7 @@ gndMesh.receiveShadow = true;
 scene.add(gndMesh);
 
 // ══════════════════════════════════════════
-// BUILDING DIMENSIONS
+// BUILDING DIMENSIONS (from DA Plans Rev K, DWG J1672)
 // ══════════════════════════════════════════
 var WALL = 0.27; // 270mm cavity brick
 
@@ -151,14 +151,43 @@ var GF_W=12.01, GF_D=21.02, GF_H=2.75, GF_Y=3.45;
 var GF_S=LF_S; // -9.355 (same south edge)
 var GF_N=GF_S+GF_D; // +11.665
 
-// First Floor: 8.26m wide × 11.37m deep × 2.6m high
+// First Floor: 8.26m wide × 11.57m deep × 2.6m high
 // Base Y = 6.65 (RL 35.540)
-// North edge aligns roughly with lower floor north edge
-// First floor walls are 185mm EPS clad framed wall (not 270mm cavity brick)
+// WEST wall aligned with building west wall (continuous cladding, per western elevation)
+// Creates courtyard step-back on east side
 var FF_WALL = 0.185;
-var FF_W=8.26, FF_D=11.37, FF_H=2.6, FF_Y=6.65;
+var FF_W=8.26, FF_D=11.57, FF_H=2.6, FF_Y=6.65;
 var FF_N=LF_N; // +9.355
-var FF_S=FF_N-FF_D; // -2.015
+var FF_S=FF_N-FF_D; // -2.215
+
+// ── ROOM COORDINATE GRID ──
+// All positions calculated from room dimensions on floor plans
+// LF: Right side split 11980(south) + 6730(north) = 18710
+//   South zone: Z=-9.355 to +2.625 (Dining, Family/Kitchen, Pantry, Stairs)
+//   North zone: Z=+2.625 to +9.355 (Media Room, Wine Cellar, Bath, WIL/Storage)
+// LF E-W: Internal wall at X≈0 divides west half (~5.9m) from east half (~6.1m)
+//   West rooms: Family/Dining(5.7w), Media Room(5.9w), Wine Cellar(5.9w)
+//   East rooms: Dining(4.6w), Kitchen(4.1w), Pantry, Bath, WIL/Storage
+//
+// GF: Same width, depth 21020. South aligned with LF. North extends 2310mm beyond LF_N.
+//   South zone (bedrooms): Z=-9.355 to -2.005 (7350mm dimension)
+//     Bed2: SW, 5.3ew×3.4ns, Z=-9.355 to -5.955, X=-6.005 to -0.705
+//     Master: SE, 5.1ew×4.2ns, Z=-9.355 to -5.155, X=+0.905 to +6.005
+//     Bed3: W, 5.3ew×3.3ns, Z=-5.955 to -2.655, X=-6.005 to -0.705
+//     WIR: E, 3.4ew×3.1ns, Z=-5.155 to -2.055, X=+2.605 to +6.005
+//   Mid zone (void/stairs): Z=-2.005 to +3.205
+//     Bath(1.9×2.3), Workshop(2.5×1.8), Mud(3.4×1.6), Entry(1.5×5.7)
+//   North zone (garage/entry): Z=+3.205 to +11.665 (8460mm dimension)
+//     Garage: NW, 5.9ew×6.2ns, Z=+5.465 to +11.665, X=-6.005 to -0.105
+//     Guest/Study: NE, 3.8ew×3.1ns, Z=+8.0 to +11.1, X=+2.205 to +6.005
+//     Porch: far N, 1.1×1.4
+//
+// FF: 8260 wide × 11570 deep, west-aligned. Split 3600(W)+4660(E)
+//   Internal wall at X = -6.005 + 3.6 = -2.405
+//   West zone: Stairs, P'der(2.3×1.9), Guest(3.5×3.7)
+//   East zone: Void, Rumpus(4.8×6.2)
+//   Front Balcony(4.1×3.8): protrudes N from FF_N
+//   Rear Balcony(5.5×2.9): protrudes S from FF_S
 
 // ══════════════════════════════════════════
 // LOWER FLOOR WALLS (Y=0 to Y=3.0)
@@ -212,10 +241,8 @@ w.position.set(0, GF_Y-0.1, GF_CZ); house.add(w);
 // ══════════════════════════════════════════
 // FIRST FLOOR WALLS (Y=6.65 to Y=9.25)
 // ══════════════════════════════════════════
-var FF_CZ = (FF_N+FF_S)/2; // centre Z = 3.67
-// FF west wall aligns with building west wall (continuous cladding per western elevation)
-// This creates a courtyard step-back on the east side
-var FF_Wst=LF_Wst; // -6.005
+var FF_CZ = (FF_N+FF_S)/2; // centre Z = 3.57
+var FF_Wst=LF_Wst; // -6.005 (aligned with building west wall)
 var FF_E=FF_Wst+FF_W; // 2.255
 var FF_CX=(FF_E+FF_Wst)/2; // -1.875
 // North wall (185mm EPS)
@@ -339,12 +366,12 @@ var porchRoof = bx(3.4, 0.1, 1.8, M.surfmist);
 porchRoof.position.set(entryX, GF_Y+GF_H+0.05, GF_N+0.75); house.add(porchRoof);
 
 // D01 — Stacker door on EAST wall, LF level (3.25m wide × 3.0m tall)
-// KXF3032 SP — Opens from living/dining area to east garden
+// KXF3032 SP — Opens from dining room to east garden. Dining CZ≈-7.4
 var d01h=Math.min(3.0,LF_H-0.15);
 var d01f = bx(0.06, d01h, 3.25, M.monument);
-d01f.position.set(LF_E+WALL/2+0.02, LF_Y+0.1+d01h/2, -1.0); house.add(d01f);
+d01f.position.set(LF_E+WALL/2+0.02, LF_Y+0.1+d01h/2, -7.4); house.add(d01f);
 var d01g = bx(0.02, d01h-0.1, 3.15, M.glass);
-d01g.position.set(LF_E+WALL/2+0.02, LF_Y+0.15+d01h/2-0.05, -1.0); house.add(d01g);
+d01g.position.set(LF_E+WALL/2+0.02, LF_Y+0.15+d01h/2-0.05, -7.4); house.add(d01g);
 
 // D02 — Stacker door on SOUTH wall, LF level (4.7m wide × 3.0m tall)
 // FXX3047 SP — Opens from dining to south (harbour views), east of alfresco
@@ -355,19 +382,19 @@ var d02g = bx(4.6, d02h-0.1, 0.02, M.glass);
 d02g.position.set(1.85, LF_Y+0.15+d02h/2-0.05, LF_S-WALL/2-0.02); house.add(d02g);
 
 // D03 — Stacker door on SOUTH wall, FF level (3.61m wide × 2.4m tall)
-// FXX2436 — Opens from Guest room to rear balcony
+// FXX2436 — Opens from Guest room to rear balcony. Guest CX≈-4.25
 var d03h=2.4;
 var d03f = bx(3.61, d03h, 0.06, M.monument);
-d03f.position.set(-2.4, FF_Y+0.1+d03h/2, FF_S-FF_WALL/2-0.02); house.add(d03f);
+d03f.position.set(-4.25, FF_Y+0.1+d03h/2, FF_S-FF_WALL/2-0.02); house.add(d03f);
 var d03g = bx(3.5, d03h-0.1, 0.02, M.glass);
-d03g.position.set(-2.4, FF_Y+0.15+d03h/2-0.05, FF_S-FF_WALL/2-0.02); house.add(d03g);
+d03g.position.set(-4.25, FF_Y+0.15+d03h/2-0.05, FF_S-FF_WALL/2-0.02); house.add(d03g);
 
 // D04 — Sliding door on NORTH wall, FF level (1.81m wide × 2.1m tall)
-// AF2118 — Opens from rumpus/void area to front balcony
+// AF2118 — Opens from rumpus to front balcony. East portion of FF, X≈+1.0
 var d04f = bx(1.81, 2.1, 0.06, M.monument);
-d04f.position.set(2.0, FF_Y+0.1+2.1/2, FF_N+FF_WALL/2+0.02); house.add(d04f);
+d04f.position.set(1.0, FF_Y+0.1+2.1/2, FF_N+FF_WALL/2+0.02); house.add(d04f);
 var d04g = bx(1.7, 2.0, 0.02, M.glass);
-d04g.position.set(2.0, FF_Y+0.15+2.0/2, FF_N+FF_WALL/2+0.02); house.add(d04g);
+d04g.position.set(1.0, FF_Y+0.15+2.0/2, FF_N+FF_WALL/2+0.02); house.add(d04g);
 
 // ══════════════════════════════════════════
 // WINDOWS — all 27 from schedule
@@ -399,62 +426,65 @@ function addWin(face, wallX, wallZ, baseY, cx, winW, winH, sillH, wallThk) {
 }
 
 // ── Lower Floor windows (baseY = 0) ──
-// W1: Bath, H=600 W=1510, East — bath at south-east corner
-addWin('E', LF_E, 0, 0, -8.5, 1.51, 0.6, 1.5);
-// W2: Laundry, H=1200 W=600, South — east of D02 on south wall
+// Positions calculated from room grid (see ROOM COORDINATE GRID above)
+// W1: Bath, H=600 W=1510, East — bath in north zone, east side (Z≈+3.5 to +5.5)
+addWin('E', LF_E, 0, 0, 4.0, 1.51, 0.6, 1.5);
+// W2: Laundry, H=1200 W=600, South — small window east of alfresco opening on south wall
 addWin('S', 0, LF_S, 0, 4.8, 0.6, 1.2, 1.0);
-// W3: Pantry, H=600 W=1570, East — pantry faces east
-addWin('E', LF_E, 0, 0, 5.0, 1.57, 0.6, 1.5);
-// W4: Dining, H=3000 W=4200, East — large dining window
-addWin('E', LF_E, 0, 0, -5.0, 4.2, 2.7, 0.15);
-// W5: Family/Dining, H=1800 W=1810, North — west side
-addWin('N', 0, LF_N, 0, -0.5, 1.81, 1.8, 0.6);
-// W6: Family/Dining, H=1800 W=1810, North — further west
-addWin('N', 0, LF_N, 0, -5.0, 1.81, 1.8, 0.6);
-// W7: Family/Dining, H=1800 W=2170, West — south portion
-addWin('W', LF_Wst, 0, 0, -3.0, 2.17, 1.8, 0.6);
-// W8: Media Room, H=1200 W=2170, West — north portion
-addWin('W', LF_Wst, 0, 0, 6.0, 2.17, 1.2, 0.9);
-// W9: Media Room/Cellar, H=1800 W=2410, West — north end
-addWin('W', LF_Wst, 0, 0, 8.0, 2.41, 1.8, 0.6);
+// W3: Pantry, H=600 W=1570, East — pantry center Z≈-1.0 (center zone east side)
+addWin('E', LF_E, 0, 0, -1.0, 1.57, 0.6, 1.5);
+// W4: Dining, H=3000 W=4200, East — dining room center Z≈-7.4 (south zone, 4.0m deep)
+addWin('E', LF_E, 0, 0, -7.4, 4.2, 2.7, 0.15);
+// W5: North wall, H=1800 W=1810 — east half (WIL/Storage area, X≈+3.0)
+addWin('N', 0, LF_N, 0, 3.0, 1.81, 1.8, 0.6);
+// W6: North wall, H=1800 W=1810 — west half (Wine Cellar area, X≈-3.0)
+addWin('N', 0, LF_N, 0, -3.0, 1.81, 1.8, 0.6);
+// W7: Family/Dining, H=1800 W=2170, West — in retaining wall gap (Z≈-1.9)
+addWin('W', LF_Wst, 0, 0, -1.9, 2.17, 1.8, 0.6);
+// W8: Media Room, H=1200 W=2170, West — media room center Z≈+5.0
+addWin('W', LF_Wst, 0, 0, 5.0, 2.17, 1.2, 0.9);
+// W9: Wine Cellar, H=1800 W=2410, West — wine cellar center Z≈+7.8
+addWin('W', LF_Wst, 0, 0, 7.8, 2.41, 1.8, 0.6);
 
 // ── Ground Floor windows (baseY = 3.45) ──
-// W10: Bed2, H=600 W=1810, South — west portion of GF south wall
-addWin('S', 0, GF_S, GF_Y, -2.0, 1.81, 0.6, 1.5);
-// W11: Ensuite, H=600 W=1570, South — near Master bathroom (GF south-east)
-addWin('S', 0, GF_S, GF_Y, 3.0, 1.57, 0.6, 1.5);
-// W12: Master, H=1800 W=5200, East — large window at south-east (Master on GF)
-addWin('E', LF_E, 0, GF_Y, -6.0, 5.2, 1.8, 0.3);
-// W14: Bath/WIR, H=1370 W=3000, East — center of east wall
-addWin('E', LF_E, 0, GF_Y, 0.0, 3.0, 1.37, 0.6);
-// W15: Bath, H=900 W=2410, North — on main north wall (LF_N), east side
+// Positions from room grid: Bed2 CX≈-3.35, Master CX≈+3.5, Bed3 CX≈-3.35
+// W10: Bed2, H=600 W=1810, South — Bed2 center X≈-3.35 on south wall
+addWin('S', 0, GF_S, GF_Y, -3.35, 1.81, 0.6, 1.5);
+// W11: Ensuite, H=600 W=1570, South — Master ensuite X≈+3.5 on south wall
+addWin('S', 0, GF_S, GF_Y, 3.5, 1.57, 0.6, 1.5);
+// W12: Master, H=1800 W=5200, East — Master CZ≈-7.25 (Z=-9.355 to -5.155)
+addWin('E', LF_E, 0, GF_Y, -7.25, 5.2, 1.8, 0.3);
+// W14: Bath/WIR, H=1370 W=3000, East — WIR area CZ≈-3.6 (Z=-5.155 to -2.055)
+addWin('E', LF_E, 0, GF_Y, -3.6, 3.0, 1.37, 0.6);
+// W15: Bath, H=900 W=2410, North — on LF_N wall, east side (bath/corridor area)
 addWin('N', 0, LF_N, GF_Y, 2.0, 2.41, 0.9, 1.5);
-// W16: Bed3, H=900 W=2410, North — on main north wall (LF_N), west side
-addWin('N', 0, LF_N, GF_Y, -5.1, 2.41, 0.9, 0.9);
-// W17: Bed3, H=1370 W=1000, West — north portion of west wall
-addWin('W', LF_Wst, 0, GF_Y, 6.0, 1.0, 1.37, 0.6);
-// W19: Garage, H=600 W=3010, North — strip window above garage door
-addWin('N', 0, GF_N, GF_Y, -3.0, 3.01, 0.6, 2.45);
-// W22: Stairs, H=3680 W=1810, North (fixed, very tall — spans LF/GF)
-addWin('N', 0, LF_N, 0, -3.0, 1.81, 3.5, 0.2);
-// W23: Powder room, H=600 W=1210, North — east of entry door
-addWin('N', 0, GF_N, GF_Y, 4.8, 1.21, 0.6, 1.5);
-// W24: Guest/Study, H=1200 W=2410, East — north-east (GF extension)
-addWin('E', LF_E, 0, GF_Y, 9.5, 2.41, 1.2, 0.5);
+// W16: Bed3, H=900 W=2410, North — on LF_N wall, west side (Bed3 area X≈-3.35)
+addWin('N', 0, LF_N, GF_Y, -3.35, 2.41, 0.9, 0.9);
+// W17: Bed3, H=1370 W=1000, West — Bed3 CZ≈-4.3 on west wall
+addWin('W', LF_Wst, 0, GF_Y, -4.3, 1.0, 1.37, 0.6);
+// W19: Garage, H=600 W=3010, North — garage center X≈-3.05 on GF_N wall
+addWin('N', 0, GF_N, GF_Y, -3.05, 3.01, 0.6, 2.45);
+// W22: Stairs, H=3680 W=1810, North (fixed, very tall — spans LF/GF on LF_N wall)
+addWin('N', 0, LF_N, 0, -0.5, 1.81, 3.5, 0.2);
+// W23: Powder room, H=600 W=1210, North — east of entry, Guest/Study CX≈+4.1
+addWin('N', 0, GF_N, GF_Y, 4.1, 1.21, 0.6, 1.5);
+// W24: Guest/Study, H=1200 W=2410, East — Guest CZ≈+9.55 on east wall
+addWin('E', LF_E, 0, GF_Y, 9.55, 2.41, 1.2, 0.5);
 
 // ── First Floor windows (baseY = 6.65, FF_WALL = 185mm) ──
-// W13: H=1800 W=1810, North — west side of FF north wall
-addWin('N', 0, FF_N, FF_Y, -3.0, 1.81, 1.8, 0.3, FF_WALL);
-// W18: Stairs, H=2950 W=1810, West (fixed) — near stairs, north portion
-addWin('W', FF_Wst, 0, FF_Y, 5.5, 1.81, 2.5, 0.05, FF_WALL);
-// W20: Guest, H=1800 W=3170, West (has venetian blind) — south portion
-addWin('W', FF_Wst, 0, FF_Y, -0.2, 3.17, 1.8, 0.3, FF_WALL);
-// W21: Rumpus/Balcony, H=900 W=4760, North (fixed) — large window behind balcony
-addWin('N', 0, FF_N, FF_Y, 0.5, 4.76, 0.9, 0.6, FF_WALL);
+// FF grid: Guest CX≈-4.25 CZ≈-0.4, Rumpus CX≈-0.1 CZ≈+2.1, Stairs Z≈+6.5
+// W13: H=1800 W=1810, North — west zone (P'der/stairs area, X≈-4.25)
+addWin('N', 0, FF_N, FF_Y, -4.25, 1.81, 1.8, 0.3, FF_WALL);
+// W18: Stairs, H=2950 W=1810, West (fixed) — stairs area Z≈+6.5
+addWin('W', FF_Wst, 0, FF_Y, 6.5, 1.81, 2.5, 0.05, FF_WALL);
+// W20: Guest, H=1800 W=3170, West (has venetian blind) — Guest CZ≈-0.4
+addWin('W', FF_Wst, 0, FF_Y, -0.4, 3.17, 1.8, 0.3, FF_WALL);
+// W21: Rumpus/Balcony, H=900 W=4760, North (fixed) — aligned with balcony X≈+0.2
+addWin('N', 0, FF_N, FF_Y, 0.2, 4.76, 0.9, 0.6, FF_WALL);
 
-// Venetian blind on W20 (Monument, west elevation)
+// Venetian blind on W20 (Monument, west elevation) — matches W20 Z position
 var blindW20 = bx(0.05, 2.0, 3.2, M.monument);
-blindW20.position.set(FF_Wst-FF_WALL-0.1, FF_Y+0.3+2.0/2, -0.2);
+blindW20.position.set(FF_Wst-FF_WALL-0.1, FF_Y+0.3+2.0/2, -0.4);
 house.add(blindW20);
 
 // ══════════════════════════════════════════
