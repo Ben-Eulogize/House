@@ -190,6 +190,18 @@ var FF_S=FF_N-FF_D; // -2.215
 //   Rear Balcony(5.5×2.9): protrudes S from FF_S
 
 // ══════════════════════════════════════════
+// INTEGRATED RETAINING WALLS (west side, LF level)
+// Two 6.35m concrete segments with 2.21m gap between (for windows W07)
+// ══════════════════════════════════════════
+var retW = 0.4, retH = LF_H + 0.3;
+// South segment: Z=-9.355 to -3.005
+var ret1 = bx(retW, retH, 6.35, M.concrete);
+ret1.position.set(LF_Wst-retW/2-0.01, LF_Y+retH/2-0.3, LF_S+6.35/2); house.add(ret1);
+// North segment: Z=-0.795 to +5.555
+var ret2 = bx(retW, retH, 6.35, M.concrete);
+ret2.position.set(LF_Wst-retW/2-0.01, LF_Y+retH/2-0.3, -0.795+6.35/2); house.add(ret2);
+
+// ══════════════════════════════════════════
 // LOWER FLOOR WALLS (Y=0 to Y=3.0)
 // ══════════════════════════════════════════
 // North wall (mostly buried in hillside)
@@ -628,6 +640,108 @@ var stBal = bx(0.05, 0.05, balRailLen, M.monument);
 stBal.position.set(stX+stairW/2+0.05, GF_Y/2+0.5, LF_S-1.0-stairRun/2);
 stBal.rotation.x = -balAngle;
 house.add(stBal);
+
+// ══════════════════════════════════════════
+// MATERIAL TRANSITIONS & SHEET METAL CAPPING
+// Elevations: LF=EPS render, GF=Brickwork render, FF=EPS render
+// Surfmist capping strips at each floor level transition
+// ══════════════════════════════════════════
+var capY1 = LF_Y + LF_H; // Y=3.0 (LF ceiling)
+var capY2 = GF_Y + GF_H; // Y=6.2 (GF ceiling)
+// East capping at LF/GF transition
+w = bx(0.04, 0.08, LF_D+0.2, M.surfmist);
+w.position.set(LF_E+0.15, capY1, 0); house.add(w);
+// South capping at LF/GF
+w = bx(LF_W+0.2, 0.08, 0.04, M.surfmist);
+w.position.set(0, capY1, LF_S-0.15); house.add(w);
+// North capping at LF/GF (LF width)
+w = bx(LF_W+0.2, 0.08, 0.04, M.surfmist);
+w.position.set(0, capY1, LF_N+0.15); house.add(w);
+// East capping at GF/FF transition
+w = bx(0.04, 0.08, GF_D+0.2, M.surfmist);
+w.position.set(LF_E+0.15, capY2, GF_CZ); house.add(w);
+// South capping at GF/FF
+w = bx(GF_W+0.2, 0.08, 0.04, M.surfmist);
+w.position.set(0, capY2, GF_S-0.15); house.add(w);
+// North capping at GF/FF
+w = bx(GF_W+0.2, 0.08, 0.04, M.surfmist);
+w.position.set(0, capY2, GF_N+0.15); house.add(w);
+
+// ══════════════════════════════════════════
+// EAST PARAPET AT COURTYARD STEP-BACK
+// Low wall on east edge of GF ceiling where FF steps back (3.75m wide)
+// ══════════════════════════════════════════
+var courtW = LF_E - FF_E; // 3.75m
+var courtParH = 0.3;
+w = bx(courtW, courtParH, 0.15, M.render);
+w.position.set(FF_E+courtW/2, capY2+courtParH/2, FF_CZ); house.add(w);
+// Surfmist cap
+w = bx(courtW+0.1, 0.04, 0.25, M.surfmist);
+w.position.set(FF_E+courtW/2, capY2+courtParH+0.02, FF_CZ); house.add(w);
+
+// ══════════════════════════════════════════
+// WINDOW MULLIONS — large windows need visible frame divisions
+// ══════════════════════════════════════════
+// W04 mullions (Dining East, 4.2m wide × 2.7m) — 3 vertical bars
+for (var mi=1; mi<4; mi++) {
+  var mul = bx(0.04, 2.7, 0.06, M.monument);
+  mul.position.set(LF_E+WALL/2+0.03, LF_Y+0.15+2.7/2, -7.4-2.1+mi*1.05);
+  house.add(mul);
+}
+// W04 horizontal transom
+w = bx(0.04, 0.04, 4.2, M.monument);
+w.position.set(LF_E+WALL/2+0.03, LF_Y+0.15+2.1, -7.4); house.add(w);
+// W12 mullions (Master East, 5.2m wide × 1.8m) — 4 vertical bars
+for (var mi2=1; mi2<5; mi2++) {
+  var mul2 = bx(0.04, 1.8, 0.06, M.monument);
+  mul2.position.set(LF_E+WALL/2+0.03, GF_Y+0.3+1.8/2, -7.25-2.6+mi2*1.04);
+  house.add(mul2);
+}
+// D02 mullions (Stacker door South, 4.7m) — 3 sliding panel divisions
+for (var mi3=1; mi3<4; mi3++) {
+  var mul3 = bx(0.04, 2.7, 0.04, M.monument);
+  mul3.position.set(1.85-2.35+mi3*1.175, LF_Y+0.15+2.7/2, LF_S-WALL/2-0.03);
+  house.add(mul3);
+}
+// D01 mullions (Stacker door East, 3.25m) — 2 sliding panel divisions
+for (var mi4=1; mi4<3; mi4++) {
+  var mul4 = bx(0.06, 2.7, 0.04, M.monument);
+  mul4.position.set(LF_E+WALL/2+0.03, LF_Y+0.15+2.7/2, -7.4-1.625+mi4*1.08);
+  house.add(mul4);
+}
+
+// ══════════════════════════════════════════
+// DRIVEWAY — approaches from north-east (Balls Head Road)
+// ══════════════════════════════════════════
+var driveW = 3.5, driveL = 12.0;
+var driveGeo = new THREE.PlaneGeometry(driveW, driveL);
+var driveMat = new THREE.MeshStandardMaterial({color:0x888888, roughness:0.95});
+var drive = new THREE.Mesh(driveGeo, driveMat);
+drive.rotation.x = -Math.PI/2;
+drive.position.set(2.5, GF_Y+0.02, GF_N+driveL/2);
+drive.receiveShadow = true;
+scene.add(drive);
+// Driveway apron at garage
+var apron = bx(5.5, 0.1, 2.0, M.concrete);
+apron.position.set(-3.05, GF_Y-0.05, GF_N+1.0); house.add(apron);
+
+// ══════════════════════════════════════════
+// BOUNDARY FENCE (proposed 1.8m × 2.2m high, per elevations)
+// ══════════════════════════════════════════
+var fenceMat = new THREE.MeshStandardMaterial({color:0x666666, roughness:0.6});
+var fenceH = 1.8;
+// East boundary fence (runs N-S along east property line)
+var fenceE = bx(0.05, fenceH, 25, fenceMat);
+fenceE.position.set(LF_E+2.5, LF_Y+fenceH/2+1.0, 0); house.add(fenceE);
+// West boundary fence
+var fenceW = bx(0.05, fenceH, 25, fenceMat);
+fenceW.position.set(LF_Wst-2.5, LF_Y+fenceH/2+1.0, 0); house.add(fenceW);
+// Fence posts (every 2.4m along east fence)
+for (var fp=0; fp<11; fp++) {
+  var post = bx(0.09, fenceH+0.1, 0.09, fenceMat);
+  post.position.set(LF_E+2.5, LF_Y+fenceH/2+1.0, -12+fp*2.4);
+  house.add(post);
+}
 
 // ══════════════════════════════════════════
 // DETAILS
