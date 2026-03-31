@@ -26,7 +26,8 @@ canvas{display:block}
 <div id="info">
   <h3>49 Balls Head Rd, Waverton</h3>
   Lot 29 Sect 7 DP 6894 — Horizon Homes J1672 Rev S<br>
-  Drag to orbit · Scroll to zoom · Right-drag to pan
+  Drag to orbit · Scroll to zoom · Right-drag to pan<br>
+  <a href="plans.html" style="color:#7af;font-size:12px">View 2D Floor Plans →</a>
 </div>
 <div id="views"></div>
 <div id="legend"></div>
@@ -279,14 +280,15 @@ w.position.set(FF_CX, FF_Y-0.1, FF_CZ); house.add(w);
 var ROVER = 0.5; // east/south overhang
 var NOVER = 1.8; // north overhang — canopy over front balcony (key feature)
 
-// Main roof over first floor — 5° pitch, ridge at west parapet, slopes down to east
+// Main roof over first floor — 5° pitch, ridge at south (harbour), slopes down to north (street)
+// Per Section A-A: ridge at RL 38.970 on south side, eave on north side
 var mainRoofD = FF_D + NOVER + ROVER;
 var mainRoofW = FF_W + ROVER; // no overhang on west (parapet), ROVER on east
 var mainRoofCZ = FF_S - ROVER + mainRoofD/2;
 var mainRoofCX = FF_Wst + mainRoofW/2;
 var mainRoof = bx(mainRoofW, 0.15, mainRoofD, M.surfmist);
 mainRoof.position.set(mainRoofCX, FF_Y+FF_H+0.25, mainRoofCZ);
-mainRoof.rotation.z = -5 * Math.PI / 180; // ridge at west parapet, slopes down to east
+mainRoof.rotation.x = 5 * Math.PI / 180; // ridge at south (harbour), slopes down to north (street)
 mainRoof.castShadow = true; house.add(mainRoof);
 
 // Flat roof over ground floor south section (between LF_S and FF_S)
@@ -785,7 +787,7 @@ for (var pr=0;pr<3;pr++){
   }
 }
 pvG.position.y = FF_Y+FF_H+0.15;
-pvG.rotation.z = -5*Math.PI/180;
+pvG.rotation.x = 5*Math.PI/180; // match roof slope: south-high, north-low
 house.add(pvG);
 
 // Eaves soffit (Grey Pebble)

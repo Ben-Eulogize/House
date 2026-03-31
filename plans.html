@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>49 Balls Head Rd — Floor Plans</title>
+<style>
+*{box-sizing:border-box;margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#1a1a2e;color:#fff;overflow-x:hidden}
+.hdr{text-align:center;padding:12px}.hdr h1{font-size:18px;margin-bottom:4px}
+.hdr p{font-size:12px;color:#aaa}
+.nav{text-align:center;margin:4px 0 8px}.nav a{color:#7af;text-decoration:none;font-size:13px}
+.tabs{display:flex;justify-content:center;gap:6px;margin:0 10px 8px;flex-wrap:wrap}
+.tabs button{background:rgba(255,255,255,.1);color:#fff;border:1px solid #555;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:13px;transition:all .2s}
+.tabs button:hover{background:rgba(255,255,255,.2)}
+.tabs button.active{background:#2e7d32;border-color:#4caf50;font-weight:600}
+.wrap{display:flex;justify-content:center;padding:0 8px 8px}
+canvas{background:#fff;border-radius:6px}
+.compass{position:fixed;bottom:12px;right:12px;background:rgba(0,0,0,.8);padding:10px 14px;border-radius:8px;font-size:11px;text-align:center;line-height:1.5;pointer-events:none;z-index:10}
+.legend{position:fixed;bottom:12px;left:12px;background:rgba(0,0,0,.8);padding:10px 14px;border-radius:8px;font-size:11px;line-height:1.8;z-index:10;display:none}
+.legend.show{display:block}
+.dot{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:middle;border:1px solid rgba(255,255,255,.3)}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>49 Balls Head Rd, Waverton — Floor Plans</h1>
+  <p>Lot 29 Sect 7 DP 6894 — Horizon Homes J1672 Rev K</p>
+</div>
+<div class="nav"><a href="index.html">&larr; Back to 3D Model</a></div>
+<div class="tabs" id="tabs">
+  <button onclick="show('lf')" id="btn-lf">Lower Floor</button>
+  <button onclick="show('gf')" id="btn-gf">Ground Floor</button>
+  <button onclick="show('ff')" id="btn-ff">First Floor</button>
+  <button onclick="show('all')" id="btn-all">Overlay</button>
+</div>
+<div class="wrap"><canvas id="c"></canvas></div>
+<div class="compass">S (Harbour) &uarr;<br>&larr; W &nbsp;&middot;&nbsp; E &rarr;<br>&darr; N (Street)</div>
+<div class="legend" id="leg">
+  <span class="dot" style="background:#ef6c00"></span>Lower Floor<br>
+  <span class="dot" style="background:#7b1fa2"></span>Ground Floor<br>
+  <span class="dot" style="background:#2e7d32"></span>First Floor<br>
+  <span class="dot" style="background:#ffcc80"></span>Void / Stairwell<br>
+  <span class="dot" style="background:#81d4fa;border:1px dashed #1976d2"></span>Balcony
+</div>
+
+<script>
+var c = document.getElementById('c'), ctx = c.getContext('2d');
+var cur = 'lf';
+var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+// ── BUILDING DATA (all mm, origin = building SW corner) ──
+// Canvas: x→East(right), y→North(down) — south at top matches arch plans
+
+// Floor outlines [x,y] polygons
+var LF = [[0,0],[12010,0],[12010,18710],[0,18710]];
+var GF = [[0,0],[12010,0],[12010,21020],[0,21020]];
+var FF = [[0,7140],[8260,7140],[8260,18710],[0,18710]];
+
+// Balconies at FF level
+var FBAL = [[1500,3340],[5600,3340],[5600,7140],[1500,7140]];
+var RBAL = [[2800,18710],[4300,18710],[4300,19910],[2800,19910]];
+
+// Retaining walls west of LF
+var RETS = [{x:-580,y:4000,w:580,h:6350},{x:-580,y:12560,w:580,h:6150}];
+
+// Stairs per floor
+var ST = {
+  lf:{x:3800,y:10200,w:2000,h:2800,n:10},
+  gf:{x:3800,y:10400,w:2000,h:2100,n:8},
+  ff:{x:800,y:8500,w:2400,h:3500,n:12}
+};
+
+// Voids
+var VO = {
+  gf:{x:6200,y:10350,w:3300,h:2210},
+  ff:{x:3500,y:8500,w:3000,h:4000}
+};
+
+// Internal walls per floor [[x1,y1,x2,y2],...]
+var IW = {
+  lf:[[0,4000,12010,4000],[0,11980,12010,11980],[5700,4000,5700,11980]],
+  gf:[[0,3000,12010,3000],[0,10350,12010,10350],[0,12560,12010,12560],[6460,3000,6460,10350],[6460,12560,6460,21020]],
+  ff:[[3600,7140,3600,18710],[0,13000,8260,13000]]
+};
+
+// Room labels [x,y,text]
+var RL = {
+  lf:[
+    [6005,2000,'ALFRESCO'],[3000,7000,'FAMILY /\nDINING\n7.2\u00d75.7'],
+    [8500,5500,'DINING\n4.6\u00d74.0'],[8500,9500,'KITCHEN\n2.8\u00d74.1'],
+    [10500,10500,'PANTRY'],[10500,11500,"L'DRY"],
+    [3000,14500,'MEDIA ROOM\n5.9\u00d73.9'],[8500,13000,'BATH'],
+    [10000,15000,'WIL/\nSTORAGE'],[3000,17500,'WINE\nCELLAR'],
+    [1500,16000,'W/SHOP']
+  ],
+  gf:[
+    [8500,2500,'MASTER\n4.2\u00d75.1'],[3000,5000,'BED 2\n5.3\u00d73.4'],
+    [3000,8000,'BED 3\n5.3\u00d73.3'],[9500,5500,'WIR'],[9500,8500,'BATH'],
+    [3000,16000,'GARAGE\n5.9\u00d76.2'],[7500,15000,'MUD'],
+    [7500,17500,'ENTRY'],[10000,17500,'GUEST /\nSTUDY\n3.8\u00d73.1'],
+    [10000,14000,'BATH'],[6000,20500,'PORCH']
+  ],
+  ff:[
+    [6500,13000,'RUMPUS\n4.8\u00d76.2'],[2000,12000,'P.DER'],
+    [5000,16000,'GUEST\n3.3\u00d73.7']
+  ]
+};
+
+// Dimensions per floor [{ax,pos,segs:[[from,to,label],...]}]
+var DM = {
+  lf:[
+    {ax:'x',pos:-500,segs:[[0,12010,'12,010']]},
+    {ax:'y',pos:12600,segs:[[0,11980,'11,980'],[11980,18710,'6,730']]},
+    {ax:'y',pos:-700,segs:[[0,18710,'18,710']]}
+  ],
+  gf:[
+    {ax:'x',pos:-500,segs:[[0,6460,'6,460'],[6460,12010,'5,550']]},
+    {ax:'x',pos:21600,segs:[[0,12010,'12,010']]},
+    {ax:'y',pos:12600,segs:[[0,3000,'3,000'],[3000,10350,'7,350'],[10350,12560,'2,210'],[12560,21020,'8,460']]},
+    {ax:'y',pos:-700,segs:[[0,21020,'21,020']]}
+  ],
+  ff:[
+    {ax:'x',pos:6700,segs:[[0,3600,'3,600'],[3600,8260,'4,660']]},
+    {ax:'x',pos:19200,segs:[[0,8260,'8,260']]},
+    {ax:'y',pos:8800,segs:[[7140,18710,'11,570']]}
+  ]
+};
+
+// ── DRAWING HELPERS ──
+var sc, ox, oy;
+
+function resize() {
+  var mw = Math.min(window.innerWidth - 30, 900);
+  var mh = window.innerHeight - 160;
+  var xMin = -1200, xMax = 13500, yMin = -1200, yMax = 22500;
+  var bw = xMax - xMin, bh = yMax - yMin;
+  sc = Math.min(mw / bw, mh / bh);
+  var cw = Math.ceil(bw * sc), ch = Math.ceil(bh * sc);
+  c.width = cw * dpr; c.height = ch * dpr;
+  c.style.width = cw + 'px'; c.style.height = ch + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ox = -xMin * sc; oy = -yMin * sc;
+}
+
+function tx(x) { return ox + x * sc; }
+function ty(y) { return oy + y * sc; }
+function tw(w) { return w * sc; }
+
+function poly(pts, fill, stroke, lw) {
+  ctx.beginPath();
+  ctx.moveTo(tx(pts[0][0]), ty(pts[0][1]));
+  for (var i = 1; i < pts.length; i++) ctx.lineTo(tx(pts[i][0]), ty(pts[i][1]));
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 2; ctx.stroke(); }
+}
+
+function fillRect(x, y, w, h, fill) {
+  ctx.fillStyle = fill;
+  ctx.fillRect(tx(x), ty(y), tw(w), tw(h));
+}
+
+function strokeRect(x, y, w, h, stroke, lw) {
+  ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1;
+  ctx.strokeRect(tx(x), ty(y), tw(w), tw(h));
+}
+
+function drawLine(x1, y1, x2, y2, color, lw) {
+  ctx.beginPath(); ctx.moveTo(tx(x1), ty(y1)); ctx.lineTo(tx(x2), ty(y2));
+  ctx.strokeStyle = color; ctx.lineWidth = lw || 1; ctx.stroke();
+}
+
+function hatch(x, y, w, h, color) {
+  ctx.save();
+  ctx.beginPath(); ctx.rect(tx(x), ty(y), tw(w), tw(h)); ctx.clip();
+  ctx.strokeStyle = color || '#ffcc80'; ctx.lineWidth = 0.7;
+  ctx.beginPath();
+  var step = 8, px = tx(x), py = ty(y), pw = tw(w), ph = tw(h);
+  for (var d = -ph; d < pw + ph; d += step) {
+    ctx.moveTo(px + d, py); ctx.lineTo(px + d + ph, py + ph);
+  }
+  ctx.stroke(); ctx.restore();
+}
+
+function label(bx, by, text, fs, color, align) {
+  ctx.fillStyle = color || '#333';
+  ctx.font = (fs || 10) + 'px sans-serif';
+  ctx.textAlign = align || 'center'; ctx.textBaseline = 'middle';
+  var lines = text.split('\n'), lh = (fs || 10) * 1.3;
+  for (var i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], tx(bx), ty(by) + (i - (lines.length - 1) / 2) * lh);
+  }
+}
+
+function drawStairs(s) {
+  fillRect(s.x, s.y, s.w, s.h, '#eceff1');
+  strokeRect(s.x, s.y, s.w, s.h, '#90a4ae', 1);
+  var stepH = s.h / s.n;
+  for (var i = 1; i < s.n; i++) drawLine(s.x, s.y + i * stepH, s.x + s.w, s.y + i * stepH, '#b0bec5', 0.5);
+  // Arrow
+  var cx = s.x + s.w / 2, cy = s.y + s.h * 0.3;
+  var ay = s.y + s.h * 0.7;
+  drawLine(cx, cy, cx, ay, '#546e7a', 1.5);
+  // Arrowhead
+  ctx.beginPath();
+  ctx.moveTo(tx(cx), ty(ay));
+  ctx.lineTo(tx(cx - 150), ty(ay - 300));
+  ctx.lineTo(tx(cx + 150), ty(ay - 300));
+  ctx.closePath();
+  ctx.fillStyle = '#546e7a'; ctx.fill();
+  label(cx, s.y + s.h / 2, 'UP', 8, '#546e7a');
+}
+
+function drawVoid(v) {
+  fillRect(v.x, v.y, v.w, v.h, '#fff3e0');
+  hatch(v.x, v.y, v.w, v.h, '#ffcc80');
+  strokeRect(v.x, v.y, v.w, v.h, '#ff9800', 1.5);
+  label(v.x + v.w / 2, v.y + v.h / 2, 'VOID', 10, '#e65100');
+}
+
+function drawDims(dims) {
+  ctx.strokeStyle = '#1565c0'; ctx.fillStyle = '#1565c0'; ctx.lineWidth = 0.8;
+  for (var d = 0; d < dims.length; d++) {
+    var dm = dims[d];
+    for (var i = 0; i < dm.segs.length; i++) {
+      var s = dm.segs[i];
+      if (dm.ax === 'x') {
+        var sy = ty(dm.pos);
+        ctx.beginPath(); ctx.moveTo(tx(s[0]), sy); ctx.lineTo(tx(s[1]), sy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(tx(s[0]), sy - 5); ctx.lineTo(tx(s[0]), sy + 5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(tx(s[1]), sy - 5); ctx.lineTo(tx(s[1]), sy + 5); ctx.stroke();
+        ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText(s[2], (tx(s[0]) + tx(s[1])) / 2, sy - 6);
+      } else {
+        var sx = tx(dm.pos);
+        ctx.beginPath(); ctx.moveTo(sx, ty(s[0])); ctx.lineTo(sx, ty(s[1])); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sx - 5, ty(s[0])); ctx.lineTo(sx + 5, ty(s[0])); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sx - 5, ty(s[1])); ctx.lineTo(sx + 5, ty(s[1])); ctx.stroke();
+        ctx.save();
+        ctx.translate(sx - 8, (ty(s[0]) + ty(s[1])) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText(s[2], 0, 0);
+        ctx.restore();
+      }
+    }
+  }
+}
+
+function drawGrid() {
+  ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 0.3;
+  for (var gx = 0; gx <= 13000; gx += 1000) {
+    ctx.beginPath(); ctx.moveTo(tx(gx), ty(-1000)); ctx.lineTo(tx(gx), ty(22000)); ctx.stroke();
+  }
+  for (var gy = 0; gy <= 22000; gy += 1000) {
+    ctx.beginPath(); ctx.moveTo(tx(-1000), ty(gy)); ctx.lineTo(tx(13000), ty(gy)); ctx.stroke();
+  }
+}
+
+function drawScaleBar() {
+  var sx = tx(-500), sy = ty(22000);
+  var barW = tw(5000); // 5m bar
+  ctx.fillStyle = '#333'; ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + barW, sy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx, sy - 4); ctx.lineTo(sx, sy + 4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx + barW, sy - 4); ctx.lineTo(sx + barW, sy + 4); ctx.stroke();
+  ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('5m', sx + barW / 2, sy + 6);
+}
+
+// ── FLOOR DRAWING FUNCTIONS ──
+
+function drawLFFloor(overlay) {
+  var fill = overlay ? 'rgba(255,200,100,0.15)' : '#fff8e1';
+  var slw = overlay ? 2 : 3;
+  poly(LF, fill, '#ef6c00', slw);
+
+  if (!overlay) {
+    // Retaining walls
+    for (var i = 0; i < RETS.length; i++) {
+      var r = RETS[i];
+      fillRect(r.x, r.y, r.w, r.h, '#d7ccc8');
+      strokeRect(r.x, r.y, r.w, r.h, '#795548', 1.5);
+    }
+    label(-290, 7175, 'RET.\nWALL', 7, '#795548');
+    label(-290, 15635, 'RET.\nWALL', 7, '#795548');
+
+    // Internal walls
+    var w = IW.lf;
+    for (var i = 0; i < w.length; i++) drawLine(w[i][0], w[i][1], w[i][2], w[i][3], '#aaa', 0.8);
+
+    // Stairs
+    drawStairs(ST.lf);
+
+    // Room labels
+    var r = RL.lf;
+    for (var i = 0; i < r.length; i++) label(r[i][0], r[i][1], r[i][2], 9, '#555');
+
+    // Dimensions
+    drawDims(DM.lf);
+
+    // Title
+    label(6005, -800, 'LOWER FLOOR  (RL 28.890)', 13, '#ef6c00');
+  } else {
+    label(6005, 2000, 'LF', 12, '#ef6c00');
+  }
+}
+
+function drawGFFloor(overlay) {
+  var fill = overlay ? 'rgba(180,100,240,0.12)' : '#f3e5f5';
+  var slw = overlay ? 2 : 3;
+  poly(GF, fill, '#7b1fa2', slw);
+
+  if (!overlay) {
+    // Internal walls
+    var w = IW.gf;
+    for (var i = 0; i < w.length; i++) drawLine(w[i][0], w[i][1], w[i][2], w[i][3], '#aaa', 0.8);
+
+    // Void
+    drawVoid(VO.gf);
+
+    // Stairs
+    drawStairs(ST.gf);
+
+    // Room labels
+    var r = RL.gf;
+    for (var i = 0; i < r.length; i++) label(r[i][0], r[i][1], r[i][2], 9, '#555');
+
+    // Dimensions
+    drawDims(DM.gf);
+
+    // Title
+    label(6005, -800, 'GROUND FLOOR  (RL 32.340)', 13, '#7b1fa2');
+  } else {
+    label(6005, 10500, 'GF', 12, '#7b1fa2');
+  }
+}
+
+function drawFFFloor(overlay) {
+  var fill = overlay ? 'rgba(100,200,100,0.15)' : '#e8f5e9';
+  var slw = overlay ? 2 : 3;
+  poly(FF, fill, '#2e7d32', slw);
+
+  // Balconies (dashed)
+  ctx.setLineDash([6, 4]);
+  poly(FBAL, overlay ? 'rgba(129,212,250,0.1)' : 'rgba(129,212,250,0.3)', '#1976d2', 1.5);
+  poly(RBAL, overlay ? 'rgba(129,212,250,0.1)' : 'rgba(129,212,250,0.3)', '#1976d2', 1.5);
+  ctx.setLineDash([]);
+
+  if (!overlay) {
+    // Internal walls
+    var w = IW.ff;
+    for (var i = 0; i < w.length; i++) drawLine(w[i][0], w[i][1], w[i][2], w[i][3], '#aaa', 0.8);
+
+    // Void
+    drawVoid(VO.ff);
+
+    // Stairs
+    drawStairs(ST.ff);
+
+    // Room labels
+    var r = RL.ff;
+    for (var i = 0; i < r.length; i++) label(r[i][0], r[i][1], r[i][2], 9, '#555');
+
+    // Balcony labels
+    label(3550, 5240, 'FRONT\nBALCONY\n4.1\u00d73.8', 9, '#1565c0');
+    label(3550, 19310, 'REAR BALCONY\n1.5\u00d71.2', 8, '#1565c0');
+
+    // Dimensions
+    drawDims(DM.ff);
+
+    // Title
+    label(4130, 6700, 'FIRST FLOOR  (RL 35.540)', 13, '#2e7d32');
+
+    // Courtyard annotation
+    var cx = (8260 + 12010) / 2, cy = (7140 + 18710) / 2;
+    ctx.setLineDash([4, 4]);
+    strokeRect(8260, 7140, 12010 - 8260, 18710 - 7140, '#ff5722', 1.5);
+    ctx.setLineDash([]);
+    label(cx, cy, 'COURTYARD\n/ ROOF BELOW\n(GF roof level)', 9, '#ff5722');
+  } else {
+    label(4130, 13000, 'FF', 12, '#2e7d32');
+    // Courtyard area
+    var cx = (8260 + 12010) / 2, cy = (7140 + 18710) / 2;
+    ctx.setLineDash([4, 4]);
+    strokeRect(8260, 7140, 12010 - 8260, 18710 - 7140, '#ff5722', 1);
+    ctx.setLineDash([]);
+    label(cx, cy, 'COURTYARD', 9, '#ff5722');
+  }
+}
+
+// ── MAIN DRAW ──
+
+function draw() {
+  ctx.clearRect(0, 0, c.width / dpr, c.height / dpr);
+  drawGrid();
+
+  if (cur === 'lf') drawLFFloor(false);
+  else if (cur === 'gf') drawGFFloor(false);
+  else if (cur === 'ff') drawFFFloor(false);
+  else if (cur === 'all') {
+    drawLFFloor(true);
+    drawGFFloor(true);
+    drawFFFloor(true);
+    label(6005, -800, 'OVERLAY — All Floors', 13, '#fff');
+
+    // Dimension annotations for overlay
+    drawDims([
+      {ax:'x', pos:-500, segs:[[0,12010,'12,010 (LF/GF)']]},
+      {ax:'x', pos:6700, segs:[[0,8260,'8,260 (FF)']]},
+      {ax:'y', pos:-700, segs:[[0,18710,'18,710 (LF)']]},
+      {ax:'y', pos:12600, segs:[[0,21020,'21,020 (GF)']]}
+    ]);
+  }
+
+  drawScaleBar();
+
+  // Show/hide legend
+  document.getElementById('leg').className = cur === 'all' ? 'legend show' : 'legend';
+}
+
+// ── TAB SWITCHING ──
+
+function show(floor) {
+  cur = floor;
+  var btns = document.querySelectorAll('.tabs button');
+  for (var i = 0; i < btns.length; i++) btns[i].className = '';
+  document.getElementById('btn-' + floor).className = 'active';
+  draw();
+}
+window.show = show;
+
+// ── INIT ──
+
+window.addEventListener('resize', function() { resize(); draw(); });
+resize();
+show('lf');
+</script>
+</body>
+</html>
