@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cellar — your personal sommelier</title>
+<style>
+  :root {
+    --burgundy: #5a1a2b;
+    --burgundy-deep: #3d0f1d;
+    --burgundy-light: #8b3a52;
+    --gold: #d4a24c;
+    --gold-soft: #e8c989;
+    --cream: #f7f0e6;
+    --cream-deep: #ede2cf;
+    --ink: #1a0f12;
+    --ink-soft: #4a3a3f;
+    --shadow: 0 12px 40px rgba(60, 15, 30, 0.18);
+    --shadow-soft: 0 4px 16px rgba(60, 15, 30, 0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+    background:
+      radial-gradient(ellipse at top left, #6b1f33 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, #2a0a16 0%, transparent 60%),
+      linear-gradient(135deg, var(--burgundy-deep), var(--burgundy));
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .app {
+    width: 100%;
+    max-width: 540px;
+    background: var(--cream);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    position: relative;
+    min-height: 720px;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 22px 28px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(90, 26, 43, 0.08);
+    background: linear-gradient(to bottom, var(--cream), var(--cream-deep));
+  }
+  .logo {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--burgundy);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo svg { width: 22px; height: 22px; }
+  .player-chip {
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--burgundy);
+    background: var(--gold-soft);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    display: none;
+  }
+  main {
+    flex: 1;
+    padding: 32px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .screen {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    animation: fadeIn 0.4s ease-out;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Welcome */
+  .welcome-art {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 12px 0 24px;
+  }
+  .welcome-art svg { max-width: 220px; height: auto; }
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 38px;
+    line-height: 1.05;
+    color: var(--burgundy-deep);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+  .lead {
+    font-family: system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+  }
+
+  /* Buttons */
+  .btn {
+    font-family: system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+    text-align: center;
+    width: 100%;
+    letter-spacing: 0.02em;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--burgundy);
+    color: var(--cream);
+    box-shadow: var(--shadow-soft);
+  }
+  .btn-primary:hover { background: var(--burgundy-light); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--burgundy);
+    border: 1.5px solid rgba(90, 26, 43, 0.25);
+  }
+  .btn-secondary:hover { background: rgba(90, 26, 43, 0.06); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 10px;
+  }
+  .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+
+  /* Setup */
+  .field {
+    margin-bottom: 18px;
+  }
+  .field label {
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 17px;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    background: white;
+    border: 1.5px solid rgba(90, 26, 43, 0.15);
+    border-radius: 10px;
+    color: var(--ink);
+    transition: border-color 0.2s ease;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  /* Quiz */
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(90, 26, 43, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--gold), var(--burgundy));
+    width: 0%;
+    transition: width 0.4s ease;
+    border-radius: 3px;
+  }
+  .progress-label {
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .quiz-prompt {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    line-height: 1.3;
+    color: var(--burgundy-deep);
+    text-align: center;
+    margin: 14px 0 24px;
+    font-style: italic;
+  }
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+  }
+  .choice {
+    flex: 1;
+    background: white;
+    border: 2px solid transparent;
+    border-radius: 18px;
+    padding: 22px 20px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .choice:hover {
+    transform: translateY(-2px);
+    border-color: var(--gold);
+    box-shadow: 0 8px 24px rgba(60, 15, 30, 0.15);
+  }
+  .choice.picked {
+    border-color: var(--burgundy);
+    background: linear-gradient(135deg, var(--burgundy), var(--burgundy-light));
+    color: var(--cream);
+  }
+  .choice-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cream-deep);
+    border-radius: 14px;
+    transition: background 0.2s ease;
+  }
+  .choice.picked .choice-icon {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .choice-content { flex: 1; }
+  .choice-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .choice-sub {
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    opacity: 0.7;
+    line-height: 1.4;
+  }
+  .skip-row {
+    margin-top: 14px;
+    text-align: center;
+  }
+
+  /* Results */
+  .result-header {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .result-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--burgundy-deep);
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .result-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 30px;
+    color: var(--burgundy-deep);
+    line-height: 1.1;
+    font-style: italic;
+  }
+  .result-sub {
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+  .traits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .trait {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow-soft);
+  }
+  .trait-label {
+    font-family: system-ui, sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .trait-value {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--burgundy);
+  }
+  .trait-bar {
+    height: 4px;
+    background: rgba(90, 26, 43, 0.1);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .trait-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--gold), var(--burgundy));
+    border-radius: 2px;
+  }
+
+  /* Home hub */
+  .hub-greeting {
+    margin-bottom: 20px;
+  }
+  .hub-greeting h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px;
+    color: var(--burgundy-deep);
+    line-height: 1.15;
+  }
+  .hub-greeting p {
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  .player-cards {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .player-card {
+    flex: 1;
+    background: white;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow-soft);
+  }
+  .player-card-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--burgundy);
+    margin-bottom: 4px;
+  }
+  .player-card-style {
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+  .player-card-progress {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--gold);
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto;
+  }
+  .action-tile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    border: none;
+    text-align: left;
+    box-shadow: var(--shadow-soft);
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+  .action-tile:hover {
+    transform: translateX(4px);
+    box-shadow: 0 6px 20px rgba(60, 15, 30, 0.12);
+  }
+  .action-tile-icon {
+    width: 42px;
+    height: 42px;
+    background: var(--burgundy);
+    color: var(--cream);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .action-tile-text { flex: 1; }
+  .action-tile-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--burgundy-deep);
+  }
+  .action-tile-sub {
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  /* Scan stub */
+  .stub {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px 0;
+  }
+  .stub-icon {
+    font-size: 64px;
+    margin-bottom: 18px;
+    opacity: 0.6;
+  }
+  .stub h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 24px;
+    color: var(--burgundy-deep);
+    margin-bottom: 10px;
+  }
+  .stub p {
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    max-width: 380px;
+  }
+
+  /* Toast */
+  .toast {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--burgundy-deep);
+    color: var(--cream);
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Modal for export */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 5, 12, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--shadow);
+  }
+  .modal h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    color: var(--burgundy-deep);
+    margin-bottom: 8px;
+  }
+  .modal p {
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .modal textarea {
+    width: 100%;
+    height: 220px;
+    padding: 12px;
+    font-family: 'Menlo', 'Monaco', monospace;
+    font-size: 12px;
+    border: 1px solid rgba(90, 26, 43, 0.2);
+    border-radius: 10px;
+    resize: vertical;
+    background: white;
+    color: var(--ink);
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .modal-actions .btn { flex: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 2h8l-1 9a3 3 0 0 1-3 3 3 3 0 0 1-3-3z"/>
+        <line x1="12" y1="14" x2="12" y2="22"/>
+        <line x1="8" y1="22" x2="16" y2="22"/>
+      </svg>
+      Cellar
+    </div>
+    <div class="player-chip" id="playerChip">—</div>
+  </header>
+
+  <main>
+
+    <!-- WELCOME -->
+    <section class="screen active" id="screen-welcome">
+      <div class="welcome-art">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="wineGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#8b3a52"/>
+              <stop offset="100%" stop-color="#3d0f1d"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="100" cy="178" rx="42" ry="4" fill="rgba(0,0,0,0.08)"/>
+          <path d="M70 30 L130 30 L126 80 Q126 110 100 112 Q74 110 74 80 Z" fill="url(#wineGrad)" stroke="#3d0f1d" stroke-width="1.5"/>
+          <path d="M70 30 L130 30 L128 50 Q100 60 72 50 Z" fill="#5a1a2b" opacity="0.6"/>
+          <line x1="100" y1="112" x2="100" y2="160" stroke="#3d0f1d" stroke-width="2"/>
+          <ellipse cx="100" cy="162" rx="22" ry="4" fill="#3d0f1d"/>
+          <circle cx="155" cy="40" r="3" fill="#d4a24c"/>
+          <circle cx="40" cy="60" r="2" fill="#d4a24c"/>
+          <circle cx="160" cy="120" r="2" fill="#d4a24c"/>
+          <circle cx="35" cy="130" r="3" fill="#d4a24c"/>
+        </svg>
+      </div>
+      <h1>Your <em>personal</em> sommelier</h1>
+      <p class="lead">Pick wines you'll both love at any restaurant. Build your palate through quick taste duels, then point me at any list or label and I'll find the bottle.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="goSetup()">Begin tasting</button>
+        <button class="btn btn-ghost" onclick="loadIfExists()">I've been here before</button>
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section class="screen" id="screen-setup">
+      <h1>Two glasses</h1>
+      <p class="lead">Who's drinking? Each of you will build a palate profile through a quick taste game.</p>
+      <div class="field">
+        <label for="name1">First drinker</label>
+        <input type="text" id="name1" placeholder="e.g. Ben" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label for="name2">Second drinker</label>
+        <input type="text" id="name2" placeholder="e.g. partner's name" autocomplete="off"/>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startQuiz()">Pour the first round</button>
+        <button class="btn btn-ghost" onclick="showScreen('welcome')">Back</button>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="screen" id="screen-quiz">
+      <div class="quiz-progress">
+        <span class="progress-label" id="quizCount">1 / 12</span>
+        <div class="progress-bar"><div class="progress-fill" id="quizFill"></div></div>
+      </div>
+      <p class="quiz-prompt" id="quizPrompt">Pick the one that pulls you in</p>
+      <div class="choices" id="quizChoices"></div>
+      <div class="skip-row">
+        <button class="btn btn-ghost" onclick="skipQuestion()">No strong feeling — skip</button>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="screen" id="screen-results">
+      <div class="result-header">
+        <span class="result-badge" id="resultBadge">Profile complete</span>
+        <div class="result-title" id="resultTitle">The Earthy Romantic</div>
+        <div class="result-sub" id="resultSub">Pinot Noir at heart</div>
+      </div>
+      <div class="traits" id="resultTraits"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="afterResults()">Continue</button>
+        <button class="btn btn-secondary" onclick="exportWineMd()">Export to wine.md</button>
+      </div>
+    </section>
+
+    <!-- HOME HUB -->
+    <section class="screen" id="screen-home">
+      <div class="hub-greeting">
+        <h2 id="hubGreeting">Tonight's table</h2>
+        <p id="hubSub">Where are you drinking?</p>
+      </div>
+      <div class="player-cards" id="playerCards"></div>
+      <div class="actions">
+        <button class="action-tile" onclick="showScreen('scan')">
+          <div class="action-tile-icon">📷</div>
+          <div class="action-tile-text">
+            <div class="action-tile-title">Scan a wine list</div>
+            <div class="action-tile-sub">Photo of a list, label, or PDF — I'll suggest 3 picks</div>
+          </div>
+        </button>
+        <button class="action-tile" onclick="continueQuiz()">
+          <div class="action-tile-icon">🎯</div>
+          <div class="action-tile-text">
+            <div class="action-tile-title">Refine palate</div>
+            <div class="action-tile-sub" id="refineSub">A few more taste duels</div>
+          </div>
+        </button>
+        <button class="action-tile" onclick="exportWineMd()">
+          <div class="action-tile-icon">📜</div>
+          <div class="action-tile-text">
+            <div class="action-tile-title">Export wine.md</div>
+            <div class="action-tile-sub">Save preferences for the sommelier</div>
+          </div>
+        </button>
+        <button class="btn btn-ghost" onclick="resetAll()">Start over</button>
+      </div>
+    </section>
+
+    <!-- SCAN STUB -->
+    <section class="screen" id="screen-scan">
+      <div class="stub">
+        <div class="stub-icon">📷</div>
+        <h3>Scan a list</h3>
+        <p>Photo upload + AI list-reading is coming next. For now, share a picture of the wine list with your sommelier (Claude) along with this app's exported <code>wine.md</code> — they'll match a bottle to your palates.</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="showScreen('home')">Back to hub</button>
+      </div>
+    </section>
+
+    <div class="toast" id="toast">Saved</div>
+  </main>
+</div>
+
+<!-- Export modal -->
+<div class="modal-bg" id="exportModal">
+  <div class="modal">
+    <h3>wine.md export</h3>
+    <p>Copy this and paste into your <code>wine.md</code> file, or save it to share with the sommelier.</p>
+    <textarea id="exportText" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeExport()">Close</button>
+      <button class="btn btn-primary" onclick="copyExport()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Quiz definition ----------
+  // Each question contributes to one or more axes. Axes are scored -N..+N.
+  // Axes:
+  //   colorRed (red <-> white)
+  //   body (light <-> full)
+  //   fruit (earthy <-> fruit-forward)
+  //   oak (no oak <-> heavy oak)
+  //   sweet (bone dry <-> sweet)
+  //   tannin (low tannin <-> grippy)
+  //   acid (soft <-> high acid)
+  //   world (old world <-> new world)
+  //   bubbles (still <-> sparkling)
+  //   adventure (familiar <-> adventurous)
+  const QUESTIONS = [
+    {
+      prompt: "First sip of the evening — which calls you?",
+      a: { title: "Cold mountain stream", sub: "Crisp, mineral, lime zest", icon: "💧", axes: { colorRed: -2, body: -1, acid: +2, fruit: -1 } },
+      b: { title: "Sun-warmed cherry", sub: "Bright, juicy, red fruit", icon: "🍒", axes: { colorRed: +2, fruit: +2, body: 0 } }
+    },
+    {
+      prompt: "A red bottle is opened. The smell that stops you?",
+      a: { title: "Forest floor, leather, truffle", sub: "Old-world, savoury", icon: "🍂", axes: { fruit: -2, world: -2, oak: 0, body: +1 } },
+      b: { title: "Black plum, vanilla, mocha", sub: "Rich, modern, ripe", icon: "🍫", axes: { fruit: +2, world: +2, oak: +2, body: +2 } }
+    },
+    {
+      prompt: "A white at lunch — which feels right?",
+      a: { title: "Steely & lean", sub: "Chablis, Muscadet, Sancerre", icon: "🪨", axes: { oak: -2, acid: +2, fruit: -1, body: -1, world: -1 } },
+      b: { title: "Creamy & golden", sub: "Oaked Chardonnay, Viognier", icon: "🌾", axes: { oak: +2, body: +2, acid: -1, fruit: +1 } }
+    },
+    {
+      prompt: "Your ideal red has tannins like…",
+      a: { title: "Silk", sub: "Soft, easy, no grip", icon: "🧣", axes: { tannin: -2, body: -1 } },
+      b: { title: "Velvet rope", sub: "Structured, grippy, ageworthy", icon: "🪢", axes: { tannin: +2, body: +1 } }
+    },
+    {
+      prompt: "Sweetness in wine?",
+      a: { title: "Bone dry, please", sub: "Not a hint of sugar", icon: "🦴", axes: { sweet: -2 } },
+      b: { title: "A whisper is welcome", sub: "Off-dry Riesling, etc.", icon: "🍯", axes: { sweet: +1 } }
+    },
+    {
+      prompt: "Bubbles?",
+      a: { title: "Yes, always", sub: "Champagne over still any night", icon: "🥂", axes: { bubbles: +2, acid: +1 } },
+      b: { title: "Save for occasions", sub: "Still wine is the main event", icon: "🍷", axes: { bubbles: -1 } }
+    },
+    {
+      prompt: "Pick a region that excites you more:",
+      a: { title: "Burgundy at dusk", sub: "Pinot, Chardonnay, restraint", icon: "🏰", axes: { world: -2, fruit: -1, body: -1, adventure: +1 } },
+      b: { title: "Napa under the sun", sub: "Cab, oak, opulence", icon: "☀️", axes: { world: +2, fruit: +2, oak: +2, body: +2 } }
+    },
+    {
+      prompt: "The food is rich and meaty. You reach for…",
+      a: { title: "Northern Rhône Syrah", sub: "Pepper, smoke, restraint", icon: "🌶️", axes: { colorRed: +2, world: -1, body: +1, fruit: -1 } },
+      b: { title: "Argentinian Malbec", sub: "Plush, dark, generous", icon: "🥩", axes: { colorRed: +2, world: +2, body: +2, fruit: +2, oak: +1 } }
+    },
+    {
+      prompt: "Adventure level on a Tuesday?",
+      a: { title: "Bring me my favourite", sub: "Comfort over surprise", icon: "🛋️", axes: { adventure: -2 } },
+      b: { title: "Something I can't pronounce", sub: "Surprise me — orange wine, anything", icon: "🧭", axes: { adventure: +2 } }
+    },
+    {
+      prompt: "Acidity in white wine — friend or foe?",
+      a: { title: "Mouth-watering zing", sub: "The crisper the better", icon: "🍋", axes: { acid: +2, body: -1 } },
+      b: { title: "Round and soothing", sub: "Soft, gentle, generous", icon: "🍑", axes: { acid: -2, body: +1 } }
+    },
+    {
+      prompt: "Which dessert wine moment?",
+      a: { title: "No thanks", sub: "Coffee instead", icon: "☕", axes: { sweet: -1 } },
+      b: { title: "Sauternes & blue cheese", sub: "Honeyed, rich, glorious", icon: "🍯", axes: { sweet: +2, body: +1 } }
+    },
+    {
+      prompt: "Restaurant bottle for a normal Friday — what's a fair spend?",
+      a: { title: "$60–$90", sub: "Modest, smart picks", icon: "💵", axes: { adventure: -1 } },
+      b: { title: "$120+", sub: "Treat-night territory", icon: "💎", axes: { adventure: +1 } }
+    }
+  ];
+
+  // ---------- Profile interpretation ----------
+  function interpretProfile(profile) {
+    const traits = [];
+    const verdict = (key, lo, hi) => {
+      const v = profile[key] || 0;
+      const max = QUESTIONS.reduce((s, q) => s + Math.max(Math.abs(q.a.axes[key] || 0), Math.abs(q.b.axes[key] || 0)), 0);
+      const pct = Math.round(((v + max) / (2 * max || 1)) * 100);
+      const label = v < -1 ? lo : v > 1 ? hi : 'Balanced';
+      return { label, pct };
+    };
+    return {
+      "Color lean": verdict('colorRed', 'Whites & sparkling', 'Reds first'),
+      "Body": verdict('body', 'Light & airy', 'Full & rich'),
+      "Fruit vs earth": verdict('fruit', 'Earthy, savoury', 'Fruit-forward'),
+      "Oak": verdict('oak', 'Unoaked', 'Loves oak'),
+      "Sweetness": verdict('sweet', 'Bone dry', 'Likes a touch'),
+      "Tannin": verdict('tannin', 'Soft & silky', 'Grippy & structured'),
+      "Acidity": verdict('acid', 'Round & soft', 'Bright & zingy'),
+      "World": verdict('world', 'Old-world classics', 'New-world bold'),
+      "Adventure": verdict('adventure', 'Comfort picks', 'Try anything')
+    };
+  }
+
+  function nicknameFor(profile) {
+    const traits = interpretProfile(profile);
+    const r = profile.colorRed || 0;
+    const f = profile.fruit || 0;
+    const w = profile.world || 0;
+    const ad = profile.adventure || 0;
+    const oak = profile.oak || 0;
+    const acid = profile.acid || 0;
+
+    if (r < -1 && acid > 1) return { name: "The Crisp Minimalist", grape: "Sancerre at heart" };
+    if (r < -1 && oak > 1) return { name: "The Golden Hour", grape: "Oaked Chardonnay devotee" };
+    if (r > 1 && f < -1 && w < -1) return { name: "The Earthy Romantic", grape: "Pinot Noir at heart" };
+    if (r > 1 && f > 1 && oak > 1) return { name: "The Plush Modernist", grape: "Cabernet & Malbec" };
+    if (r > 1 && w < -1) return { name: "The Old-World Loyalist", grape: "Bordeaux & Barolo" };
+    if (ad > 2) return { name: "The Curious Drinker", grape: "Orange wine and beyond" };
+    if (profile.bubbles > 1) return { name: "The Bubbles Believer", grape: "Champagne, always" };
+    return { name: "The Open Palate", grape: "Anything well-made" };
+  }
+
+  // ---------- State ----------
+  const STATE_KEY = 'cellar-state-v1';
+  let state = {
+    players: [], // [{name, profile: {axis: score}, answered: number}]
+    currentPlayerIdx: 0,
+    currentQuestionIdx: 0,
+    askedFor: { /* playerIdx: [questionIdx,...] */ }
+  };
+
+  function save() {
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  }
+  function load() {
+    const raw = localStorage.getItem(STATE_KEY);
+    if (!raw) return false;
+    try { state = JSON.parse(raw); return true; } catch { return false; }
+  }
+
+  // ---------- Screen routing ----------
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    const chip = document.getElementById('playerChip');
+    if (id === 'quiz' && state.players[state.currentPlayerIdx]) {
+      chip.style.display = 'inline-block';
+      chip.textContent = state.players[state.currentPlayerIdx].name;
+    } else {
+      chip.style.display = 'none';
+    }
+  }
+
+  function goSetup() { showScreen('setup'); }
+
+  function loadIfExists() {
+    if (load() && state.players.length) {
+      renderHome();
+      showScreen('home');
+    } else {
+      toast("No saved profile — let's start fresh");
+      showScreen('setup');
+    }
+  }
+
+  // ---------- Quiz flow ----------
+  function startQuiz() {
+    const n1 = document.getElementById('name1').value.trim() || 'Drinker 1';
+    const n2 = document.getElementById('name2').value.trim() || 'Drinker 2';
+    state = {
+      players: [
+        { name: n1, profile: {}, answered: 0 },
+        { name: n2, profile: {}, answered: 0 }
+      ],
+      currentPlayerIdx: 0,
+      currentQuestionIdx: 0,
+      askedFor: { 0: [], 1: [] }
+    };
+    save();
+    renderQuestion();
+    showScreen('quiz');
+  }
+
+  function continueQuiz() {
+    // Give whichever player has fewer answers a few more rounds
+    const idx = state.players[0].answered <= state.players[1].answered ? 0 : 1;
+    state.currentPlayerIdx = idx;
+    state.currentQuestionIdx = 0;
+    if (!state.askedFor[idx]) state.askedFor[idx] = [];
+    save();
+    renderQuestion();
+    showScreen('quiz');
+  }
+
+  function pickNextQuestion() {
+    const idx = state.currentPlayerIdx;
+    if (!state.askedFor[idx]) state.askedFor[idx] = [];
+    const remaining = QUESTIONS.map((_, i) => i).filter(i => !state.askedFor[idx].includes(i));
+    if (remaining.length === 0) return null;
+    return remaining[Math.floor(Math.random() * remaining.length)];
+  }
+
+  function renderQuestion() {
+    const player = state.players[state.currentPlayerIdx];
+    const qIdx = pickNextQuestion();
+    if (qIdx === null) {
+      finishPlayer();
+      return;
+    }
+    state.currentQuestionIdx = qIdx;
+    const q = QUESTIONS[qIdx];
+    document.getElementById('quizPrompt').textContent = q.prompt;
+    const answeredCount = state.askedFor[state.currentPlayerIdx].length;
+    const total = QUESTIONS.length;
+    document.getElementById('quizCount').textContent = `${player.name} · ${answeredCount + 1} / ${total}`;
+    document.getElementById('quizFill').style.width = ((answeredCount / total) * 100) + '%';
+
+    const choicesEl = document.getElementById('quizChoices');
+    choicesEl.innerHTML = '';
+    ['a', 'b'].forEach(side => {
+      const c = q[side];
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `
+        <div class="choice-icon">${c.icon}</div>
+        <div class="choice-content">
+          <div class="choice-title">${c.title}</div>
+          <div class="choice-sub">${c.sub}</div>
+        </div>
+      `;
+      btn.onclick = () => answer(side);
+      choicesEl.appendChild(btn);
+    });
+  }
+
+  function answer(side) {
+    const q = QUESTIONS[state.currentQuestionIdx];
+    const player = state.players[state.currentPlayerIdx];
+    const axes = q[side].axes || {};
+    Object.entries(axes).forEach(([k, v]) => {
+      player.profile[k] = (player.profile[k] || 0) + v;
+    });
+    player.answered = (player.answered || 0) + 1;
+    state.askedFor[state.currentPlayerIdx].push(state.currentQuestionIdx);
+
+    // Visual feedback
+    const choices = document.querySelectorAll('.choice');
+    choices[side === 'a' ? 0 : 1].classList.add('picked');
+    save();
+
+    setTimeout(() => {
+      const answered = state.askedFor[state.currentPlayerIdx].length;
+      if (answered >= QUESTIONS.length) {
+        finishPlayer();
+      } else if (answered >= 6 && answered % 6 === 0) {
+        // Switch player every 6 questions for variety
+        finishPlayer();
+      } else {
+        renderQuestion();
+      }
+    }, 400);
+  }
+
+  function skipQuestion() {
+    state.askedFor[state.currentPlayerIdx].push(state.currentQuestionIdx);
+    save();
+    const answered = state.askedFor[state.currentPlayerIdx].length;
+    if (answered >= QUESTIONS.length) finishPlayer();
+    else renderQuestion();
+  }
+
+  function finishPlayer() {
+    renderResults();
+    showScreen('results');
+  }
+
+  function afterResults() {
+    // If second player hasn't done their first round, switch to them
+    const p2 = state.currentPlayerIdx === 0 ? 1 : 0;
+    if (state.players[p2].answered === 0) {
+      state.currentPlayerIdx = p2;
+      save();
+      renderQuestion();
+      showScreen('quiz');
+    } else {
+      renderHome();
+      showScreen('home');
+    }
+  }
+
+  // ---------- Results ----------
+  function renderResults() {
+    const player = state.players[state.currentPlayerIdx];
+    const nick = nicknameFor(player.profile);
+    document.getElementById('resultBadge').textContent = `${player.name}'s palate`;
+    document.getElementById('resultTitle').textContent = nick.name;
+    document.getElementById('resultSub').textContent = nick.grape;
+
+    const traits = interpretProfile(player.profile);
+    const traitsEl = document.getElementById('resultTraits');
+    traitsEl.innerHTML = '';
+    Object.entries(traits).forEach(([label, { label: val, pct }]) => {
+      const el = document.createElement('div');
+      el.className = 'trait';
+      el.innerHTML = `
+        <div class="trait-label">${label}</div>
+        <div class="trait-value">${val}</div>
+        <div class="trait-bar"><div class="trait-bar-fill" style="width:${pct}%"></div></div>
+      `;
+      traitsEl.appendChild(el);
+    });
+  }
+
+  // ---------- Home ----------
+  function renderHome() {
+    const [p1, p2] = state.players;
+    document.getElementById('hubGreeting').textContent = `${p1.name} & ${p2.name}`;
+    document.getElementById('hubSub').textContent = "Where are you drinking tonight?";
+    const cards = document.getElementById('playerCards');
+    cards.innerHTML = '';
+    state.players.forEach(p => {
+      const nick = nicknameFor(p.profile);
+      const card = document.createElement('div');
+      card.className = 'player-card';
+      const remaining = Math.max(0, QUESTIONS.length - (p.answered || 0));
+      card.innerHTML = `
+        <div class="player-card-name">${p.name}</div>
+        <div class="player-card-style">${nick.name}<br>${nick.grape}</div>
+        <div class="player-card-progress">${p.answered}/${QUESTIONS.length} duels${remaining ? ` · ${remaining} left` : ' · complete'}</div>
+      `;
+      cards.appendChild(card);
+    });
+    const totalRemaining = state.players.reduce((s, p) => s + Math.max(0, QUESTIONS.length - p.answered), 0);
+    document.getElementById('refineSub').textContent =
+      totalRemaining > 0 ? `${totalRemaining} more duels available` : "All duels done — start a fresh round";
+  }
+
+  // ---------- Export to wine.md ----------
+  function exportWineMd() {
+    if (!state.players.length) {
+      toast("Take the quiz first");
+      return;
+    }
+    const lines = [];
+    lines.push("# Wine Preferences — Personal Sommelier");
+    lines.push("");
+    lines.push(`> Generated by Cellar on ${new Date().toISOString().slice(0,10)}.`);
+    lines.push("");
+    lines.push("## Drinkers");
+    lines.push("");
+    state.players.forEach(p => {
+      const nick = nicknameFor(p.profile);
+      lines.push(`- **${p.name}** — _${nick.name}_ (${nick.grape})`);
+    });
+    lines.push("");
+    state.players.forEach(p => {
+      const nick = nicknameFor(p.profile);
+      const traits = interpretProfile(p.profile);
+      lines.push(`## ${p.name} — taste profile`);
+      lines.push("");
+      lines.push(`**Style:** ${nick.name} · ${nick.grape}`);
+      lines.push(`**Duels answered:** ${p.answered}/${QUESTIONS.length}`);
+      lines.push("");
+      Object.entries(traits).forEach(([label, { label: val, pct }]) => {
+        lines.push(`- **${label}:** ${val} _(${pct}%)_`);
+      });
+      lines.push("");
+    });
+    lines.push("## Decision rules for the sommelier");
+    lines.push("");
+    lines.push("1. Honor any explicit avoid list (add manually below).");
+    lines.push("2. Lean to overlap between both palates first.");
+    lines.push("3. Match the food when given.");
+    lines.push("4. Offer 3 picks: Safe / Value / Adventure.");
+    lines.push("5. Briefly explain each pick (grape, region, why it fits).");
+    lines.push("6. If list/photo is unclear, ask before guessing.");
+    lines.push("");
+    lines.push("## Manual additions");
+    lines.push("");
+    lines.push("**Shared loves:** _add bottles you've both adored_");
+    lines.push("**Shared dislikes:** _add styles to avoid_");
+    lines.push("**Budget by occasion:** _weeknight / casual / special_");
+    lines.push("");
+    document.getElementById('exportText').value = lines.join('\n');
+    document.getElementById('exportModal').classList.add('show');
+  }
+
+  function closeExport() {
+    document.getElementById('exportModal').classList.remove('show');
+  }
+
+  function copyExport() {
+    const ta = document.getElementById('exportText');
+    ta.select();
+    document.execCommand('copy');
+    toast("Copied — paste into wine.md");
+  }
+
+  function resetAll() {
+    if (!confirm("Clear both palates and start over?")) return;
+    localStorage.removeItem(STATE_KEY);
+    state = { players: [], currentPlayerIdx: 0, currentQuestionIdx: 0, askedFor: {} };
+    showScreen('welcome');
+  }
+
+  // ---------- Toast ----------
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+  }
+
+  // ---------- Boot ----------
+  if (load() && state.players.length) {
+    renderHome();
+    showScreen('home');
+  }
+</script>
+</body>
+</html>
