@@ -3,868 +3,781 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>49 Balls Head Road, Waverton — 3D Model</title>
+<title>49 Balls Head Road, Waverton</title>
 <style>
-body{margin:0;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;overflow:hidden;height:100vh}
+nav{display:flex;background:#1e293b;border-bottom:2px solid #334155;height:48px}
+nav button{flex:1;background:none;border:none;color:#64748b;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.3px}
+nav button:hover{color:#94a3b8;background:rgba(255,255,255,.02)}
+nav button.active{color:#f1f5f9;background:#0f172a;border-bottom:3px solid #3b82f6}
+.tab{display:none;width:100%;height:calc(100vh - 48px);position:relative;overflow:hidden}
+.tab.active{display:block}
+.panel{position:absolute;z-index:10;background:rgba(15,23,42,.94);padding:12px 16px;border-radius:8px;font-size:12px;border:1px solid #334155}
+.panel h4{font-size:13px;margin-bottom:8px;color:#93c5fd}
+.btn-group{display:flex;gap:4px}
+.btn{background:rgba(30,41,59,.95);color:#94a3b8;border:1px solid #334155;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s}
+.btn:hover{color:#cbd5e1;background:rgba(51,65,85,.8)}
+.btn.active{color:#f1f5f9;background:#1e3a5f;border-color:#3b82f6}
+.note{color:#f59e0b;margin-top:8px;font-size:11px;line-height:1.4}
+#plans-controls{position:absolute;top:12px;left:12px;z-index:10}
+#plans-info{position:absolute;top:12px;right:12px}
+#plans-canvas{cursor:grab}
+#elev-controls{position:absolute;top:12px;left:12px;z-index:10}
+#elev-panel{position:absolute;top:12px;right:12px;max-width:240px;max-height:calc(100vh - 80px);overflow-y:auto}
+.mat-row{display:flex;align-items:center;margin-bottom:5px;padding:3px 6px;border-radius:4px}
+.mat-swatch{width:18px;height:18px;border-radius:3px;margin-right:8px;border:1px solid #475569;flex-shrink:0}
+#trace-bar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:10;display:none;gap:8px;align-items:center;border-color:#f59e0b}
+#trace-bar.show{display:flex}
+#trace-bar select,#trace-bar .btn{font-size:11px;padding:4px 8px}
+#model-info{position:absolute;top:12px;left:12px;max-width:260px}
+#model-views{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:4px}
+#model-legend{position:absolute;bottom:12px;left:12px;max-height:50vh;overflow-y:auto}
+.legend-row{display:flex;align-items:center;margin-bottom:4px}
+.legend-sw{width:14px;height:14px;border-radius:3px;margin-right:8px;border:1px solid #475569;flex-shrink:0}
 canvas{display:block}
-#info{position:absolute;top:10px;left:10px;color:#fff;background:rgba(0,0,0,.7);padding:10px 14px;border-radius:6px;font-size:13px;max-width:260px}
-#info h3{margin:0 0 4px;font-size:14px}
-#views{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px}
-#views button{background:rgba(0,0,0,.7);color:#fff;border:1px solid #555;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:12px}
-#views button:hover{background:rgba(60,60,60,.9)}
-#legend{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.85);color:#fff;padding:12px 16px;border-radius:6px;font-size:12px;max-height:60vh;overflow-y:auto}
-#legend h4{margin:0 0 8px;font-size:13px;cursor:pointer;user-select:none}
-#legend h4::after{content:' ▼';font-size:10px}
-#legend.collapsed h4::after{content:' ▶'}
-#legend.collapsed .lrow,#legend.collapsed .lwarn{display:none}
-.lrow{display:flex;align-items:center;margin-bottom:4px}
-.lswatch{width:16px;height:16px;border-radius:3px;margin-right:8px;border:1px solid #666;flex-shrink:0}
-.lwarn{color:#f0c040;margin-top:8px;font-size:11px;line-height:1.4}
 </style>
 </head>
 <body>
-<div id="info">
-  <h3>49 Balls Head Rd, Waverton</h3>
-  Lot 29 Sect 7 DP 6894 — Horizon Homes J1672 Rev S<br>
-  Drag to orbit · Scroll to zoom · Right-drag to pan<br>
-  <a href="plans.html" style="color:#7af;font-size:12px">View 2D Floor Plans →</a>
+<nav>
+<button class="active" data-tab="plans">Floor Plans</button>
+<button data-tab="elevations">Elevations</button>
+<button data-tab="model">3D Model</button>
+</nav>
+
+<div id="tab-plans" class="tab active">
+<div id="plans-controls" class="btn-group">
+<button class="btn active" data-floor="LF">Lower Ground</button>
+<button class="btn" data-floor="GF">Ground</button>
+<button class="btn" data-floor="FF">First Floor</button>
+<button class="btn" data-floor="ALL">Overlay</button>
 </div>
-<div id="views"></div>
-<div id="legend"></div>
+<div id="plans-info" class="panel">
+<h4 id="plan-title">Lower Ground Floor</h4>
+<div id="plan-detail">RL 28.890 &middot; 12.01m &times; 18.71m</div>
+<div style="margin-top:6px;font-size:11px;color:#64748b">Drag to pan &middot; Scroll to zoom &middot; Dbl-click reset</div>
+<div class="note">Outlines from DA Plans dimension strings (exact). Internal walls approximate.</div>
+</div>
+<canvas id="plans-canvas"></canvas>
+</div>
+
+<div id="tab-elevations" class="tab">
+<div id="elev-controls" class="btn-group">
+<button class="btn active" data-elev="WN">West &amp; North</button>
+<button class="btn" data-elev="ES">East &amp; South</button>
+</div>
+<div id="elev-panel" class="panel">
+<h4>Materials &amp; Colours</h4>
+<div id="mat-list"></div>
+<div class="note">PDF elevation from DA Plans Rev K.<br>Add ?edit=1 to URL to enable region tracing tool.</div>
+</div>
+<canvas id="elev-canvas"></canvas>
+<div id="trace-bar" class="panel">
+<span style="color:#f59e0b;font-weight:600">Trace Mode</span>
+<select id="trace-mat"></select>
+<button class="btn" id="btn-undo">Undo</button>
+<button class="btn" id="btn-close-poly">Close Polygon</button>
+<button class="btn" id="btn-export">Export JSON</button>
+<button class="btn" id="btn-clear">Clear All</button>
+</div>
+</div>
+
+<div id="tab-model" class="tab">
+<div id="model-info" class="panel">
+<h4>49 Balls Head Rd, Waverton</h4>
+Lot 29 Sect 7 DP 6894<br>Horizon Homes J1672 Rev K
+<div style="margin-top:6px;color:#64748b">Drag to orbit &middot; Scroll to zoom &middot; Right-drag to pan</div>
+<div class="note">Massing model &mdash; see Floor Plans tab for accurate geometry</div>
+</div>
+<div id="model-views"></div>
+<div id="model-legend" class="panel"></div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 THREE.OrbitControls=function(o,d){var s=this;this.object=o;this.domElement=d;this.enabled=true;this.target=new THREE.Vector3;this.minDistance=0;this.maxDistance=Infinity;this.enableDamping=false;this.dampingFactor=0.05;this.enableZoom=true;this.zoomSpeed=1;this.enableRotate=true;this.rotateSpeed=1;this.enablePan=true;this.panSpeed=1;var S={NONE:-1,ROTATE:0,DOLLY:1,PAN:2};var state=S.NONE;var spherical=new THREE.Spherical;var sphericalDelta=new THREE.Spherical;var scl=1;var panOff=new THREE.Vector3;var rS=new THREE.Vector2;var rE=new THREE.Vector2;var rD=new THREE.Vector2;var pS=new THREE.Vector2;var pE=new THREE.Vector2;var pD=new THREE.Vector2;var dS=new THREE.Vector2;var dE=new THREE.Vector2;var dD=new THREE.Vector2;var off=new THREE.Vector3;var q=new THREE.Quaternion().setFromUnitVectors(o.up,new THREE.Vector3(0,1,0));var qi=q.clone().invert();this.update=function(){var p=s.object.position;off.copy(p).sub(s.target);off.applyQuaternion(q);spherical.setFromVector3(off);if(s.enableDamping){spherical.theta+=sphericalDelta.theta*s.dampingFactor;spherical.phi+=sphericalDelta.phi*s.dampingFactor}else{spherical.theta+=sphericalDelta.theta;spherical.phi+=sphericalDelta.phi}spherical.phi=Math.max(0.01,Math.min(Math.PI-0.01,spherical.phi));spherical.radius*=scl;spherical.radius=Math.max(s.minDistance,Math.min(s.maxDistance,spherical.radius));s.target.add(panOff);off.setFromSpherical(spherical);off.applyQuaternion(qi);p.copy(s.target).add(off);s.object.lookAt(s.target);if(s.enableDamping){sphericalDelta.theta*=(1-s.dampingFactor);sphericalDelta.phi*=(1-s.dampingFactor)}else{sphericalDelta.set(0,0,0)}scl=1;panOff.set(0,0,0)};function rL(a){sphericalDelta.theta-=a}function rU(a){sphericalDelta.phi-=a}var panL=function(){var v=new THREE.Vector3;return function(dist,m){v.setFromMatrixColumn(m,0);v.multiplyScalar(-dist);panOff.add(v)}}();var panU=function(){var v=new THREE.Vector3;return function(dist,m){v.setFromMatrixColumn(m,1);v.multiplyScalar(dist);panOff.add(v)}}();var pan=function(){return function(dX,dY){var el=s.domElement;if(s.object.isPerspectiveCamera){var ov=new THREE.Vector3;ov.copy(s.object.position).sub(s.target);var tD=ov.length()*Math.tan(s.object.fov/2*Math.PI/180);panL(2*dX*tD/el.clientHeight,s.object.matrix);panU(2*dY*tD/el.clientHeight,s.object.matrix)}}}();function dIn(ds){scl/=ds}function dOut(ds){scl*=ds}function onMD(e){if(!s.enabled)return;e.preventDefault();if(e.button===0){state=S.ROTATE;rS.set(e.clientX,e.clientY)}else if(e.button===1){state=S.DOLLY;dS.set(e.clientX,e.clientY)}else if(e.button===2){state=S.PAN;pS.set(e.clientX,e.clientY)}if(state!==S.NONE){document.addEventListener('mousemove',onMM,false);document.addEventListener('mouseup',onMU,false)}}function onMM(e){if(!s.enabled)return;e.preventDefault();if(state===S.ROTATE){rE.set(e.clientX,e.clientY);rD.subVectors(rE,rS);rL(2*Math.PI*rD.x/d.clientHeight*s.rotateSpeed);rU(2*Math.PI*rD.y/d.clientHeight*s.rotateSpeed);rS.copy(rE)}else if(state===S.DOLLY){dE.set(e.clientX,e.clientY);dD.subVectors(dE,dS);if(dD.y>0)dIn(Math.pow(0.95,s.zoomSpeed));else if(dD.y<0)dOut(Math.pow(0.95,s.zoomSpeed));dS.copy(dE)}else if(state===S.PAN){pE.set(e.clientX,e.clientY);pD.subVectors(pE,pS);pan(pD.x,pD.y);pS.copy(pE)}s.update()}function onMU(){document.removeEventListener('mousemove',onMM,false);document.removeEventListener('mouseup',onMU,false);state=S.NONE}function onW(e){if(!s.enabled||!s.enableZoom)return;e.preventDefault();e.stopPropagation();if(e.deltaY<0)dOut(Math.pow(0.95,s.zoomSpeed));else if(e.deltaY>0)dIn(Math.pow(0.95,s.zoomSpeed));s.update()}function onTS(e){if(!s.enabled)return;switch(e.touches.length){case 1:state=S.ROTATE;rS.set(e.touches[0].pageX,e.touches[0].pageY);break;case 2:state=S.DOLLY;var dx=e.touches[0].pageX-e.touches[1].pageX,dy=e.touches[0].pageY-e.touches[1].pageY;dS.set(0,Math.sqrt(dx*dx+dy*dy));break}}function onTM(e){if(!s.enabled)return;e.preventDefault();e.stopPropagation();switch(e.touches.length){case 1:rE.set(e.touches[0].pageX,e.touches[0].pageY);rD.subVectors(rE,rS);rL(2*Math.PI*rD.x/d.clientHeight*s.rotateSpeed);rU(2*Math.PI*rD.y/d.clientHeight*s.rotateSpeed);rS.copy(rE);break;case 2:var dx=e.touches[0].pageX-e.touches[1].pageX,dy=e.touches[0].pageY-e.touches[1].pageY;dE.set(0,Math.sqrt(dx*dx+dy*dy));dD.subVectors(dE,dS);if(dD.y>0)dOut(Math.pow(0.95,s.zoomSpeed));else if(dD.y<0)dIn(Math.pow(0.95,s.zoomSpeed));dS.copy(dE);break}s.update()}d.addEventListener('mousedown',onMD,false);d.addEventListener('wheel',onW,{passive:false});d.addEventListener('touchstart',onTS,{passive:false});d.addEventListener('touchmove',onTM,{passive:false});d.addEventListener('touchend',function(){state=S.NONE},false);d.addEventListener('contextmenu',function(e){e.preventDefault()},false);this.update()};
-
-// ── END OrbitControls ──
 </script>
 <script>
 // ══════════════════════════════════════════
-// 49 Balls Head Road — 3D House Model
+// SHARED CONSTANTS
 // ══════════════════════════════════════════
-// Coordinate system: X+=East, X-=West, Z+=North(street/high), Z-=South(harbour/low), Y+=Up
-// Datum: Y=0 = RL 28.890 (Lower Floor level)
-// All dimensions in metres
-
-// ── Colours ──
-var C = {
-  render:   0xcec8c1, // Dulux Grey Pebble 1/2 Str
-  monument: 0x3d4040, // Colorbond Monument
-  surfmist: 0xe8e1d4, // Colorbond Surfmist
-  timber:   0x8b6f47, // Pacific Maple
-  glass:    0x8ec8d8,
-  concrete: 0xb0a898,
-  ground:   0x6b8e5a
+var MATERIALS = {
+  render:   {name:'Dulux Grey Pebble 1/2',  hex:'#cec8c1'},
+  monument: {name:'Colorbond Monument',     hex:'#3d4040'},
+  surfmist: {name:'Colorbond Surfmist',     hex:'#e8e1d4'},
+  timber:   {name:'Pacific Maple',          hex:'#8b6f47'},
+  brick:    {name:'Selected brick',         hex:'#9a8878'},
+  glazing:  {name:'Aluminium Monument',     hex:'#3d4040'},
+  glass:    {name:'Glass',                  hex:'#8ec8d8'},
+  concrete: {name:'Concrete',              hex:'#b0a898'},
+  roof:     {name:'Surfmist Roof',          hex:'#e8e1d4'}
 };
-
-// ── Materials ──
-var M = {
-  render:   new THREE.MeshStandardMaterial({color:C.render, roughness:0.85}),
-  monument: new THREE.MeshStandardMaterial({color:C.monument, roughness:0.5}),
-  surfmist: new THREE.MeshStandardMaterial({color:C.surfmist, roughness:0.4, metalness:0.1}),
-  timber:   new THREE.MeshStandardMaterial({color:C.timber, roughness:0.7}),
-  glass:    new THREE.MeshStandardMaterial({color:C.glass, roughness:0.1, metalness:0.1, transparent:true, opacity:0.35, side: THREE.DoubleSide}),
-  concrete: new THREE.MeshStandardMaterial({color:C.concrete, roughness:0.9}),
-  ground:   new THREE.MeshStandardMaterial({color:C.ground, roughness:1}),
-  pv:       new THREE.MeshStandardMaterial({color:0x1a1a2e, roughness:0.3, metalness:0.6})
-};
-
-// ── Scene ──
-var scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 80, 150);
-
-var camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 200);
-camera.position.set(20, 15, -24);
-
-var renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
-document.body.appendChild(renderer.domElement);
-
-var controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.target.set(0, 4, 0);
-controls.minDistance = 5;
-controls.maxDistance = 80;
-
-// ── Lighting ──
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-var sun = new THREE.DirectionalLight(0xffffff, 1.0);
-sun.position.set(15, 25, -10);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -25; sun.shadow.camera.right = 25;
-sun.shadow.camera.top = 25; sun.shadow.camera.bottom = -25;
-scene.add(sun);
-scene.add(new THREE.HemisphereLight(0xddeeff, 0x8b7d6b, 0.3));
-
-// ── Helpers ──
-var house = new THREE.Group();
-scene.add(house);
-
-function bx(w,h,d,mat) {
-  var m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
-  m.castShadow = true; m.receiveShadow = true;
-  return m;
-}
+var PDF_FILE = 'J1672 - Lot 29, No-49 Balls Head Road, Waverton - DA PLANS - REV K.pdf';
 
 // ══════════════════════════════════════════
-// GROUND TERRAIN — slopes from north(high ≈Y=3.5) to south(low ≈Y=0)
+// TAB SWITCHING
 // ══════════════════════════════════════════
-var gndGeo = new THREE.PlaneGeometry(80, 80, 30, 30);
-var gndPos = gndGeo.attributes.position;
-for (var i = 0; i < gndPos.count; i++) {
-  var lx = gndPos.getX(i);
-  var ly = gndPos.getY(i); // local Y → world -Z after rotation
-  // ly positive = south in world (after rot -PI/2, localY → -worldZ)
-  // We want north(Z+) high, south(Z-) low
-  // north in local = ly negative, south = ly positive
-  var elevation = -ly * 0.08 + 1.7 + Math.sin(lx*0.08)*0.15;
-  gndPos.setZ(i, elevation);
-}
-gndGeo.computeVertexNormals();
-var gndMesh = new THREE.Mesh(gndGeo, M.ground);
-gndMesh.rotation.x = -Math.PI / 2;
-gndMesh.receiveShadow = true;
-scene.add(gndMesh);
+var activeTab = 'plans';
+var inited = {};
 
-// ══════════════════════════════════════════
-// BUILDING DIMENSIONS (from DA Plans Rev K, DWG J1672)
-// ══════════════════════════════════════════
-var WALL = 0.27; // 270mm cavity brick
-
-// Lower Floor: 12.01m wide × 18.71m deep × 3.0m high
-// Base Y = 0 (RL 28.890)
-var LF_W=12.01, LF_D=18.71, LF_H=3.0, LF_Y=0;
-var LF_E=LF_W/2, LF_Wst=-LF_W/2; // ±6.005
-var LF_N=LF_D/2, LF_S=-LF_D/2;    // ±9.355
-
-// Ground Floor: 12.01m wide × 21.02m deep × 2.75m high
-// Base Y = 3.45 (RL 32.340)
-// South edge aligns with lower floor south. Extends further north (garage area)
-var GF_W=12.01, GF_D=21.02, GF_H=2.75, GF_Y=3.45;
-var GF_S=LF_S; // -9.355 (same south edge)
-var GF_N=GF_S+GF_D; // +11.665
-
-// First Floor: 8.26m wide × 11.57m deep × 2.6m high
-// Base Y = 6.65 (RL 35.540)
-// WEST wall aligned with building west wall (continuous cladding, per western elevation)
-// Creates courtyard step-back on east side
-var FF_WALL = 0.185;
-var FF_W=8.26, FF_D=11.57, FF_H=2.6, FF_Y=6.65;
-var FF_N=LF_N; // +9.355
-var FF_S=FF_N-FF_D; // -2.215
-
-// ── ROOM COORDINATE GRID ──
-// All positions calculated from room dimensions on floor plans
-// LF: Right side split 11980(south) + 6730(north) = 18710
-//   South zone: Z=-9.355 to +2.625 (Dining, Family/Kitchen, Pantry, Stairs)
-//   North zone: Z=+2.625 to +9.355 (Media Room, Wine Cellar, Bath, WIL/Storage)
-// LF E-W: Internal wall at X≈0 divides west half (~5.9m) from east half (~6.1m)
-//   West rooms: Family/Dining(5.7w), Media Room(5.9w), Wine Cellar(5.9w)
-//   East rooms: Dining(4.6w), Kitchen(4.1w), Pantry, Bath, WIL/Storage
-//
-// GF: Same width, depth 21020. South aligned with LF. North extends 2310mm beyond LF_N.
-//   South zone (bedrooms): Z=-9.355 to -2.005 (7350mm dimension)
-//     Bed2: SW, 5.3ew×3.4ns, Z=-9.355 to -5.955, X=-6.005 to -0.705
-//     Master: SE, 5.1ew×4.2ns, Z=-9.355 to -5.155, X=+0.905 to +6.005
-//     Bed3: W, 5.3ew×3.3ns, Z=-5.955 to -2.655, X=-6.005 to -0.705
-//     WIR: E, 3.4ew×3.1ns, Z=-5.155 to -2.055, X=+2.605 to +6.005
-//   Mid zone (void/stairs): Z=-2.005 to +3.205
-//     Bath(1.9×2.3), Workshop(2.5×1.8), Mud(3.4×1.6), Entry(1.5×5.7)
-//   North zone (garage/entry): Z=+3.205 to +11.665 (8460mm dimension)
-//     Garage: NW, 5.9ew×6.2ns, Z=+5.465 to +11.665, X=-6.005 to -0.105
-//     Guest/Study: NE, 3.8ew×3.1ns, Z=+8.0 to +11.1, X=+2.205 to +6.005
-//     Porch: far N, 1.1×1.4
-//
-// FF: 8260 wide × 11570 deep, west-aligned. Split 3600(W)+4660(E)
-//   Internal wall at X = -6.005 + 3.6 = -2.405
-//   West zone: Stairs, P'der(2.3×1.9), Guest(3.5×3.7)
-//   East zone: Void, Rumpus(4.8×6.2)
-//   Front Balcony(4.1×3.8): protrudes N from FF_N
-//   Rear Balcony(5.5×2.9): protrudes S from FF_S
-
-// ══════════════════════════════════════════
-// INTEGRATED RETAINING WALLS (west side, LF level)
-// Two 6.35m concrete segments with 2.21m gap between (for windows W07)
-// ══════════════════════════════════════════
-var retW = 0.4, retH = LF_H + 0.3;
-// South segment: Z=-9.355 to -3.005
-var ret1 = bx(retW, retH, 6.35, M.concrete);
-ret1.position.set(LF_Wst-retW/2-0.01, LF_Y+retH/2-0.3, LF_S+6.35/2); house.add(ret1);
-// North segment: Z=-0.795 to +5.555
-var ret2 = bx(retW, retH, 6.35, M.concrete);
-ret2.position.set(LF_Wst-retW/2-0.01, LF_Y+retH/2-0.3, -0.795+6.35/2); house.add(ret2);
-
-// ══════════════════════════════════════════
-// LOWER FLOOR WALLS (Y=0 to Y=3.0)
-// ══════════════════════════════════════════
-// North wall (mostly buried in hillside)
-var w;
-w = bx(LF_W, LF_H, WALL, M.render);
-w.position.set(0, LF_Y+LF_H/2, LF_N); house.add(w);
-// South wall — split into two segments with opening for alfresco (south-west area)
-// Alfresco is ~5.5m wide on the west side of the south wall
-var alfrescoW = 5.5;
-var alfrescoWestEdge = LF_Wst; // starts at west edge
-var alfrescoEastEdge = alfrescoWestEdge + alfrescoW; // ends at -0.505
-// East segment of south wall (from alfresco east edge to building east edge)
-var southEastSegW = LF_E - alfrescoEastEdge;
-w = bx(southEastSegW, LF_H, WALL, M.render);
-w.position.set(alfrescoEastEdge + southEastSegW/2, LF_Y+LF_H/2, LF_S); house.add(w);
-// Short wall above alfresco opening (lintel area, top 0.6m)
-w = bx(alfrescoW, 0.6, WALL, M.render);
-w.position.set(alfrescoWestEdge + alfrescoW/2, LF_Y+LF_H-0.3, LF_S); house.add(w);
-// East wall
-w = bx(WALL, LF_H, LF_D, M.render);
-w.position.set(LF_E, LF_Y+LF_H/2, 0); house.add(w);
-// West wall — MONUMENT (Scyon Axon cladding)
-w = bx(WALL, LF_H, LF_D, M.monument);
-w.position.set(LF_Wst, LF_Y+LF_H/2, 0); house.add(w);
-// Floor slab
-w = bx(LF_W, 0.2, LF_D, M.concrete);
-w.position.set(0, LF_Y-0.1, 0); house.add(w);
-
-// ══════════════════════════════════════════
-// GROUND FLOOR WALLS (Y=3.45 to Y=6.2)
-// ══════════════════════════════════════════
-var GF_CZ = (GF_N+GF_S)/2; // centre Z = 1.155
-// North wall
-w = bx(GF_W, GF_H, WALL, M.render);
-w.position.set(0, GF_Y+GF_H/2, GF_N); house.add(w);
-// South wall (same Z as lower floor south)
-w = bx(GF_W, GF_H, WALL, M.render);
-w.position.set(0, GF_Y+GF_H/2, GF_S); house.add(w);
-// East wall
-w = bx(WALL, GF_H, GF_D, M.render);
-w.position.set(LF_E, GF_Y+GF_H/2, GF_CZ); house.add(w);
-// West wall — MONUMENT
-w = bx(WALL, GF_H, GF_D, M.monument);
-w.position.set(LF_Wst, GF_Y+GF_H/2, GF_CZ); house.add(w);
-// Floor slab
-w = bx(GF_W, 0.2, GF_D, M.concrete);
-w.position.set(0, GF_Y-0.1, GF_CZ); house.add(w);
-
-// ══════════════════════════════════════════
-// FIRST FLOOR WALLS (Y=6.65 to Y=9.25)
-// ══════════════════════════════════════════
-var FF_CZ = (FF_N+FF_S)/2; // centre Z = 3.57
-var FF_Wst=LF_Wst; // -6.005 (aligned with building west wall)
-var FF_E=FF_Wst+FF_W; // 2.255
-var FF_CX=(FF_E+FF_Wst)/2; // -1.875
-// North wall (185mm EPS)
-w = bx(FF_W, FF_H, FF_WALL, M.render);
-w.position.set(FF_CX, FF_Y+FF_H/2, FF_N); house.add(w);
-// South wall (185mm EPS)
-w = bx(FF_W, FF_H, FF_WALL, M.render);
-w.position.set(FF_CX, FF_Y+FF_H/2, FF_S); house.add(w);
-// East wall (185mm EPS)
-w = bx(FF_WALL, FF_H, FF_D, M.render);
-w.position.set(FF_E, FF_Y+FF_H/2, FF_CZ); house.add(w);
-// West wall — MONUMENT (185mm EPS)
-w = bx(FF_WALL, FF_H, FF_D, M.monument);
-w.position.set(FF_Wst, FF_Y+FF_H/2, FF_CZ); house.add(w);
-// Floor slab
-w = bx(FF_W, 0.2, FF_D, M.concrete);
-w.position.set(FF_CX, FF_Y-0.1, FF_CZ); house.add(w);
-
-// ══════════════════════════════════════════
-// ROOF — with prominent north canopy over front balcony
-// ══════════════════════════════════════════
-var ROVER = 0.5; // east/south overhang
-var NOVER = 1.8; // north overhang — canopy over front balcony (key feature)
-
-// Main roof over first floor — 5° pitch, ridge at south (harbour), slopes down to north (street)
-// Per Section A-A: ridge at RL 38.970 on south side, eave on north side
-var mainRoofD = FF_D + NOVER + ROVER;
-var mainRoofW = FF_W + ROVER; // no overhang on west (parapet), ROVER on east
-var mainRoofCZ = FF_S - ROVER + mainRoofD/2;
-var mainRoofCX = FF_Wst + mainRoofW/2;
-var mainRoof = bx(mainRoofW, 0.15, mainRoofD, M.surfmist);
-mainRoof.position.set(mainRoofCX, FF_Y+FF_H+0.25, mainRoofCZ);
-mainRoof.rotation.x = 5 * Math.PI / 180; // ridge at south (harbour), slopes down to north (street)
-mainRoof.castShadow = true; house.add(mainRoof);
-
-// Flat roof over ground floor south section (between LF_S and FF_S)
-var gfRoofSouthD = Math.abs(FF_S - GF_S);
-var gfRoofS = bx(GF_W+0.4, 0.12, gfRoofSouthD+0.4, M.surfmist);
-gfRoofS.position.set(0, GF_Y+GF_H+0.06, (FF_S+GF_S)/2);
-gfRoofS.rotation.x = 2*Math.PI/180;
-gfRoofS.castShadow = true; house.add(gfRoofS);
-
-// Flat roof over ground floor north section (between FF_N and GF_N)
-var gfRoofNorthD = GF_N - FF_N;
-if (gfRoofNorthD > 0.5) {
-  var gfRoofN = bx(GF_W+0.4, 0.12, gfRoofNorthD+0.4, M.surfmist);
-  gfRoofN.position.set(0, GF_Y+GF_H+0.06, (FF_N+GF_N)/2);
-  gfRoofN.castShadow = true; house.add(gfRoofN);
-}
-
-// East side flat roof over GF area not under FF (courtyard step-back)
-var eastRoofW = LF_E - FF_E; // 6.005 - 2.255 = 3.75m
-if (eastRoofW > 0.3) {
-  var srE = bx(eastRoofW+0.2, 0.12, FF_D+0.4, M.surfmist);
-  srE.position.set(FF_E + eastRoofW/2, GF_Y+GF_H+0.06, FF_CZ);
-  srE.castShadow = true; house.add(srE);
-}
-
-// ── Parapets ──
-// West parapet (extends above FF ceiling to ridge level)
-var parH = 0.85;
-w = bx(WALL, parH, GF_D+0.4, M.monument);
-w.position.set(LF_Wst, FF_Y+FF_H+parH/2, GF_CZ); house.add(w);
-// West parapet cap (Surfmist)
-w = bx(0.35, 0.06, GF_D+0.4, M.surfmist);
-w.position.set(LF_Wst, FF_Y+FF_H+parH+0.03, GF_CZ); house.add(w);
-
-// ── Fascia (Monument) — thick dark edges, key architectural feature ──
-function fascia(fw,fd,fx,fy,fz){var f=bx(fw,0.12,fd,M.monument);f.position.set(fx,fy,fz);house.add(f)}
-// GF level fascia
-var fY = GF_Y+GF_H;
-fascia(0.08, GF_D+0.4, LF_E+0.2, fY, GF_CZ);
-fascia(GF_W+0.4, 0.08, 0, fY, GF_S-0.2);
-fascia(GF_W+0.4, 0.08, 0, fY, GF_N+0.2);
-// FF level fascia — THICK north fascia (prominent canopy edge from renders)
-var ffY = FF_Y+FF_H;
-var nFas = bx(mainRoofW, 0.40, 0.12, M.monument);
-nFas.position.set(mainRoofCX, ffY+0.05, FF_N+NOVER); house.add(nFas);
-// East fascia
-fascia(0.08, mainRoofD, FF_E+ROVER, ffY, mainRoofCZ);
-// South fascia
-fascia(mainRoofW, 0.08, mainRoofCX, ffY, FF_S-ROVER);
-// Soffit under north canopy (render colour — visible from below)
-var soffit = bx(mainRoofW, 0.03, NOVER, M.render);
-soffit.position.set(mainRoofCX, ffY-0.02, FF_N+NOVER/2); house.add(soffit);
-
-// ══════════════════════════════════════════
-// GARAGE DOOR — D4 on NORTH wall (west half), GF level
-// 5.0m wide × 2.38m tall
-// Northern elevation: garage is on left (west) portion of north face
-// ══════════════════════════════════════════
-var garX = -GF_W/4; // centre of west half of north wall
-var garDoor = bx(5.0, 2.38, 0.08, M.monument);
-garDoor.position.set(garX, GF_Y+2.38/2, GF_N+WALL/2+0.02); house.add(garDoor);
-// Madrid profile horizontal lines
-for (var gi=1;gi<5;gi++){
-  var gl=bx(4.9,0.02,0.1,M.render);
-  gl.position.set(garX, GF_Y+gi*2.38/5, GF_N+WALL/2+0.05);house.add(gl);
-}
-
-// ══════════════════════════════════════════
-// ENTRY DOOR — D5 on NORTH wall (east half), Hume Savoy SX45
-// 1.2m wide × 2.34m tall, Pacific Maple timber
-// Northern elevation: entry + porch on right (east) side of north face
-// ══════════════════════════════════════════
-var entryX = GF_W/4; // centre of east half of north wall
-var entDoor = bx(1.2, 2.34, 0.06, M.timber);
-entDoor.position.set(entryX, GF_Y+2.34/2, GF_N+WALL/2+0.02); house.add(entDoor);
-var entGlass = bx(0.4, 1.6, 0.02, M.glass);
-entGlass.position.set(entryX, GF_Y+0.5+1.6/2, GF_N+WALL/2+0.04); house.add(entGlass);
-
-// Porch (north side near entry) with 3 timber posts
-var porchSlab = bx(3.0, 0.15, 1.5, M.concrete);
-porchSlab.position.set(entryX, GF_Y-0.075, GF_N+0.75); house.add(porchSlab);
-for (var pi=0;pi<3;pi++){
-  var px = entryX - 1.2 + pi*1.2;
-  var post = bx(0.18, GF_H, 0.065, M.monument);
-  post.position.set(px, GF_Y+GF_H/2, GF_N+1.4); house.add(post);
-}
-// Porch roof
-var porchRoof = bx(3.4, 0.1, 1.8, M.surfmist);
-porchRoof.position.set(entryX, GF_Y+GF_H+0.05, GF_N+0.75); house.add(porchRoof);
-
-// D01 — Stacker door on EAST wall, LF level (3.25m wide × 3.0m tall)
-// KXF3032 SP — Opens from dining room to east garden. Dining CZ≈-7.4
-var d01h=Math.min(3.0,LF_H-0.15);
-var d01f = bx(0.06, d01h, 3.25, M.monument);
-d01f.position.set(LF_E+WALL/2+0.02, LF_Y+0.1+d01h/2, -7.4); house.add(d01f);
-var d01g = bx(0.02, d01h-0.1, 3.15, M.glass);
-d01g.position.set(LF_E+WALL/2+0.02, LF_Y+0.15+d01h/2-0.05, -7.4); house.add(d01g);
-
-// D02 — Stacker door on SOUTH wall, LF level (4.7m wide × 3.0m tall)
-// FXX3047 SP — Opens from dining to south (harbour views), east of alfresco
-var d02h=Math.min(3.0,LF_H-0.15);
-var d02f = bx(4.7, d02h, 0.06, M.monument);
-d02f.position.set(1.85, LF_Y+0.1+d02h/2, LF_S-WALL/2-0.02); house.add(d02f);
-var d02g = bx(4.6, d02h-0.1, 0.02, M.glass);
-d02g.position.set(1.85, LF_Y+0.15+d02h/2-0.05, LF_S-WALL/2-0.02); house.add(d02g);
-
-// D03 — Stacker door on SOUTH wall, FF level (3.61m wide × 2.4m tall)
-// FXX2436 — Opens from Guest room to rear balcony. Guest CX≈-4.25
-var d03h=2.4;
-var d03f = bx(3.61, d03h, 0.06, M.monument);
-d03f.position.set(-4.25, FF_Y+0.1+d03h/2, FF_S-FF_WALL/2-0.02); house.add(d03f);
-var d03g = bx(3.5, d03h-0.1, 0.02, M.glass);
-d03g.position.set(-4.25, FF_Y+0.15+d03h/2-0.05, FF_S-FF_WALL/2-0.02); house.add(d03g);
-
-// D04 — Sliding door on NORTH wall, FF level (1.81m wide × 2.1m tall)
-// AF2118 — Opens from rumpus to front balcony. East portion of FF, X≈+1.0
-var d04f = bx(1.81, 2.1, 0.06, M.monument);
-d04f.position.set(1.0, FF_Y+0.1+2.1/2, FF_N+FF_WALL/2+0.02); house.add(d04f);
-var d04g = bx(1.7, 2.0, 0.02, M.glass);
-d04g.position.set(1.0, FF_Y+0.15+2.0/2, FF_N+FF_WALL/2+0.02); house.add(d04g);
-
-// ══════════════════════════════════════════
-// WINDOWS — all 27 from schedule
-// Schedule format: HEIGHT(mm) × WIDTH(mm)
-// In model: winW = horizontal, winH = vertical
-// ══════════════════════════════════════════
-function addWin(face, wallX, wallZ, baseY, cx, winW, winH, sillH, wallThk) {
-  sillH = sillH || 0.9;
-  wallThk = wallThk || WALL; // default 270mm, pass FF_WALL for first floor
-  var wy = baseY + sillH + winH/2;
-  var frame, glass;
-  // Offset windows to sit on OUTER surface of wall (not buried inside)
-  var outOff = wallThk/2 + 0.02; // push just outside the wall face
-  if (face==='N'||face==='S') {
-    var zOff = face==='N' ? outOff : -outOff; // north=+Z, south=-Z → outward
-    frame = bx(winW, winH, 0.05, M.monument);
-    glass = bx(winW-0.06, winH-0.06, 0.02, M.glass);
-    frame.position.set(cx, wy, wallZ + zOff);
-    glass.position.set(cx, wy, wallZ + zOff);
-  } else {
-    var xOff = face==='E' ? outOff : -outOff; // east=+X, west=-X → outward
-    frame = bx(0.05, winH, winW, M.monument);
-    glass = bx(0.02, winH-0.06, winW-0.06, M.glass);
-    frame.position.set(wallX + xOff, wy, cx);
-    glass.position.set(wallX + xOff, wy, cx);
-  }
-  house.add(frame); house.add(glass);
-  return {frame:frame, glass:glass};
-}
-
-// ── Lower Floor windows (baseY = 0) ──
-// Positions calculated from room grid (see ROOM COORDINATE GRID above)
-// W1: Bath, H=600 W=1510, East — bath in north zone, east side (Z≈+3.5 to +5.5)
-addWin('E', LF_E, 0, 0, 4.0, 1.51, 0.6, 1.5);
-// W2: Laundry, H=1200 W=600, South — small window east of alfresco opening on south wall
-addWin('S', 0, LF_S, 0, 4.8, 0.6, 1.2, 1.0);
-// W3: Pantry, H=600 W=1570, East — pantry center Z≈-1.0 (center zone east side)
-addWin('E', LF_E, 0, 0, -1.0, 1.57, 0.6, 1.5);
-// W4: Dining, H=3000 W=4200, East — dining room center Z≈-7.4 (south zone, 4.0m deep)
-addWin('E', LF_E, 0, 0, -7.4, 4.2, 2.7, 0.15);
-// W5: North wall, H=1800 W=1810 — east half (WIL/Storage area, X≈+3.0)
-addWin('N', 0, LF_N, 0, 3.0, 1.81, 1.8, 0.6);
-// W6: North wall, H=1800 W=1810 — west half (Wine Cellar area, X≈-3.0)
-addWin('N', 0, LF_N, 0, -3.0, 1.81, 1.8, 0.6);
-// W7: Family/Dining, H=1800 W=2170, West — in retaining wall gap (Z≈-1.9)
-addWin('W', LF_Wst, 0, 0, -1.9, 2.17, 1.8, 0.6);
-// W8: Media Room, H=1200 W=2170, West — media room center Z≈+5.0
-addWin('W', LF_Wst, 0, 0, 5.0, 2.17, 1.2, 0.9);
-// W9: Wine Cellar, H=1800 W=2410, West — wine cellar center Z≈+7.8
-addWin('W', LF_Wst, 0, 0, 7.8, 2.41, 1.8, 0.6);
-
-// ── Ground Floor windows (baseY = 3.45) ──
-// Positions from room grid: Bed2 CX≈-3.35, Master CX≈+3.5, Bed3 CX≈-3.35
-// W10: Bed2, H=600 W=1810, South — Bed2 center X≈-3.35 on south wall
-addWin('S', 0, GF_S, GF_Y, -3.35, 1.81, 0.6, 1.5);
-// W11: Ensuite, H=600 W=1570, South — Master ensuite X≈+3.5 on south wall
-addWin('S', 0, GF_S, GF_Y, 3.5, 1.57, 0.6, 1.5);
-// W12: Master, H=1800 W=5200, East — Master CZ≈-7.25 (Z=-9.355 to -5.155)
-addWin('E', LF_E, 0, GF_Y, -7.25, 5.2, 1.8, 0.3);
-// W14: Bath/WIR, H=1370 W=3000, East — WIR area CZ≈-3.6 (Z=-5.155 to -2.055)
-addWin('E', LF_E, 0, GF_Y, -3.6, 3.0, 1.37, 0.6);
-// W15: Bath, H=900 W=2410, North — on LF_N wall, east side (bath/corridor area)
-addWin('N', 0, LF_N, GF_Y, 2.0, 2.41, 0.9, 1.5);
-// W16: Bed3, H=900 W=2410, North — on LF_N wall, west side (Bed3 area X≈-3.35)
-addWin('N', 0, LF_N, GF_Y, -3.35, 2.41, 0.9, 0.9);
-// W17: Bed3, H=1370 W=1000, West — Bed3 CZ≈-4.3 on west wall
-addWin('W', LF_Wst, 0, GF_Y, -4.3, 1.0, 1.37, 0.6);
-// W19: Garage, H=600 W=3010, North — garage center X≈-3.05 on GF_N wall
-addWin('N', 0, GF_N, GF_Y, -3.05, 3.01, 0.6, 2.45);
-// W22: Stairs, H=3680 W=1810, North (fixed, very tall — spans LF/GF on LF_N wall)
-addWin('N', 0, LF_N, 0, -0.5, 1.81, 3.5, 0.2);
-// W23: Powder room, H=600 W=1210, North — east of entry, Guest/Study CX≈+4.1
-addWin('N', 0, GF_N, GF_Y, 4.1, 1.21, 0.6, 1.5);
-// W24: Guest/Study, H=1200 W=2410, East — Guest CZ≈+9.55 on east wall
-addWin('E', LF_E, 0, GF_Y, 9.55, 2.41, 1.2, 0.5);
-
-// ── First Floor windows (baseY = 6.65, FF_WALL = 185mm) ──
-// FF grid: Guest CX≈-4.25 CZ≈-0.4, Rumpus CX≈-0.1 CZ≈+2.1, Stairs Z≈+6.5
-// W13: H=1800 W=1810, North — west zone (P'der/stairs area, X≈-4.25)
-addWin('N', 0, FF_N, FF_Y, -4.25, 1.81, 1.8, 0.3, FF_WALL);
-// W18: Stairs, H=2950 W=1810, West (fixed) — stairs area Z≈+6.5
-addWin('W', FF_Wst, 0, FF_Y, 6.5, 1.81, 2.5, 0.05, FF_WALL);
-// W20: Guest, H=1800 W=3170, West (has venetian blind) — Guest CZ≈-0.4
-addWin('W', FF_Wst, 0, FF_Y, -0.4, 3.17, 1.8, 0.3, FF_WALL);
-// W21: Rumpus/Balcony, H=900 W=4760, North (fixed) — aligned with balcony X≈+0.2
-addWin('N', 0, FF_N, FF_Y, 0.2, 4.76, 0.9, 0.6, FF_WALL);
-
-// Venetian blind on W20 (Monument, west elevation) — matches W20 Z position
-var blindW20 = bx(0.05, 2.0, 3.2, M.monument);
-blindW20.position.set(FF_Wst-FF_WALL-0.1, FF_Y+0.3+2.0/2, -0.4);
-house.add(blindW20);
-
-// ══════════════════════════════════════════
-// BALCONIES
-// ══════════════════════════════════════════
-// Front balcony (north side, first floor) — 6.5m² ≈ 4.1m × 1.6m
-// Positioned on EAST portion of FF north face (per FF plan + renders)
-var balcFW = 4.1, balcFD = 1.6;
-var balcFX = FF_E - balcFW/2; // aligned to east half of FF
-var balcFSlab = bx(balcFW, 0.15, balcFD, M.concrete);
-balcFSlab.position.set(balcFX, FF_Y-0.075, FF_N+balcFD/2); house.add(balcFSlab);
-// Glass balustrade (12mm glass + Monument U-channel)
-var balcGlass = bx(balcFW, 1.0, 0.012, M.glass);
-balcGlass.position.set(balcFX, FF_Y+0.5, FF_N+balcFD); house.add(balcGlass);
-var uCh = bx(balcFW, 0.06, 0.05, M.monument);
-uCh.position.set(balcFX, FF_Y+0.03, FF_N+balcFD); house.add(uCh);
-var topR = bx(balcFW, 0.04, 0.05, M.monument);
-topR.position.set(balcFX, FF_Y+1.02, FF_N+balcFD); house.add(topR);
-// East side glass return on balcony
-var balcSideG = bx(0.012, 1.0, balcFD, M.glass);
-balcSideG.position.set(balcFX+balcFW/2, FF_Y+0.5, FF_N+balcFD/2); house.add(balcSideG);
-
-// Privacy screen — WEST portion of FF north face (solid horizontal slats)
-// From renders: privacy screen covers the west half of FF front, from floor to near roof
-var privW = FF_W - balcFW - 0.3; // width of privacy screen zone
-var privX = FF_Wst + privW/2 + 0.1; // centered on west side of FF
-var privH = FF_H - 0.2; // nearly full floor height
-// Solid backing panel
-var privPanel = bx(privW, privH, 0.04, M.monument);
-privPanel.position.set(privX, FF_Y+0.1+privH/2, FF_N+FF_WALL/2+0.04); house.add(privPanel);
-// Horizontal slats (visual detail)
-for (var si=0; si<22; si++) {
-  var slat = bx(privW, 0.04, 0.06, M.monument);
-  slat.position.set(privX, FF_Y+0.15+si*0.11, FF_N+FF_WALL/2+0.06);
-  house.add(slat);
-}
-
-// Posts supporting canopy at front balcony edge
-for (var bi=0; bi<2; bi++) {
-  var bpx = balcFX - balcFW/3 + bi*(balcFW*2/3);
-  var bpost = bx(0.065, FF_H, 0.18, M.monument);
-  bpost.position.set(bpx, FF_Y+FF_H/2, FF_N+balcFD-0.1); house.add(bpost);
-}
-
-// Rear balcony (south side, first floor) — ~15.9m² ≈ 5.5m × 2.9m
-var balcRW=5.5, balcRD=2.9;
-var balcRSlab = bx(balcRW, 0.15, balcRD, M.concrete);
-balcRSlab.position.set(0.5, FF_Y-0.075, FF_S-balcRD/2); house.add(balcRSlab);
-// Glass balustrade on rear balcony (matching front style)
-var rGlass = bx(balcRW, 1.0, 0.012, M.glass);
-rGlass.position.set(0.5, FF_Y+0.5, FF_S-balcRD); house.add(rGlass);
-var rUch = bx(balcRW, 0.06, 0.05, M.monument);
-rUch.position.set(0.5, FF_Y+0.03, FF_S-balcRD); house.add(rUch);
-var rTopR = bx(balcRW, 0.04, 0.05, M.monument);
-rTopR.position.set(0.5, FF_Y+1.02, FF_S-balcRD); house.add(rTopR);
-// Side glass returns
-var rSideL = bx(0.012, 1.0, balcRD, M.glass);
-rSideL.position.set(0.5-balcRW/2, FF_Y+0.5, FF_S-balcRD/2); house.add(rSideL);
-var rSideR = bx(0.012, 1.0, balcRD, M.glass);
-rSideR.position.set(0.5+balcRW/2, FF_Y+0.5, FF_S-balcRD/2); house.add(rSideR);
-
-// ══════════════════════════════════════════
-// VERGOLA over alfresco (south, lower floor) — S&I Surfmist
-// ══════════════════════════════════════════
-var vergW=5.5, vergD=5.2;
-var vergY2 = LF_H+0.3;
-var vergX = LF_Wst + vergW/2; // aligned to west side (alfresco is south-west)
-// Main frame
-var vFrame = bx(vergW, 0.12, vergD, M.surfmist);
-vFrame.position.set(vergX, vergY2, LF_S-vergD/2);
-vFrame.material = M.surfmist.clone();
-vFrame.material.transparent = true; vFrame.material.opacity = 0.6;
-house.add(vFrame);
-// Louvre slats
-for (var li=0; li<14; li++) {
-  var lv = bx(vergW-0.2, 0.02, 0.2, M.surfmist);
-  lv.position.set(vergX, vergY2+0.08, LF_S-0.3-li*(vergD-0.6)/13);
-  lv.rotation.x = 15*Math.PI/180;
-  house.add(lv);
-}
-// Vergola posts
-for (var vsx=-1;vsx<=1;vsx+=2){
-  for(var vsz=0;vsz<=1;vsz++){
-    var vp=bx(0.1,vergY2,0.1,M.monument);
-    vp.position.set(vergX+vsx*(vergW/2-0.1),vergY2/2,LF_S-0.2-vsz*(vergD-0.4));
-    house.add(vp);
-  }
-}
-
-// ══════════════════════════════════════════
-// EXTERNAL STAIRS (south elevation) — concrete, GF down to LF
-// ══════════════════════════════════════════
-// External stairs on south elevation — against the WEST end of the south wall
-// Southern elevation shows stairs on the RIGHT side (= WEST when viewed from south)
-// Run south (away from building) and descend from GF level to LF level
-var stairW=1.2, stairRun=4.5, nSteps=18;
-var stX = LF_Wst + stairW/2 + 0.3; // against west end of south wall
-var stRise = GF_Y/nSteps, stGoing = stairRun/nSteps;
-// Stair landing at GF level against south wall
-var stLanding = bx(stairW+0.4, 0.15, 1.0, M.concrete);
-stLanding.position.set(stX, GF_Y-0.075, LF_S-0.5); house.add(stLanding);
-// Steps descending southward
-for (var sti=0; sti<nSteps; sti++) {
-  var step = bx(stairW, stRise, stGoing, M.concrete);
-  step.position.set(stX, GF_Y - sti*stRise - stRise/2, LF_S-1.0-sti*stGoing);
-  house.add(step);
-}
-// Stringer/side wall for stairs (so they don't float)
-var stringerH = GF_Y;
-var stringerGeo = new THREE.BufferGeometry();
-var sv = [
-  // Triangle strip forming the stringer side
-  stX+stairW/2+0.05, GF_Y, LF_S-1.0,
-  stX+stairW/2+0.05, 0, LF_S-1.0-stairRun,
-  stX+stairW/2+0.05, 0, LF_S-1.0,
-  stX+stairW/2+0.05, GF_Y, LF_S-1.0,
-  stX+stairW/2+0.05, GF_Y, LF_S-1.0-stairRun,
-  stX+stairW/2+0.05, 0, LF_S-1.0-stairRun
-];
-stringerGeo.setAttribute('position', new THREE.Float32BufferAttribute(sv, 3));
-stringerGeo.computeVertexNormals();
-var stringer = new THREE.Mesh(stringerGeo, M.concrete);
-house.add(stringer);
-// Stair balustrade — Monument Panorama (vertical bars + top rail)
-for (var sbi=0; sbi<=8; sbi++) {
-  var sbFrac = sbi/8;
-  var sbz = LF_S-1.0-sbFrac*stairRun;
-  var sby = GF_Y - sbFrac*GF_Y;
-  var bar = bx(0.02, 1.0, 0.02, M.monument);
-  bar.position.set(stX+stairW/2+0.05, sby+0.5, sbz);
-  house.add(bar);
-  // Inner side bars too
-  var bar2 = bx(0.02, 1.0, 0.02, M.monument);
-  bar2.position.set(stX-stairW/2-0.05, sby+0.5, sbz);
-  house.add(bar2);
-}
-// Top rail
-var balRailLen = Math.sqrt(stairRun*stairRun + GF_Y*GF_Y);
-var balAngle = Math.atan2(GF_Y, stairRun);
-var stBal = bx(0.05, 0.05, balRailLen, M.monument);
-stBal.position.set(stX+stairW/2+0.05, GF_Y/2+0.5, LF_S-1.0-stairRun/2);
-stBal.rotation.x = -balAngle;
-house.add(stBal);
-
-// ══════════════════════════════════════════
-// MATERIAL TRANSITIONS & SHEET METAL CAPPING
-// Elevations: LF=EPS render, GF=Brickwork render, FF=EPS render
-// Surfmist capping strips at each floor level transition
-// ══════════════════════════════════════════
-var capY1 = LF_Y + LF_H; // Y=3.0 (LF ceiling)
-var capY2 = GF_Y + GF_H; // Y=6.2 (GF ceiling)
-// East capping at LF/GF transition
-w = bx(0.04, 0.08, LF_D+0.2, M.surfmist);
-w.position.set(LF_E+0.15, capY1, 0); house.add(w);
-// South capping at LF/GF
-w = bx(LF_W+0.2, 0.08, 0.04, M.surfmist);
-w.position.set(0, capY1, LF_S-0.15); house.add(w);
-// North capping at LF/GF (LF width)
-w = bx(LF_W+0.2, 0.08, 0.04, M.surfmist);
-w.position.set(0, capY1, LF_N+0.15); house.add(w);
-// East capping at GF/FF transition
-w = bx(0.04, 0.08, GF_D+0.2, M.surfmist);
-w.position.set(LF_E+0.15, capY2, GF_CZ); house.add(w);
-// South capping at GF/FF
-w = bx(GF_W+0.2, 0.08, 0.04, M.surfmist);
-w.position.set(0, capY2, GF_S-0.15); house.add(w);
-// North capping at GF/FF
-w = bx(GF_W+0.2, 0.08, 0.04, M.surfmist);
-w.position.set(0, capY2, GF_N+0.15); house.add(w);
-
-// ══════════════════════════════════════════
-// EAST PARAPET AT COURTYARD STEP-BACK
-// Low wall on east edge of GF ceiling where FF steps back (3.75m wide)
-// ══════════════════════════════════════════
-var courtW = LF_E - FF_E; // 3.75m
-var courtParH = 0.3;
-w = bx(courtW, courtParH, 0.15, M.render);
-w.position.set(FF_E+courtW/2, capY2+courtParH/2, FF_CZ); house.add(w);
-// Surfmist cap
-w = bx(courtW+0.1, 0.04, 0.25, M.surfmist);
-w.position.set(FF_E+courtW/2, capY2+courtParH+0.02, FF_CZ); house.add(w);
-
-// ══════════════════════════════════════════
-// WINDOW MULLIONS — large windows need visible frame divisions
-// ══════════════════════════════════════════
-// W04 mullions (Dining East, 4.2m wide × 2.7m) — 3 vertical bars
-for (var mi=1; mi<4; mi++) {
-  var mul = bx(0.04, 2.7, 0.06, M.monument);
-  mul.position.set(LF_E+WALL/2+0.03, LF_Y+0.15+2.7/2, -7.4-2.1+mi*1.05);
-  house.add(mul);
-}
-// W04 horizontal transom
-w = bx(0.04, 0.04, 4.2, M.monument);
-w.position.set(LF_E+WALL/2+0.03, LF_Y+0.15+2.1, -7.4); house.add(w);
-// W12 mullions (Master East, 5.2m wide × 1.8m) — 4 vertical bars
-for (var mi2=1; mi2<5; mi2++) {
-  var mul2 = bx(0.04, 1.8, 0.06, M.monument);
-  mul2.position.set(LF_E+WALL/2+0.03, GF_Y+0.3+1.8/2, -7.25-2.6+mi2*1.04);
-  house.add(mul2);
-}
-// D02 mullions (Stacker door South, 4.7m) — 3 sliding panel divisions
-for (var mi3=1; mi3<4; mi3++) {
-  var mul3 = bx(0.04, 2.7, 0.04, M.monument);
-  mul3.position.set(1.85-2.35+mi3*1.175, LF_Y+0.15+2.7/2, LF_S-WALL/2-0.03);
-  house.add(mul3);
-}
-// D01 mullions (Stacker door East, 3.25m) — 2 sliding panel divisions
-for (var mi4=1; mi4<3; mi4++) {
-  var mul4 = bx(0.06, 2.7, 0.04, M.monument);
-  mul4.position.set(LF_E+WALL/2+0.03, LF_Y+0.15+2.7/2, -7.4-1.625+mi4*1.08);
-  house.add(mul4);
-}
-
-// ══════════════════════════════════════════
-// DRIVEWAY — approaches from north-east (Balls Head Road)
-// ══════════════════════════════════════════
-var driveW = 3.5, driveL = 12.0;
-var driveGeo = new THREE.PlaneGeometry(driveW, driveL);
-var driveMat = new THREE.MeshStandardMaterial({color:0x888888, roughness:0.95});
-var drive = new THREE.Mesh(driveGeo, driveMat);
-drive.rotation.x = -Math.PI/2;
-drive.position.set(2.5, GF_Y+0.02, GF_N+driveL/2);
-drive.receiveShadow = true;
-scene.add(drive);
-// Driveway apron at garage
-var apron = bx(5.5, 0.1, 2.0, M.concrete);
-apron.position.set(-3.05, GF_Y-0.05, GF_N+1.0); house.add(apron);
-
-// ══════════════════════════════════════════
-// BOUNDARY FENCE (proposed 1.8m × 2.2m high, per elevations)
-// ══════════════════════════════════════════
-var fenceMat = new THREE.MeshStandardMaterial({color:0x666666, roughness:0.6});
-var fenceH = 1.8;
-// East boundary fence (runs N-S along east property line)
-var fenceE = bx(0.05, fenceH, 25, fenceMat);
-fenceE.position.set(LF_E+2.5, LF_Y+fenceH/2+1.0, 0); house.add(fenceE);
-// West boundary fence
-var fenceW = bx(0.05, fenceH, 25, fenceMat);
-fenceW.position.set(LF_Wst-2.5, LF_Y+fenceH/2+1.0, 0); house.add(fenceW);
-// Fence posts (every 2.4m along east fence)
-for (var fp=0; fp<11; fp++) {
-  var post = bx(0.09, fenceH+0.1, 0.09, fenceMat);
-  post.position.set(LF_E+2.5, LF_Y+fenceH/2+1.0, -12+fp*2.4);
-  house.add(post);
-}
-
-// ══════════════════════════════════════════
-// DETAILS
-// ══════════════════════════════════════════
-// Downpipes (Grey Pebble 90mm) at corners
-var dpGeo = new THREE.CylinderGeometry(0.045,0.045,GF_Y+GF_H,8);
-var dpPositions = [
-  [LF_E+0.1, (GF_Y+GF_H)/2, LF_N],
-  [LF_E+0.1, (GF_Y+GF_H)/2, LF_S],
-  [LF_Wst-0.1, (GF_Y+GF_H)/2, LF_N],
-  [LF_Wst-0.1, (GF_Y+GF_H)/2, LF_S]
-];
-dpPositions.forEach(function(p){
-  var dp = new THREE.Mesh(dpGeo, M.render);
-  dp.position.set(p[0],p[1],p[2]); house.add(dp);
+document.querySelectorAll('nav button').forEach(function(b) {
+  b.addEventListener('click', function() { switchTab(b.dataset.tab); });
 });
 
-// Guttering (Monument half-round)
-var gutGeo = new THREE.CylinderGeometry(0.06,0.06,GF_W+0.4,8);
-gutGeo.rotateZ(Math.PI/2);
-var gutS = new THREE.Mesh(gutGeo, M.monument);
-gutS.position.set(0, GF_Y+GF_H-0.03, GF_S-0.2); house.add(gutS);
-var gutN = new THREE.Mesh(gutGeo.clone(), M.monument);
-gutN.position.set(0, GF_Y+GF_H-0.03, GF_N+0.2); house.add(gutN);
-
-// Skylights (W25, W26) on roof
-for (var ski=0; ski<2; ski++) {
-  var sky = bx(0.72, 0.08, 0.55, M.glass);
-  sky.position.set(FF_CX+1.5+ski*2.0, FF_Y+FF_H+0.2, FF_CZ+1.5); house.add(sky);
-  var skf = bx(0.82, 0.04, 0.65, M.monument);
-  skf.position.set(FF_CX+1.5+ski*2.0, FF_Y+FF_H+0.17, FF_CZ+1.5); house.add(skf);
-}
-
-// PV panels on east-facing roof (6.63kW)
-var pvG = new THREE.Group();
-for (var pr=0;pr<3;pr++){
-  for(var pc=0;pc<6;pc++){
-    var pnl=bx(0.99,0.04,1.65,M.pv);
-    pnl.position.set(FF_E-0.8-pc*1.05, 0.05, FF_CZ-2+pr*1.75);
-    pvG.add(pnl);
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('nav button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab').forEach(function(t) {
+    t.classList.toggle('active', t.id === 'tab-' + tab);
+  });
+  if (!inited[tab]) {
+    inited[tab] = true;
+    if (tab === 'plans') initPlans();
+    else if (tab === 'elevations') initElevations();
+    else if (tab === 'model') initModel();
   }
+  if (tab === 'plans') resizePlansCanvas();
+  else if (tab === 'model' && window._resizeModel) window._resizeModel();
+  else if (tab === 'elevations' && elevPdf) loadElevPage();
 }
-pvG.position.y = FF_Y+FF_H+0.15;
-pvG.rotation.x = 5*Math.PI/180; // match roof slope: south-high, north-low
-house.add(pvG);
-
-// Eaves soffit (Grey Pebble)
-var eave = bx(mainRoofW, 0.03, ROVER, M.render);
-eave.position.set(mainRoofCX, FF_Y+FF_H-0.02, FF_S-ROVER/2); house.add(eave);
 
 // ══════════════════════════════════════════
-// VIEW PRESETS
+// FLOOR PLAN DATA — all mm, origin at building SW corner
+// Y increases northward. Screen: south at top, north at bottom.
 // ══════════════════════════════════════════
-var viewsDiv = document.getElementById('views');
-var presets = [
-  {name:'North (Street)',   pos:[0,8,28],    tgt:[0,4,0]},
-  {name:'South (Harbour)',  pos:[0,8,-28],   tgt:[0,4,0]},
-  {name:'East',             pos:[28,8,0],    tgt:[0,4,0]},
-  {name:'West',             pos:[-28,8,0],   tgt:[0,4,0]},
-  {name:'Aerial',           pos:[15,30,-15], tgt:[0,3,0]},
-  {name:'SE Default',       pos:[20,15,-24], tgt:[0,4,0]}
-];
-presets.forEach(function(p){
-  var btn=document.createElement('button');
-  btn.textContent=p.name;
-  btn.onclick=function(){
-    camera.position.set(p.pos[0],p.pos[1],p.pos[2]);
-    controls.target.set(p.tgt[0],p.tgt[1],p.tgt[2]);
-    controls.update();
+var FLOORS = {
+  LF: {
+    name:'Lower Ground Floor', detail:'RL 28.890 · 12.01m × 18.71m',
+    outline:[[0,0],[12010,0],[12010,18710],[0,18710]],
+    color:'#3b82f6',
+    walls:[
+      [[5900,0],[5900,18710]],
+      [[0,11980],[12010,11980]]
+    ],
+    rooms:[
+      {x:2950,y:2500,name:'Dining'},
+      {x:2950,y:7500,name:'Family'},
+      {x:9000,y:3500,name:'Kitchen'},
+      {x:9000,y:8000,name:'Pantry'},
+      {x:8500,y:11000,name:'Stairs'},
+      {x:2950,y:14500,name:'Media Room'},
+      {x:2950,y:17500,name:'Wine Cellar'},
+      {x:9000,y:13500,name:'Bath'},
+      {x:9000,y:15500,name:'Laundry'},
+      {x:9000,y:17500,name:'WIL/Storage'}
+    ],
+    features:[
+      {pts:[[0,-4000],[5500,-4000],[5500,0],[0,0]],label:'Alfresco',type:'outdoor'}
+    ],
+    dims:[
+      {dir:'h',a:0,b:12010,at:-1500,label:'12,010'},
+      {dir:'v',a:0,b:18710,at:-1500,label:'18,710'},
+      {dir:'v',a:0,b:11980,at:13500,label:'11,980'},
+      {dir:'v',a:11980,b:18710,at:13500,label:'6,730'}
+    ]
+  },
+  GF: {
+    name:'Ground Floor', detail:'RL 32.340 · 12.01m × 21.02m',
+    outline:[[0,0],[12010,0],[12010,21020],[0,21020]],
+    color:'#22c55e',
+    walls:[
+      [[6000,0],[6000,21020]],
+      [[0,7350],[12010,7350]],
+      [[0,12560],[12010,12560]]
+    ],
+    rooms:[
+      {x:3000,y:1800,name:'Bed 2'},
+      {x:9000,y:2100,name:'Master'},
+      {x:3000,y:5500,name:'Bed 3'},
+      {x:9000,y:5800,name:'Ensuite/WIR'},
+      {x:3000,y:9500,name:'Bath'},
+      {x:6000,y:10500,name:'Entry/Hall'},
+      {x:9500,y:9500,name:'Workshop'},
+      {x:6000,y:11800,name:'Void/Stairs'},
+      {x:3000,y:17000,name:'Garage'},
+      {x:9000,y:18000,name:'Guest/Study'}
+    ],
+    features:[
+      {pts:[[8500,21020],[12010,21020],[12010,22520],[8500,22520]],label:'Porch',type:'outdoor'}
+    ],
+    dims:[
+      {dir:'h',a:0,b:12010,at:-1500,label:'12,010'},
+      {dir:'v',a:0,b:21020,at:-1500,label:'21,020'},
+      {dir:'v',a:0,b:7350,at:13500,label:'7,350'},
+      {dir:'v',a:7350,b:12560,at:13500,label:'5,210'},
+      {dir:'v',a:12560,b:21020,at:13500,label:'8,460'}
+    ]
+  },
+  FF: {
+    name:'First Floor', detail:'RL 35.540 · 8.26m × 11.57m',
+    outline:[[0,7140],[8260,7140],[8260,18710],[0,18710]],
+    color:'#f59e0b',
+    walls:[
+      [[3600,7140],[3600,18710]]
+    ],
+    rooms:[
+      {x:1800,y:9500,name:'Guest BR'},
+      {x:1800,y:13000,name:'P\'der'},
+      {x:1800,y:16000,name:'Stairs'},
+      {x:5930,y:8500,name:'Void'},
+      {x:5930,y:14000,name:'Rumpus'}
+    ],
+    features:[
+      {pts:[[4160,18710],[8260,18710],[8260,20310],[4160,20310]],label:'Front Balcony',type:'outdoor'},
+      {pts:[[1380,4240],[7630,4240],[7630,7140],[1380,7140]],label:'Rear Balcony',type:'outdoor'},
+      {pts:[[8260,7140],[12010,7140],[12010,18710],[8260,18710]],label:'Courtyard\n(over GF roof)',type:'courtyard'}
+    ],
+    dims:[
+      {dir:'h',a:0,b:8260,at:6000,label:'8,260'},
+      {dir:'v',a:7140,b:18710,at:-1500,label:'11,570'}
+    ]
+  }
+};
+
+// ══════════════════════════════════════════
+// TAB 1: FLOOR PLANS
+// ══════════════════════════════════════════
+var planCanvas, planCtx, currentFloor='LF';
+var planPan={x:0,y:0}, planZoom=1, planDragging=false, planLast={x:0,y:0};
+
+function initPlans() {
+  planCanvas = document.getElementById('plans-canvas');
+  planCtx = planCanvas.getContext('2d');
+
+  document.querySelectorAll('#plans-controls .btn').forEach(function(b) {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('#plans-controls .btn').forEach(function(bb){bb.classList.remove('active');});
+      b.classList.add('active');
+      currentFloor = b.dataset.floor;
+      updatePlanInfo();
+      planPan={x:0,y:0}; planZoom=1;
+      drawPlans();
+    });
+  });
+
+  planCanvas.addEventListener('mousedown', function(e) {
+    planDragging=true; planLast={x:e.clientX,y:e.clientY};
+    planCanvas.style.cursor='grabbing';
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!planDragging) return;
+    planPan.x += e.clientX-planLast.x;
+    planPan.y += e.clientY-planLast.y;
+    planLast={x:e.clientX,y:e.clientY};
+    drawPlans();
+  });
+  window.addEventListener('mouseup', function() {
+    planDragging=false;
+    if (planCanvas) planCanvas.style.cursor='grab';
+  });
+  planCanvas.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var f = e.deltaY>0 ? 0.9 : 1.1;
+    var r = planCanvas.getBoundingClientRect();
+    var mx=e.clientX-r.left, my=e.clientY-r.top;
+    planPan.x = mx-(mx-planPan.x)*f;
+    planPan.y = my-(my-planPan.y)*f;
+    planZoom *= f;
+    drawPlans();
+  }, {passive:false});
+  planCanvas.addEventListener('dblclick', function() {
+    planPan={x:0,y:0}; planZoom=1; drawPlans();
+  });
+
+  updatePlanInfo();
+  resizePlansCanvas();
+}
+
+function updatePlanInfo() {
+  var t=document.getElementById('plan-title'), d=document.getElementById('plan-detail');
+  if (currentFloor==='ALL') { t.textContent='All Floors Overlay'; d.textContent='LF (blue) · GF (green) · FF (amber)'; }
+  else { var f=FLOORS[currentFloor]; t.textContent=f.name; d.textContent=f.detail; }
+}
+
+function resizePlansCanvas() {
+  if (!planCanvas) return;
+  var c=document.getElementById('tab-plans');
+  planCanvas.width=c.clientWidth; planCanvas.height=c.clientHeight;
+  drawPlans();
+}
+
+function floorBounds(fl) {
+  var mnX=Infinity,mxX=-Infinity,mnY=Infinity,mxY=-Infinity;
+  function ext(pts){pts.forEach(function(p){if(p[0]<mnX)mnX=p[0];if(p[0]>mxX)mxX=p[0];if(p[1]<mnY)mnY=p[1];if(p[1]>mxY)mxY=p[1];});}
+  ext(fl.outline);
+  if(fl.features) fl.features.forEach(function(f){ext(f.pts);});
+  return {minX:mnX,maxX:mxX,minY:mnY,maxY:mxY};
+}
+
+function makeTransform(bounds) {
+  var cw=planCanvas.width, ch=planCanvas.height, margin=100;
+  var rX=bounds.maxX-bounds.minX, rY=bounds.maxY-bounds.minY;
+  var sc=Math.min((cw-2*margin)/rX,(ch-2*margin)/rY)*planZoom;
+  var ox=(cw-rX*sc)/2+planPan.x, oy=(ch-rY*sc)/2+planPan.y;
+  return {
+    scale:sc,
+    tx:function(x){return ox+(x-bounds.minX)*sc;},
+    ty:function(y){return oy+(bounds.maxY-y)*sc;}
   };
-  viewsDiv.appendChild(btn);
-});
-
-// ══════════════════════════════════════════
-// COLOUR LEGEND
-// ══════════════════════════════════════════
-var legendDiv = document.getElementById('legend');
-var legendItems = [
-  {c:'#cec8c1', l:'Render — Dulux Grey Pebble 1/2 Strength (N/E/S walls)'},
-  {c:'#3d4040', l:'Cladding — Colorbond Monument (W elevation, Scyon Axon 133mm)'},
-  {c:'#e8e1d4', l:'Roof — Colorbond Surfmist (Kliplock)'},
-  {c:'#e8e1d4', l:'Parapet Capping — Surfmist'},
-  {c:'#3d4040', l:'Fascia & Guttering — Monument'},
-  {c:'#cec8c1', l:'Downpipes & Eaves — Grey Pebble 1/2 Str'},
-  {c:'#3d4040', l:'Windows & Doors — PC Aluminium Monument'},
-  {c:'#3d4040', l:'Garage Door — B&D Madrid Woodgrain Monument'},
-  {c:'#8b6f47', l:'Entry Door — Hume Savoy SX45 Pacific Maple'},
-  {c:'#cec8c1', l:'Laundry Door — Hume XF3 Grey Pebble 1/2 Str'},
-  {c:'#3d4040', l:'Balustrade — 12mm Glass + Monument U-channel'},
-  {c:'#3d4040', l:'Privacy Screen — 70x16mm Monument slats'},
-  {c:'#3d4040', l:'Stair Balustrade — Monument Panorama'},
-  {c:'#3d4040', l:'Venetian Blind — Monument (W20, west)'},
-  {c:'#e8e1d4', l:'Vergola — S&I Surfmist 200mm louvres'},
-  {c:'#b0a898', l:'External Stairs — Concrete + tile'},
-  {c:'#3d4040', l:'Timber Posts — Monument (180x65 dressed)'}
-];
-var lh = '<h4>Colour & Finishes Schedule</h4>';
-legendItems.forEach(function(it){
-  lh += '<div class="lrow"><div class="lswatch" style="background:'+it.c+'"></div><span>'+it.l+'</span></div>';
-});
-lh += '<div class="lwarn">⚠ DISCREPANCY: Plans p.2 specify "Grey Pebble Quarter" (S14B1Q, LRV 77, ~#e3e0da) but Selections Schedule says "1/2 Strength" (S14B1H, ~#cec8c1). Confirm with Horizon Homes.</div>';
-lh += '<div class="lwarn">⚠ All PC aluminium requires 25yr powder (Interpon/Dulux) — salt water proximity (R3 exposure).</div>';
-legendDiv.innerHTML = lh;
-legendDiv.querySelector('h4').addEventListener('click', function(){
-  legendDiv.classList.toggle('collapsed');
-});
-legendDiv.classList.add('collapsed');
-
-// ── Animate ──
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
 }
-animate();
 
-window.addEventListener('resize', function(){
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+function drawPlans() {
+  if(!planCtx) return;
+  var ctx=planCtx, cw=planCanvas.width, ch=planCanvas.height;
+  ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,cw,ch);
+
+  if (currentFloor==='ALL') {
+    var ab={minX:-2000,maxX:14000,minY:-5000,maxY:23500};
+    var t=makeTransform(ab);
+    ['LF','GF','FF'].forEach(function(k){
+      var f=FLOORS[k];
+      drawFeatures(ctx,f,t);
+      drawFill(ctx,f,t,0.15);
+      drawOutline(ctx,f,t,0.6);
+      drawWalls(ctx,f,t,0.3);
+      drawRooms(ctx,f,t,0.5);
+    });
+    drawNorthArrow(ctx,cw-60,ch-80);
+    drawScaleBar(ctx,t,50,ch-30);
+  } else {
+    var f=FLOORS[currentFloor];
+    var b=floorBounds(f);
+    b.minX-=2500; b.maxX+=2500; b.minY-=2500; b.maxY+=2500;
+    var t=makeTransform(b);
+    drawFeatures(ctx,f,t);
+    drawFill(ctx,f,t,0.3);
+    drawOutline(ctx,f,t,1);
+    drawWalls(ctx,f,t,1);
+    drawRooms(ctx,f,t,1);
+    drawDims(ctx,f,t);
+    drawNorthArrow(ctx,cw-60,ch-80);
+    drawScaleBar(ctx,t,50,ch-30);
+  }
+}
+
+function drawFill(ctx,f,t,a) {
+  ctx.globalAlpha=a; ctx.fillStyle='rgba(30,58,95,0.8)';
+  ctx.beginPath();
+  f.outline.forEach(function(p,i){if(i===0)ctx.moveTo(t.tx(p[0]),t.ty(p[1]));else ctx.lineTo(t.tx(p[0]),t.ty(p[1]));});
+  ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+}
+
+function drawOutline(ctx,f,t,a) {
+  ctx.globalAlpha=a; ctx.strokeStyle=f.color||'#e2e8f0'; ctx.lineWidth=3;
+  ctx.beginPath();
+  f.outline.forEach(function(p,i){if(i===0)ctx.moveTo(t.tx(p[0]),t.ty(p[1]));else ctx.lineTo(t.tx(p[0]),t.ty(p[1]));});
+  ctx.closePath(); ctx.stroke(); ctx.globalAlpha=1;
+}
+
+function drawWalls(ctx,f,t,a) {
+  ctx.globalAlpha=a; ctx.strokeStyle='#64748b'; ctx.lineWidth=1.5; ctx.setLineDash([8,4]);
+  f.walls.forEach(function(w){
+    ctx.beginPath(); ctx.moveTo(t.tx(w[0][0]),t.ty(w[0][1])); ctx.lineTo(t.tx(w[1][0]),t.ty(w[1][1])); ctx.stroke();
+  });
+  ctx.setLineDash([]); ctx.globalAlpha=1;
+}
+
+function drawRooms(ctx,f,t,a) {
+  ctx.globalAlpha=a; ctx.textAlign='center';
+  f.rooms.forEach(function(r){
+    ctx.fillStyle='#e2e8f0'; ctx.font='bold 12px sans-serif';
+    ctx.fillText(r.name,t.tx(r.x),t.ty(r.y));
+  });
+  ctx.globalAlpha=1;
+}
+
+function drawFeatures(ctx,f,t) {
+  if(!f.features) return;
+  f.features.forEach(function(feat){
+    ctx.fillStyle=feat.type==='courtyard'?'rgba(59,130,246,0.08)':'rgba(34,197,94,0.12)';
+    ctx.strokeStyle=feat.type==='courtyard'?'#3b82f6':'#22c55e';
+    ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    feat.pts.forEach(function(p,i){if(i===0)ctx.moveTo(t.tx(p[0]),t.ty(p[1]));else ctx.lineTo(t.tx(p[0]),t.ty(p[1]));});
+    ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    var cx=feat.pts.reduce(function(s,p){return s+p[0];},0)/feat.pts.length;
+    var cy=feat.pts.reduce(function(s,p){return s+p[1];},0)/feat.pts.length;
+    ctx.fillStyle=feat.type==='courtyard'?'#60a5fa':'#4ade80';
+    ctx.font='10px sans-serif'; ctx.textAlign='center';
+    feat.label.split('\n').forEach(function(ln,i){ctx.fillText(ln,t.tx(cx),t.ty(cy)+i*14);});
+  });
+}
+
+function drawDims(ctx,f,t) {
+  if(!f.dims) return;
+  ctx.strokeStyle='#60a5fa'; ctx.fillStyle='#60a5fa'; ctx.lineWidth=0.8; ctx.font='11px sans-serif'; ctx.textAlign='center';
+  f.dims.forEach(function(d){
+    if(d.dir==='h'){
+      var sy=t.ty(d.at), sx1=t.tx(d.a), sx2=t.tx(d.b);
+      ctx.beginPath();
+      ctx.moveTo(sx1,t.ty(d.at+1000)); ctx.lineTo(sx1,sy);
+      ctx.moveTo(sx2,t.ty(d.at+1000)); ctx.lineTo(sx2,sy);
+      ctx.moveTo(sx1,sy); ctx.lineTo(sx2,sy); ctx.stroke();
+      drawArr(ctx,sx1,sy,1,0); drawArr(ctx,sx2,sy,-1,0);
+      ctx.fillText(d.label,(sx1+sx2)/2,sy-4);
+    } else {
+      var sx=t.tx(d.at), sy1=t.ty(d.a), sy2=t.ty(d.b);
+      ctx.beginPath();
+      ctx.moveTo(t.tx(d.at+1000),sy1); ctx.lineTo(sx,sy1);
+      ctx.moveTo(t.tx(d.at+1000),sy2); ctx.lineTo(sx,sy2);
+      ctx.moveTo(sx,sy1); ctx.lineTo(sx,sy2); ctx.stroke();
+      drawArr(ctx,sx,sy1,0,1); drawArr(ctx,sx,sy2,0,-1);
+      ctx.save(); ctx.translate(sx-6,(sy1+sy2)/2); ctx.rotate(-Math.PI/2);
+      ctx.fillText(d.label,0,0); ctx.restore();
+    }
+  });
+}
+
+function drawArr(ctx,x,y,dx,dy) {
+  var s=6; ctx.beginPath();
+  ctx.moveTo(x,y); ctx.lineTo(x-dx*s+dy*s/2,y-dy*s-dx*s/2); ctx.lineTo(x-dx*s-dy*s/2,y-dy*s+dx*s/2);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawNorthArrow(ctx,x,y) {
+  ctx.fillStyle='#94a3b8'; ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(x,y+30); ctx.lineTo(x-8,y+10); ctx.lineTo(x+8,y+10); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x,y-10); ctx.lineTo(x,y+10); ctx.stroke();
+  ctx.font='bold 14px sans-serif'; ctx.textAlign='center'; ctx.fillText('N',x,y-15);
+}
+
+function drawScaleBar(ctx,t,x,y) {
+  var scales=[500,1000,2000,5000,10000], chosen=1000;
+  for(var i=0;i<scales.length;i++){var sl=scales[i]*t.scale; if(sl>=40&&sl<=200){chosen=scales[i];break;}}
+  var sw=chosen*t.scale;
+  ctx.strokeStyle='#94a3b8'; ctx.fillStyle='#94a3b8'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+sw,y);
+  ctx.moveTo(x,y-5); ctx.lineTo(x,y+5); ctx.moveTo(x+sw,y-5); ctx.lineTo(x+sw,y+5); ctx.stroke();
+  ctx.font='10px sans-serif'; ctx.textAlign='center';
+  ctx.fillText(chosen>=1000?(chosen/1000)+'m':chosen+'mm', x+sw/2, y-8);
+}
+
+// ══════════════════════════════════════════
+// TAB 2: ELEVATIONS
+// ══════════════════════════════════════════
+var elevCanvas, elevCtx, elevPdf=null, currentElevPage='WN';
+var elevPageNum={WN:7,ES:8}, elevRendered=null;
+var editMode = window.location.search.indexOf('edit=1')!==-1;
+var ELEVATION_REGIONS={WN:[],ES:[]}, currentPoly=[];
+
+function initElevations() {
+  elevCanvas=document.getElementById('elev-canvas');
+  elevCtx=elevCanvas.getContext('2d');
+  var container=document.getElementById('tab-elevations');
+  elevCanvas.width=container.clientWidth; elevCanvas.height=container.clientHeight;
+
+  var matList=document.getElementById('mat-list'), html='';
+  Object.keys(MATERIALS).forEach(function(k){
+    html+='<div class="mat-row"><div class="mat-swatch" style="background:'+MATERIALS[k].hex+'"></div><span>'+MATERIALS[k].name+'</span></div>';
+  });
+  matList.innerHTML=html;
+
+  var sel=document.getElementById('trace-mat');
+  Object.keys(MATERIALS).forEach(function(k){
+    var o=document.createElement('option'); o.value=k; o.textContent=MATERIALS[k].name; sel.appendChild(o);
+  });
+
+  document.querySelectorAll('#elev-controls .btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#elev-controls .btn').forEach(function(bb){bb.classList.remove('active');});
+      b.classList.add('active'); currentElevPage=b.dataset.elev; loadElevPage();
+    });
+  });
+
+  if(editMode){
+    document.getElementById('trace-bar').classList.add('show');
+    elevCanvas.addEventListener('click', function(e){
+      var r=elevCanvas.getBoundingClientRect();
+      currentPoly.push([e.clientX-r.left, e.clientY-r.top]);
+      drawElevOverlay();
+    });
+    elevCanvas.addEventListener('dblclick', closePoly);
+    document.getElementById('btn-undo').addEventListener('click', function(){currentPoly.pop();drawElevOverlay();});
+    document.getElementById('btn-close-poly').addEventListener('click', closePoly);
+    document.getElementById('btn-export').addEventListener('click', function(){
+      var j=JSON.stringify(ELEVATION_REGIONS,null,2);
+      navigator.clipboard.writeText(j).then(function(){alert('Copied!');}).catch(function(){prompt('Copy:',j);});
+    });
+    document.getElementById('btn-clear').addEventListener('click', function(){
+      ELEVATION_REGIONS[currentElevPage]=[]; currentPoly=[]; drawElevOverlay();
+    });
+  }
+
+  loadPdf();
+}
+
+function closePoly() {
+  if(currentPoly.length<3) return;
+  ELEVATION_REGIONS[currentElevPage].push({material:document.getElementById('trace-mat').value, pts:currentPoly.slice()});
+  currentPoly=[]; drawElevOverlay();
+}
+
+function loadPdf() {
+  var ctx=elevCtx, cw=elevCanvas.width, ch=elevCanvas.height;
+  ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,cw,ch);
+  ctx.fillStyle='#94a3b8'; ctx.font='16px sans-serif'; ctx.textAlign='center';
+
+  if(typeof pdfjsLib==='undefined'){
+    ctx.fillText('PDF viewer requires pdf.js library',cw/2,ch/2);
+    ctx.font='13px sans-serif';
+    ctx.fillText('Add pdf.js script tag or serve page via HTTP',cw/2,ch/2+24);
+    return;
+  }
+
+  ctx.fillText('Loading PDF (9.6 MB)...',cw/2,ch/2);
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+
+  pdfjsLib.getDocument(PDF_FILE).promise.then(function(pdf){
+    elevPdf=pdf; loadElevPage();
+  }).catch(function(err){
+    ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,cw,ch);
+    ctx.fillStyle='#ef4444'; ctx.font='14px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('PDF load failed: '+err.message,cw/2,ch/2);
+    ctx.fillStyle='#94a3b8'; ctx.font='12px sans-serif';
+    ctx.fillText('Ensure PDF is in same directory and page is served via HTTP (not file://)',cw/2,ch/2+24);
+  });
+}
+
+function loadElevPage() {
+  if(!elevPdf) return;
+  elevPdf.getPage(elevPageNum[currentElevPage]).then(function(page){
+    var container=document.getElementById('tab-elevations');
+    var cw=container.clientWidth, ch=container.clientHeight;
+    var vp=page.getViewport({scale:1});
+    var scale=Math.min(cw/vp.width, ch/vp.height)*0.85;
+    var viewport=page.getViewport({scale:scale});
+    elevCanvas.width=viewport.width; elevCanvas.height=viewport.height;
+    elevCanvas.style.position='absolute';
+    elevCanvas.style.left=((cw-viewport.width)/2)+'px';
+    elevCanvas.style.top=((ch-viewport.height)/2)+'px';
+    page.render({canvasContext:elevCtx,viewport:viewport}).promise.then(function(){
+      elevRendered=elevCtx.getImageData(0,0,elevCanvas.width,elevCanvas.height);
+      drawElevOverlay();
+    });
+  });
+}
+
+function drawElevOverlay() {
+  if(!elevRendered) return;
+  elevCtx.putImageData(elevRendered,0,0);
+  (ELEVATION_REGIONS[currentElevPage]||[]).forEach(function(r){
+    var m=MATERIALS[r.material]; if(!m) return;
+    elevCtx.fillStyle=m.hex+'66'; elevCtx.strokeStyle=m.hex; elevCtx.lineWidth=2;
+    elevCtx.beginPath();
+    r.pts.forEach(function(p,i){if(i===0)elevCtx.moveTo(p[0],p[1]);else elevCtx.lineTo(p[0],p[1]);});
+    elevCtx.closePath(); elevCtx.fill(); elevCtx.stroke();
+  });
+  if(currentPoly.length>0){
+    elevCtx.strokeStyle='#f59e0b'; elevCtx.lineWidth=2; elevCtx.setLineDash([4,4]);
+    elevCtx.beginPath();
+    currentPoly.forEach(function(p,i){if(i===0)elevCtx.moveTo(p[0],p[1]);else elevCtx.lineTo(p[0],p[1]);});
+    elevCtx.stroke(); elevCtx.setLineDash([]);
+    currentPoly.forEach(function(p){
+      elevCtx.fillStyle='#f59e0b'; elevCtx.beginPath();
+      elevCtx.arc(p[0],p[1],4,0,Math.PI*2); elevCtx.fill();
+    });
+  }
+}
+
+// ══════════════════════════════════════════
+// TAB 3: 3D MASSING MODEL
+// ══════════════════════════════════════════
+function initModel() {
+  var container=document.getElementById('tab-model');
+  var scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x87ceeb);
+  scene.fog=new THREE.Fog(0x87ceeb,80,150);
+  var w=container.clientWidth, h=container.clientHeight;
+  var camera=new THREE.PerspectiveCamera(45,w/h,0.1,200);
+  camera.position.set(20,15,-24);
+  var renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(w,h); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.2;
+  container.appendChild(renderer.domElement);
+  var controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true; controls.dampingFactor=0.08;
+  controls.target.set(0,4,0); controls.minDistance=5; controls.maxDistance=80;
+
+  scene.add(new THREE.AmbientLight(0xffffff,0.5));
+  var sun=new THREE.DirectionalLight(0xffffff,1.0);
+  sun.position.set(15,25,-10); sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.camera.left=-25; sun.shadow.camera.right=25;
+  sun.shadow.camera.top=25; sun.shadow.camera.bottom=-25;
+  scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0xddeeff,0x8b7d6b,0.3));
+
+  var mat={
+    render:new THREE.MeshStandardMaterial({color:0xcec8c1,roughness:0.85}),
+    monument:new THREE.MeshStandardMaterial({color:0x3d4040,roughness:0.5}),
+    surfmist:new THREE.MeshStandardMaterial({color:0xe8e1d4,roughness:0.4,metalness:0.1}),
+    concrete:new THREE.MeshStandardMaterial({color:0xb0a898,roughness:0.9}),
+    glass:new THREE.MeshStandardMaterial({color:0x8ec8d8,roughness:0.1,transparent:true,opacity:0.35,side:THREE.DoubleSide}),
+    ground:new THREE.MeshStandardMaterial({color:0x6b8e5a,roughness:1}),
+    timber:new THREE.MeshStandardMaterial({color:0x8b6f47,roughness:0.7})
+  };
+  var house=new THREE.Group(); scene.add(house);
+
+  function bx(bw,bh,bd,bm){var m=new THREE.Mesh(new THREE.BoxGeometry(bw,bh,bd),bm);m.castShadow=true;m.receiveShadow=true;return m;}
+
+  // Dimensions (metres)
+  var WALL=0.27;
+  var LF_W=12.01,LF_D=18.71,LF_H=3.0,LF_Y=0;
+  var GF_W=12.01,GF_D=21.02,GF_H=2.75,GF_Y=3.45;
+  var FF_W=8.26,FF_D=11.57,FF_H=2.6,FF_Y=6.65;
+  var LF_E=LF_W/2,LF_Wst=-LF_W/2,LF_N=LF_D/2,LF_S=-LF_D/2;
+  var GF_S=LF_S,GF_N=GF_S+GF_D,GF_CZ=(GF_N+GF_S)/2;
+  var FF_N=LF_N,FF_S=FF_N-FF_D,FF_Wst=LF_Wst,FF_E=FF_Wst+FF_W;
+  var FF_CX=(FF_E+FF_Wst)/2,FF_CZ=(FF_N+FF_S)/2;
+
+  // Ground terrain
+  var gndGeo=new THREE.PlaneGeometry(80,80,20,20);
+  var gndPos=gndGeo.attributes.position;
+  for(var i=0;i<gndPos.count;i++){
+    var lx=gndPos.getX(i),ly=gndPos.getY(i);
+    gndPos.setZ(i,-ly*0.08+1.7+Math.sin(lx*0.08)*0.15);
+  }
+  gndGeo.computeVertexNormals();
+  var gnd=new THREE.Mesh(gndGeo,mat.ground); gnd.rotation.x=-Math.PI/2; gnd.receiveShadow=true; scene.add(gnd);
+
+  // Lower Floor — face order: +X(E), -X(W), +Y, -Y, +Z(N), -Z(S)
+  var lfMats=[mat.render,mat.monument,mat.concrete,mat.concrete,mat.render,mat.render];
+  var lfBox=new THREE.Mesh(new THREE.BoxGeometry(LF_W,LF_H,LF_D),lfMats);
+  lfBox.position.set(0,LF_Y+LF_H/2,0); lfBox.castShadow=true; lfBox.receiveShadow=true; house.add(lfBox);
+
+  // Ground Floor
+  var gfMats=[mat.render,mat.monument,mat.concrete,mat.concrete,mat.render,mat.render];
+  var gfBox=new THREE.Mesh(new THREE.BoxGeometry(GF_W,GF_H,GF_D),gfMats);
+  gfBox.position.set(0,GF_Y+GF_H/2,GF_CZ); gfBox.castShadow=true; gfBox.receiveShadow=true; house.add(gfBox);
+
+  // First Floor
+  var ffMats=[mat.render,mat.monument,mat.concrete,mat.concrete,mat.render,mat.render];
+  var ffBox=new THREE.Mesh(new THREE.BoxGeometry(FF_W,FF_H,FF_D),ffMats);
+  ffBox.position.set(FF_CX,FF_Y+FF_H/2,FF_CZ); ffBox.castShadow=true; ffBox.receiveShadow=true; house.add(ffBox);
+
+  // Main roof — 5deg pitch, ridge at south, slopes to north
+  var ROVER=0.5,NOVER=1.8;
+  var roofD=FF_D+NOVER+ROVER, roofW=FF_W+ROVER;
+  var roofCZ=FF_S-ROVER+roofD/2, roofCX=FF_Wst+roofW/2;
+  var mainRoof=bx(roofW,0.15,roofD,mat.surfmist);
+  mainRoof.position.set(roofCX,FF_Y+FF_H+0.25,roofCZ);
+  mainRoof.rotation.x=5*Math.PI/180; house.add(mainRoof);
+
+  // Flat roofs over GF areas not under FF
+  var gfRoofSD=Math.abs(FF_S-GF_S);
+  var sr1=bx(GF_W+0.4,0.12,gfRoofSD+0.4,mat.surfmist);
+  sr1.position.set(0,GF_Y+GF_H+0.06,(FF_S+GF_S)/2); house.add(sr1);
+
+  if(GF_N-FF_N>0.5){
+    var sr2=bx(GF_W+0.4,0.12,(GF_N-FF_N)+0.4,mat.surfmist);
+    sr2.position.set(0,GF_Y+GF_H+0.06,(FF_N+GF_N)/2); house.add(sr2);
+  }
+  var courtW=LF_E-FF_E;
+  if(courtW>0.3){
+    var sr3=bx(courtW+0.2,0.12,FF_D+0.4,mat.surfmist);
+    sr3.position.set(FF_E+courtW/2,GF_Y+GF_H+0.06,FF_CZ); house.add(sr3);
+  }
+
+  // West parapet
+  var parH=0.85;
+  var par=bx(WALL,parH,GF_D+0.4,mat.monument);
+  par.position.set(LF_Wst,FF_Y+FF_H+parH/2,GF_CZ); house.add(par);
+  var parCap=bx(0.35,0.06,GF_D+0.4,mat.surfmist);
+  parCap.position.set(LF_Wst,FF_Y+FF_H+parH+0.03,GF_CZ); house.add(parCap);
+
+  // North fascia (prominent canopy edge)
+  var nFas=bx(roofW,0.40,0.12,mat.monument);
+  nFas.position.set(roofCX,FF_Y+FF_H+0.05,FF_N+NOVER); house.add(nFas);
+
+  // Soffit under north canopy
+  var soffit=bx(roofW,0.03,NOVER,mat.render);
+  soffit.position.set(roofCX,FF_Y+FF_H-0.02,FF_N+NOVER/2); house.add(soffit);
+
+  // Capping strips at level transitions
+  var cap1=bx(LF_W+0.4,0.06,LF_D+0.4,mat.surfmist);
+  cap1.position.set(0,LF_Y+LF_H+0.03,0); house.add(cap1);
+  var cap2=bx(GF_W+0.4,0.06,GF_D+0.4,mat.surfmist);
+  cap2.position.set(0,GF_Y+GF_H+0.03,GF_CZ); house.add(cap2);
+
+  // Garage door
+  var garDoor=bx(5.0,2.38,0.08,mat.monument);
+  garDoor.position.set(-GF_W/4,GF_Y+2.38/2,GF_N+WALL/2+0.02); house.add(garDoor);
+
+  // Entry door
+  var entDoor=bx(1.2,2.34,0.06,mat.timber);
+  entDoor.position.set(GF_W/4,GF_Y+2.34/2,GF_N+WALL/2+0.02); house.add(entDoor);
+
+  // Retaining walls
+  var retW=0.4,retH=LF_H+0.3;
+  var r1=bx(retW,retH,6.35,mat.concrete); r1.position.set(LF_Wst-retW/2-0.01,LF_Y+retH/2-0.3,LF_S+6.35/2); house.add(r1);
+  var r2=bx(retW,retH,6.35,mat.concrete); r2.position.set(LF_Wst-retW/2-0.01,LF_Y+retH/2-0.3,-0.795+6.35/2); house.add(r2);
+
+  // Driveway
+  var driveGeo=new THREE.PlaneGeometry(3.5,12.0);
+  var drive=new THREE.Mesh(driveGeo,new THREE.MeshStandardMaterial({color:0x888888,roughness:0.95}));
+  drive.rotation.x=-Math.PI/2; drive.position.set(2.5,GF_Y+0.02,GF_N+6); drive.receiveShadow=true; scene.add(drive);
+
+  // Courtyard parapet
+  var cpH=0.3;
+  var cp=bx(courtW,cpH,0.15,mat.render);
+  cp.position.set(FF_E+courtW/2,GF_Y+GF_H+cpH/2,FF_CZ); house.add(cp);
+
+  // View presets
+  var viewsDiv=document.getElementById('model-views');
+  [{name:'Street (N)',pos:[0,8,28],tgt:[0,4,0]},
+   {name:'Harbour (S)',pos:[0,8,-28],tgt:[0,4,0]},
+   {name:'East',pos:[28,8,0],tgt:[0,4,0]},
+   {name:'West',pos:[-28,8,0],tgt:[0,4,0]},
+   {name:'Aerial',pos:[15,30,-15],tgt:[0,3,0]},
+   {name:'Default',pos:[20,15,-24],tgt:[0,4,0]}
+  ].forEach(function(p){
+    var btn=document.createElement('button'); btn.className='btn'; btn.textContent=p.name;
+    btn.addEventListener('click',function(){
+      camera.position.set(p.pos[0],p.pos[1],p.pos[2]);
+      controls.target.set(p.tgt[0],p.tgt[1],p.tgt[2]); controls.update();
+    });
+    viewsDiv.appendChild(btn);
+  });
+
+  // Legend
+  var legDiv=document.getElementById('model-legend');
+  var lh='<h4 style="color:#93c5fd;margin-bottom:8px;font-size:13px">Colours &amp; Materials</h4>';
+  [{c:'#cec8c1',l:'Render — Dulux Grey Pebble 1/2 Str'},
+   {c:'#3d4040',l:'Cladding — Colorbond Monument'},
+   {c:'#e8e1d4',l:'Roof/Capping — Colorbond Surfmist'},
+   {c:'#3d4040',l:'Fascia — Monument'},
+   {c:'#b0a898',l:'Concrete/Retaining'},
+   {c:'#8b6f47',l:'Entry Door — Pacific Maple'},
+   {c:'#888888',l:'Driveway'}
+  ].forEach(function(it){
+    lh+='<div class="legend-row"><div class="legend-sw" style="background:'+it.c+'"></div><span>'+it.l+'</span></div>';
+  });
+  lh+='<div class="note">Massing model shows correct overall dimensions.<br>See Floor Plans for room-level detail.</div>';
+  legDiv.innerHTML=lh;
+
+  // Animate
+  (function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);})();
+
+  window._resizeModel=function(){
+    var w2=container.clientWidth,h2=container.clientHeight;
+    camera.aspect=w2/h2; camera.updateProjectionMatrix(); renderer.setSize(w2,h2);
+  };
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.addEventListener('resize',function(){
+  if(activeTab==='plans') resizePlansCanvas();
+  else if(activeTab==='model'&&window._resizeModel) window._resizeModel();
+  else if(activeTab==='elevations'&&elevPdf) loadElevPage();
 });
+
+switchTab('plans');
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 </body>
 </html>
