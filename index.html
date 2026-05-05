@@ -319,7 +319,7 @@ function makeTransform(bounds) {
   return {
     scale:sc,
     tx:function(x){return ox+(x-bounds.minX)*sc;},
-    ty:function(y){return oy+(bounds.maxY-y)*sc;}
+    ty:function(y){return oy+(y-bounds.minY)*sc;}
   };
 }
 
@@ -419,9 +419,10 @@ function drawDims(ctx,f,t) {
       ctx.fillText(d.label,(sx1+sx2)/2,sy-4);
     } else {
       var sx=t.tx(d.at), sy1=t.ty(d.a), sy2=t.ty(d.b);
+      var vExtDir = d.at>6005 ? -1 : 1;
       ctx.beginPath();
-      ctx.moveTo(t.tx(d.at+1000),sy1); ctx.lineTo(sx,sy1);
-      ctx.moveTo(t.tx(d.at+1000),sy2); ctx.lineTo(sx,sy2);
+      ctx.moveTo(t.tx(d.at+vExtDir*1000),sy1); ctx.lineTo(sx,sy1);
+      ctx.moveTo(t.tx(d.at+vExtDir*1000),sy2); ctx.lineTo(sx,sy2);
       ctx.moveTo(sx,sy1); ctx.lineTo(sx,sy2); ctx.stroke();
       drawArr(ctx,sx,sy1,0,1); drawArr(ctx,sx,sy2,0,-1);
       ctx.save(); ctx.translate(sx-6,(sy1+sy2)/2); ctx.rotate(-Math.PI/2);
@@ -724,6 +725,63 @@ function initModel() {
   var cpH=0.3;
   var cp=bx(courtW,cpH,0.15,mat.render);
   cp.position.set(FF_E+courtW/2,GF_Y+GF_H+cpH/2,FF_CZ); house.add(cp);
+
+  // Key windows — large glazing that defines the elevations
+  function addWin(face,wallX,wallZ,baseY,cx,winW,winH,sillH,wallThk){
+    sillH=sillH||0.9; wallThk=wallThk||WALL;
+    var wy=baseY+sillH+winH/2, frame, glass, outOff=wallThk/2+0.02;
+    if(face==='N'||face==='S'){
+      var zOff=face==='N'?outOff:-outOff;
+      frame=bx(winW,winH,0.05,mat.monument); glass=bx(winW-0.06,winH-0.06,0.02,mat.glass);
+      frame.position.set(cx,wy,wallZ+zOff); glass.position.set(cx,wy,wallZ+zOff);
+    } else {
+      var xOff=face==='E'?outOff:-outOff;
+      frame=bx(0.05,winH,winW,mat.monument); glass=bx(0.02,winH-0.06,winW-0.06,mat.glass);
+      frame.position.set(wallX+xOff,wy,cx); glass.position.set(wallX+xOff,wy,cx);
+    }
+    house.add(frame); house.add(glass);
+  }
+  // LF: Dining east (W4), Family south stacker (D02)
+  addWin('E',LF_E,0,0,-7.4,4.2,2.7,0.15);
+  addWin('S',0,LF_S,0,1.85,4.7,2.7,0.15);
+  // GF: Master east (W12), Garage north (W19)
+  addWin('E',LF_E,0,GF_Y,-7.25,5.2,1.8,0.3);
+  addWin('N',0,GF_N,GF_Y,-3.05,3.01,0.6,2.45);
+  // FF: West windows (W18 stairs, W20 guest)
+  addWin('W',FF_Wst,0,FF_Y,6.5,1.81,2.5,0.05,0.185);
+  addWin('W',FF_Wst,0,FF_Y,-0.4,3.17,1.8,0.3,0.185);
+  // FF: North (W21 rumpus)
+  addWin('N',0,FF_N,FF_Y,0.2,4.76,0.9,0.6,0.185);
+
+  // Front balcony (north, FF level)
+  var balcFW=4.1,balcFD=1.6,balcFX=FF_E-balcFW/2;
+  var balcFS=bx(balcFW,0.15,balcFD,mat.concrete);
+  balcFS.position.set(balcFX,FF_Y-0.075,FF_N+balcFD/2); house.add(balcFS);
+  var balcFG=bx(balcFW,1.0,0.012,mat.glass);
+  balcFG.position.set(balcFX,FF_Y+0.5,FF_N+balcFD); house.add(balcFG);
+
+  // Privacy screen (west portion of FF north face)
+  var privW=FF_W-balcFW-0.3, privX=FF_Wst+privW/2+0.1;
+  var privP=bx(privW,FF_H-0.2,0.04,mat.monument);
+  privP.position.set(privX,FF_Y+0.1+(FF_H-0.2)/2,FF_N+0.185/2+0.04); house.add(privP);
+
+  // Rear balcony (south, FF level)
+  var balcRW=5.5,balcRD=2.9;
+  var balcRS=bx(balcRW,0.15,balcRD,mat.concrete);
+  balcRS.position.set(0.5,FF_Y-0.075,FF_S-balcRD/2); house.add(balcRS);
+  var balcRG=bx(balcRW,1.0,0.012,mat.glass);
+  balcRG.position.set(0.5,FF_Y+0.5,FF_S-balcRD); house.add(balcRG);
+
+  // Vergola over alfresco (south LF)
+  var vergW=5.5,vergD=5.2,vergY2=LF_H+0.3,vergX=LF_Wst+vergW/2;
+  var vFrame=bx(vergW,0.12,vergD,mat.surfmist);
+  vFrame.position.set(vergX,vergY2,LF_S-vergD/2); house.add(vFrame);
+
+  // Floor slabs (fill gaps between levels)
+  var slab1=bx(LF_W,0.45,LF_D,mat.concrete);
+  slab1.position.set(0,LF_H+0.225,0); house.add(slab1);
+  var slab2=bx(GF_W,0.45,GF_D,mat.concrete);
+  slab2.position.set(0,GF_Y+GF_H+0.225,GF_CZ); house.add(slab2);
 
   // View presets
   var viewsDiv=document.getElementById('model-views');
