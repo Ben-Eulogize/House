@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rainbow Zones — Kirribilli</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0b0f14; color: #eaeef3; }
+  #map { position: absolute; inset: 0; }
+
+  .panel {
+    position: absolute; z-index: 500;
+    background: rgba(10, 14, 20, 0.88);
+    border: 1px solid #2a3340;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+  }
+  #info { top: 12px; left: 12px; max-width: 320px; font-size: 13px; line-height: 1.5; }
+  #info h1 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+  #info .score-bar { height: 8px; border-radius: 4px; background: #1b2330; overflow: hidden; margin: 6px 0; }
+  #info .score-fill { height: 100%; background: linear-gradient(90deg, #6e3bd1, #2b6cff, #1ec27a, #ffd33d, #ff7a3d, #ff3d6e); transition: width 0.3s; }
+  #info .row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #b9c2cf; }
+  #info .row b { color: #eaeef3; font-weight: 500; }
+  #info .verdict { font-size: 13px; font-weight: 600; margin-top: 8px; padding: 6px 8px; border-radius: 4px; }
+  #info .verdict.good { background: rgba(30, 194, 122, 0.15); color: #5ee3a4; }
+  #info .verdict.mid { background: rgba(255, 211, 61, 0.15); color: #ffd33d; }
+  #info .verdict.bad { background: rgba(255, 61, 110, 0.12); color: #ff7a8a; }
+
+  #timeline { bottom: 12px; left: 12px; right: 12px; padding: 10px 14px; }
+  #timeline .ticks { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+  #timeline .tick {
+    flex: 0 0 auto; min-width: 64px; padding: 6px 8px; border-radius: 4px;
+    background: #131a23; border: 1px solid #2a3340; cursor: pointer;
+    font-size: 11px; line-height: 1.3; text-align: center; transition: border-color 0.15s;
+  }
+  #timeline .tick.active { border-color: #ffd33d; }
+  #timeline .tick .t-time { color: #b9c2cf; font-size: 10px; }
+  #timeline .tick .t-score { font-weight: 600; margin-top: 2px; }
+  #timeline .tick .t-bar { height: 3px; border-radius: 2px; background: #2a3340; margin-top: 4px; overflow: hidden; }
+  #timeline .tick .t-bar > span { display: block; height: 100%; background: linear-gradient(90deg, #2b6cff, #ffd33d, #ff3d6e); }
+
+  .leaflet-container { background: #0b0f14; }
+  /* Tone down OSM tiles for the dark theme */
+  .leaflet-tile { filter: brightness(0.65) saturate(0.8) hue-rotate(180deg) invert(0.92); }
+
+  .sun-icon, .anti-icon { display: flex; align-items: center; justify-content: center; font-size: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="info" class="panel">
+  <h1>🌈 Rainbow Zones — Kirribilli</h1>
+  <div class="row"><span>Sun</span><b id="sun-az">—</b></div>
+  <div class="row"><span>Antisolar bearing</span><b id="anti-az">—</b></div>
+  <div class="row"><span>Rain (last 1h)</span><b id="rain">—</b></div>
+  <div class="row"><span>Cloud cover</span><b id="cloud">—</b></div>
+  <div class="row"><span>Conditions</span><b id="cond">—</b></div>
+  <div style="margin-top:8px">
+    <div class="row"><span>Rainbow probability</span><b id="score-pct">—</b></div>
+    <div class="score-bar"><div class="score-fill" id="score-fill" style="width:0"></div></div>
+  </div>
+  <div class="verdict" id="verdict">Loading…</div>
+</div>
+
+<div id="timeline" class="panel">
+  <div style="font-size:11px; color:#b9c2cf; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em;">Forecast — next 24 h (3 h steps)</div>
+  <div class="ticks" id="ticks"><span style="color:#6f7a8a; font-size:12px;">Loading forecast…</span></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+<script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+<script>
+// ---- Constants ----------------------------------------------------------
+const KIRRIBILLI = [-33.8472, 151.2169]; // [lat, lon]
+const RADIUS_KM = 10;
+const PRIMARY_BOW_DEG = 42;
+const OWM_API_KEY = "b3f030048e470e6f1f567401ad06b09d";
+
+// ---- Map setup ----------------------------------------------------------
+const map = L.map("map", { zoomControl: true }).setView(KIRRIBILLI, 12);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap",
+  maxZoom: 19
+}).addTo(map);
+
+L.circle(KIRRIBILLI, {
+  radius: RADIUS_KM * 1000,
+  color: "#8fb8ff", weight: 1.5, fillOpacity: 0.04, dashArray: "4 4"
+}).addTo(map).bindTooltip("10 km radius — Kirribilli");
+
+L.marker(KIRRIBILLI, {
+  icon: L.divIcon({ html: "📍", className: "sun-icon", iconSize: [24,24] })
+}).addTo(map).bindPopup("Kirribilli (observer)");
+
+let sunMarker = null;
+let antiMarker = null;
+let rainbowWedge = null;
+let forecastMarkers = [];
+
+// ---- Solar geometry -----------------------------------------------------
+function sunInfo(date, lat, lon) {
+  const p = SunCalc.getPosition(date, lat, lon);
+  // SunCalc azimuth: radians, measured FROM SOUTH, westward positive.
+  // Convert to compass (from north, clockwise).
+  const azDeg = (p.azimuth * 180 / Math.PI + 180 + 360) % 360;
+  const elDeg = p.altitude * 180 / Math.PI;
+  return { az: azDeg, el: elDeg };
+}
+
+function antisolarBearing(sunAzDeg) {
+  return (sunAzDeg + 180) % 360;
+}
+
+// Project a bearing+distance from a lat/lon -> [lat,lon]
+function destPoint(lat, lon, bearingDeg, distKm) {
+  const R = 6371;
+  const br = bearingDeg * Math.PI / 180;
+  const lat1 = lat * Math.PI / 180;
+  const lon1 = lon * Math.PI / 180;
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(distKm / R) +
+                         Math.cos(lat1) * Math.sin(distKm / R) * Math.cos(br));
+  const lon2 = lon1 + Math.atan2(Math.sin(br) * Math.sin(distKm / R) * Math.cos(lat1),
+                                  Math.cos(distKm / R) - Math.sin(lat1) * Math.sin(lat2));
+  return [lat2 * 180 / Math.PI, ((lon2 * 180 / Math.PI) + 540) % 360 - 180];
+}
+
+// Build a wedge polygon: observer + arc of bearings around antisolar, radius=RADIUS_KM
+function buildRainbowWedge(lat, lon, antiBearing, halfWidthDeg, distKm) {
+  const pts = [[lat, lon]];
+  const steps = 24;
+  for (let i = 0; i <= steps; i++) {
+    const b = antiBearing - halfWidthDeg + (2 * halfWidthDeg * i / steps);
+    pts.push(destPoint(lat, lon, b, distKm));
+  }
+  pts.push([lat, lon]);
+  return pts;
+}
+
+// ---- Probability score --------------------------------------------------
+function score(sunEl, rainMm, cloudPct, date, lat, lon) {
+  // 1. Sun elevation: 0 if hidden or too high; peaks at horizon, falls to 0 at 42°.
+  let S_sun = 0;
+  if (sunEl > 0 && sunEl < PRIMARY_BOW_DEG) S_sun = 1 - (sunEl / PRIMARY_BOW_DEG);
+
+  // 2. Rain: peak in light-rain band 0.1–2.5 mm/h, decay to 0 by 10 mm/h.
+  let S_rain = 0;
+  if (rainMm >= 0.1 && rainMm <= 2.5) S_rain = 1;
+  else if (rainMm > 2.5 && rainMm < 10) S_rain = 1 - (rainMm - 2.5) / 7.5;
+  else if (rainMm > 0 && rainMm < 0.1) S_rain = rainMm / 0.1; // ramp-in for drizzle
+
+  // 3. Clouds: triangular peak at 50%.
+  let S_cloud = 0;
+  if (cloudPct >= 0 && cloudPct <= 100) {
+    S_cloud = 1 - Math.abs(cloudPct - 50) / 50;
+  }
+
+  // 4. Time: 1 within 2h of sunrise/sunset, decays linearly out to 4h.
+  const times = SunCalc.getTimes(date, lat, lon);
+  const minsFromEdge = Math.min(
+    Math.abs(date - times.sunrise),
+    Math.abs(date - times.sunset)
+  ) / 60000;
+  let S_time = 0;
+  if (minsFromEdge <= 120) S_time = 1;
+  else if (minsFromEdge < 240) S_time = 1 - (minsFromEdge - 120) / 120;
+
+  const P = 0.35 * S_sun + 0.30 * S_rain + 0.25 * S_cloud + 0.10 * S_time;
+  return { P, S_sun, S_rain, S_cloud, S_time };
+}
+
+function verdictFor(P, sunEl) {
+  if (sunEl <= 0) return { text: "Sun below horizon — no rainbow possible right now.", cls: "bad" };
+  if (sunEl >= PRIMARY_BOW_DEG) return { text: `Sun too high (${sunEl.toFixed(0)}°) — bow would be below horizon.`, cls: "bad" };
+  if (P > 0.55) return { text: "Strong rainbow potential — check the eastern sector!", cls: "good" };
+  if (P > 0.30) return { text: "Possible — keep an eye on the antisolar direction.", cls: "mid" };
+  return { text: "Unlikely right now. Check the timeline for better windows.", cls: "bad" };
+}
+
+// ---- Render -------------------------------------------------------------
+function renderNow(weather) {
+  const now = new Date();
+  const s = sunInfo(now, KIRRIBILLI[0], KIRRIBILLI[1]);
+  const anti = antisolarBearing(s.az);
+
+  document.getElementById("sun-az").textContent =
+    `${s.az.toFixed(0)}° az · ${s.el.toFixed(1)}° el`;
+  document.getElementById("anti-az").textContent = `${anti.toFixed(0)}°`;
+
+  // Sun direction marker (placed 8 km away in the sun's azimuth)
+  if (sunMarker) map.removeLayer(sunMarker);
+  if (antiMarker) map.removeLayer(antiMarker);
+  if (s.el > 0) {
+    const sunPt = destPoint(KIRRIBILLI[0], KIRRIBILLI[1], s.az, 8);
+    sunMarker = L.marker(sunPt, {
+      icon: L.divIcon({ html: "☀️", className: "sun-icon", iconSize: [24,24] })
+    }).addTo(map).bindTooltip(`Sun bearing ${s.az.toFixed(0)}°`);
+    const antiPt = destPoint(KIRRIBILLI[0], KIRRIBILLI[1], anti, 8);
+    antiMarker = L.marker(antiPt, {
+      icon: L.divIcon({ html: "🌈", className: "anti-icon", iconSize: [24,24] })
+    }).addTo(map).bindTooltip(`Antisolar (look here) ${anti.toFixed(0)}°`);
+  }
+
+  // Wedge polygon
+  if (rainbowWedge) map.removeLayer(rainbowWedge);
+  if (s.el > 0 && s.el < PRIMARY_BOW_DEG) {
+    const pts = buildRainbowWedge(KIRRIBILLI[0], KIRRIBILLI[1], anti, 50, RADIUS_KM);
+    rainbowWedge = L.polygon(pts, {
+      color: "#ffd33d", weight: 1.5, fillColor: "#ffd33d", fillOpacity: 0.10
+    }).addTo(map).bindTooltip("Rainbow viewing sector (~100° wide, opposite the sun)");
+  }
+
+  // Weather + score
+  const rain = weather ? (weather.rain?.["1h"] || weather.rain?.["3h"] || 0) : 0;
+  const cloud = weather ? weather.clouds?.all ?? 0 : 0;
+  const cond = weather ? weather.weather?.[0]?.description ?? "—" : "—";
+  document.getElementById("rain").textContent = `${rain.toFixed(2)} mm`;
+  document.getElementById("cloud").textContent = `${cloud}%`;
+  document.getElementById("cond").textContent = cond;
+
+  const sc = score(s.el, rain, cloud, now, KIRRIBILLI[0], KIRRIBILLI[1]);
+  const pct = Math.round(sc.P * 100);
+  document.getElementById("score-pct").textContent = `${pct}%`;
+  document.getElementById("score-fill").style.width = `${pct}%`;
+  const v = verdictFor(sc.P, s.el);
+  const ve = document.getElementById("verdict");
+  ve.textContent = v.text;
+  ve.className = "verdict " + v.cls;
+}
+
+function renderForecast(list) {
+  const ticksEl = document.getElementById("ticks");
+  ticksEl.innerHTML = "";
+  // First 8 entries = next 24 hours (OWM forecast endpoint is 3-hour steps)
+  list.slice(0, 8).forEach((row, i) => {
+    const d = new Date(row.dt * 1000);
+    const s = sunInfo(d, KIRRIBILLI[0], KIRRIBILLI[1]);
+    const rain = row.rain?.["3h"] || 0;
+    const cloud = row.clouds?.all ?? 0;
+    const sc = score(s.el, rain / 3, cloud, d, KIRRIBILLI[0], KIRRIBILLI[1]); // rain mm/h
+    const pct = Math.round(sc.P * 100);
+    const hh = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const dh = d.toLocaleDateString([], { weekday: "short" });
+    const tick = document.createElement("div");
+    tick.className = "tick";
+    tick.innerHTML = `
+      <div class="t-time">${dh} ${hh}</div>
+      <div class="t-score">${pct}%</div>
+      <div class="t-bar"><span style="width:${pct}%"></span></div>
+    `;
+    tick.title = `Sun ${s.el.toFixed(0)}° el · ${cloud}% cloud · ${(rain/3).toFixed(2)} mm/h rain`;
+    ticksEl.appendChild(tick);
+  });
+}
+
+// ---- OpenWeather --------------------------------------------------------
+async function loadWeather(key) {
+  const base = "https://api.openweathermap.org/data/2.5";
+  const q = `lat=${KIRRIBILLI[0]}&lon=${KIRRIBILLI[1]}&units=metric&appid=${key}`;
+  try {
+    const [nowRes, fcRes] = await Promise.all([
+      fetch(`${base}/weather?${q}`),
+      fetch(`${base}/forecast?${q}`)
+    ]);
+    if (!nowRes.ok || !fcRes.ok) {
+      throw new Error(`HTTP ${nowRes.status} / ${fcRes.status}`);
+    }
+    const weather = await nowRes.json();
+    const fc = await fcRes.json();
+    renderNow(weather);
+    renderForecast(fc.list || []);
+  } catch (e) {
+    console.error(e);
+    document.getElementById("verdict").textContent =
+      "Couldn't load OpenWeather. Check the API key (new keys take ~10 min to activate).";
+    document.getElementById("verdict").className = "verdict bad";
+    renderNow(null);
+  }
+}
+
+// ---- Boot ---------------------------------------------------------------
+loadWeather(OWM_API_KEY);
+
+// Refresh every 5 minutes
+setInterval(() => loadWeather(OWM_API_KEY), 5 * 60 * 1000);
+</script>
+</body>
+</html>
