@@ -44,10 +44,21 @@
   #timeline .tick .t-bar > span { display: block; height: 100%; background: linear-gradient(90deg, #2b6cff, #ffd33d, #ff3d6e); }
 
   .leaflet-container { background: #0b0f14; }
-  /* Tone down OSM tiles for the dark theme */
-  .leaflet-tile { filter: brightness(0.65) saturate(0.8) hue-rotate(180deg) invert(0.92); }
+  /* Tone down OSM tiles for the dark theme; don't filter the radar overlay */
+  .leaflet-pane.basemap-pane .leaflet-tile { filter: brightness(0.65) saturate(0.8) hue-rotate(180deg) invert(0.92); }
 
   .sun-icon, .anti-icon { display: flex; align-items: center; justify-content: center; font-size: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+
+  #radar { top: 12px; right: 12px; width: 240px; }
+  #radar .row1 { display: flex; align-items: center; gap: 8px; }
+  #radar button { background: #131a23; color: #eaeef3; border: 1px solid #2a3340; border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer; }
+  #radar button:hover { border-color: #8fb8ff; }
+  #radar .ts { font-size: 12px; font-variant-numeric: tabular-nums; flex: 1; }
+  #radar .ts.nowcast { color: #ffd33d; }
+  #radar .scrub { width: 100%; margin-top: 8px; accent-color: #8fb8ff; }
+  #radar .label { font-size: 10px; color: #6f7a8a; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  #radar .legend { display: flex; gap: 6px; margin-top: 6px; font-size: 10px; color: #b9c2cf; }
+  #radar .legend .sw { width: 14px; height: 10px; border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 3px; }
 </style>
 </head>
 <body>
@@ -67,6 +78,21 @@
   <div class="verdict" id="verdict">Loading…</div>
 </div>
 
+<div id="radar" class="panel">
+  <div class="label">Rain radar (RainViewer)</div>
+  <div class="row1">
+    <button id="play-btn" title="Play / pause">⏸︎</button>
+    <span class="ts" id="radar-ts">loading…</span>
+  </div>
+  <input type="range" class="scrub" id="radar-scrub" min="0" max="0" value="0" />
+  <div class="legend">
+    <span><span class="sw" style="background:#3b6fcc"></span>light</span>
+    <span><span class="sw" style="background:#4fbf52"></span>moderate</span>
+    <span><span class="sw" style="background:#ffd33d"></span>heavy</span>
+    <span><span class="sw" style="background:#ff3d6e"></span>intense</span>
+  </div>
+</div>
+
 <div id="timeline" class="panel">
   <div style="font-size:11px; color:#b9c2cf; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em;">Forecast — next 24 h (3 h steps)</div>
   <div class="ticks" id="ticks"><span style="color:#6f7a8a; font-size:12px;">Loading forecast…</span></div>
@@ -83,9 +109,14 @@ const PRIMARY_BOW_DEG = 42;
 const OWM_API_KEY = "b3f030048e470e6f1f567401ad06b09d";
 
 // ---- Map setup ----------------------------------------------------------
-const map = L.map("map", { zoomControl: true }).setView(KIRRIBILLI, 12);
+const map = L.map("map", { zoomControl: true }).setView(KIRRIBILLI, 10);
+map.createPane("basemap-pane");
+map.getPane("basemap-pane").style.zIndex = 200;
+map.createPane("radar-pane");
+map.getPane("radar-pane").style.zIndex = 350;
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap",
+  pane: "basemap-pane",
   maxZoom: 19
 }).addTo(map);
 
@@ -258,6 +289,74 @@ function renderForecast(list) {
   });
 }
 
+// ---- RainViewer radar ---------------------------------------------------
+const radarState = { frames: [], idx: 0, layer: null, timer: null, playing: true, nowcastStart: 0 };
+
+async function loadRainViewer() {
+  try {
+    const res = await fetch("https://api.rainviewer.com/public/weather-maps.json");
+    const data = await res.json();
+    const past = (data.radar?.past || []).map(f => ({ ...f, host: data.host, kind: "past" }));
+    const nowcast = (data.radar?.nowcast || []).map(f => ({ ...f, host: data.host, kind: "nowcast" }));
+    radarState.frames = [...past, ...nowcast];
+    radarState.nowcastStart = past.length;
+    radarState.idx = Math.max(0, past.length - 1); // start at "now"
+
+    const scrub = document.getElementById("radar-scrub");
+    scrub.max = String(radarState.frames.length - 1);
+    scrub.value = String(radarState.idx);
+    scrub.addEventListener("input", e => {
+      pauseRadar();
+      showRadarFrame(parseInt(e.target.value, 10));
+    });
+    document.getElementById("play-btn").addEventListener("click", toggleRadar);
+
+    showRadarFrame(radarState.idx);
+    playRadar();
+  } catch (e) {
+    console.error("RainViewer load failed", e);
+    document.getElementById("radar-ts").textContent = "radar unavailable";
+  }
+}
+
+function showRadarFrame(i) {
+  if (!radarState.frames.length) return;
+  radarState.idx = (i + radarState.frames.length) % radarState.frames.length;
+  const f = radarState.frames[radarState.idx];
+  if (radarState.layer) map.removeLayer(radarState.layer);
+  // color 2 = Universal Blue, smoothing on, no snow
+  const url = `${f.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`;
+  radarState.layer = L.tileLayer(url, {
+    opacity: 0.75, pane: "radar-pane", attribution: "© RainViewer"
+  }).addTo(map);
+
+  const ts = document.getElementById("radar-ts");
+  const d = new Date(f.time * 1000);
+  const hh = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const deltaMin = Math.round((f.time * 1000 - Date.now()) / 60000);
+  if (f.kind === "nowcast") {
+    ts.textContent = `+${deltaMin} min · ${hh} (nowcast)`;
+    ts.classList.add("nowcast");
+  } else {
+    ts.textContent = deltaMin === 0 ? `now · ${hh}` : `${deltaMin} min · ${hh}`;
+    ts.classList.remove("nowcast");
+  }
+  document.getElementById("radar-scrub").value = String(radarState.idx);
+}
+
+function playRadar() {
+  radarState.playing = true;
+  document.getElementById("play-btn").textContent = "⏸︎";
+  clearInterval(radarState.timer);
+  radarState.timer = setInterval(() => showRadarFrame(radarState.idx + 1), 500);
+}
+function pauseRadar() {
+  radarState.playing = false;
+  document.getElementById("play-btn").textContent = "▶︎";
+  clearInterval(radarState.timer);
+}
+function toggleRadar() { radarState.playing ? pauseRadar() : playRadar(); }
+
 // ---- OpenWeather --------------------------------------------------------
 async function loadWeather(key) {
   const base = "https://api.openweathermap.org/data/2.5";
@@ -285,9 +384,11 @@ async function loadWeather(key) {
 
 // ---- Boot ---------------------------------------------------------------
 loadWeather(OWM_API_KEY);
+loadRainViewer();
 
-// Refresh every 5 minutes
+// Refresh weather every 5 min; refresh radar manifest every 5 min
 setInterval(() => loadWeather(OWM_API_KEY), 5 * 60 * 1000);
+setInterval(() => loadRainViewer(), 5 * 60 * 1000);
 </script>
 </body>
 </html>
