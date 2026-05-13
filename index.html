@@ -3,839 +3,421 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>49 Balls Head Road, Waverton</title>
+<title>49 Balls Head Road, Waverton — Colour Visualiser</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;overflow:hidden;height:100vh}
 nav{display:flex;background:#1e293b;border-bottom:2px solid #334155;height:48px}
-nav button{flex:1;background:none;border:none;color:#64748b;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.3px}
-nav button:hover{color:#94a3b8;background:rgba(255,255,255,.02)}
+nav button{flex:1;background:none;border:none;color:#64748b;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+nav button:hover{color:#94a3b8;background:rgba(255,255,255,.03)}
 nav button.active{color:#f1f5f9;background:#0f172a;border-bottom:3px solid #3b82f6}
 .tab{display:none;width:100%;height:calc(100vh - 48px);position:relative;overflow:hidden}
-.tab.active{display:block}
-.panel{position:absolute;z-index:10;background:rgba(15,23,42,.94);padding:12px 16px;border-radius:8px;font-size:12px;border:1px solid #334155}
+.tab.active{display:flex;align-items:center;justify-content:center}
+.panel{position:absolute;z-index:10;background:rgba(15,23,42,.94);padding:12px 16px;border-radius:8px;font-size:12px;border:1px solid #334155;backdrop-filter:blur(8px)}
 .panel h4{font-size:13px;margin-bottom:8px;color:#93c5fd}
-.btn-group{display:flex;gap:4px}
-.btn{background:rgba(30,41,59,.95);color:#94a3b8;border:1px solid #334155;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s}
+.btn-group{display:flex;gap:4px;flex-wrap:wrap}
+.btn{background:rgba(30,41,59,.95);color:#94a3b8;border:1px solid #334151;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;white-space:nowrap}
 .btn:hover{color:#cbd5e1;background:rgba(51,65,85,.8)}
 .btn.active{color:#f1f5f9;background:#1e3a5f;border-color:#3b82f6}
+.page-controls{position:absolute;top:12px;left:12px;z-index:10}
+.loading{color:#94a3b8;font-size:16px;text-align:center}
+.loading small{display:block;margin-top:8px;font-size:12px;color:#64748b}
+
+/* Elevations tab specifics */
+#elev-panel{position:absolute;top:12px;right:12px;max-width:260px;max-height:calc(100vh - 80px);overflow-y:auto}
+.mat-row{display:flex;align-items:center;margin-bottom:6px;padding:4px 8px;border-radius:4px;cursor:pointer;transition:background .15s}
+.mat-row:hover{background:rgba(255,255,255,.06)}
+.mat-row.active{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3)}
+.mat-swatch{width:22px;height:22px;border-radius:4px;margin-right:10px;border:1px solid #475569;flex-shrink:0;cursor:pointer}
+.mat-name{font-size:12px;line-height:1.3}
+.mat-code{font-size:10px;color:#64748b}
 .note{color:#f59e0b;margin-top:8px;font-size:11px;line-height:1.4}
-#plans-controls{position:absolute;top:12px;left:12px;z-index:10}
-#plans-info{position:absolute;top:12px;right:12px}
-#plans-canvas{cursor:grab}
-#elev-controls{position:absolute;top:12px;left:12px;z-index:10}
-#elev-panel{position:absolute;top:12px;right:12px;max-width:240px;max-height:calc(100vh - 80px);overflow-y:auto}
-.mat-row{display:flex;align-items:center;margin-bottom:5px;padding:3px 6px;border-radius:4px}
-.mat-swatch{width:18px;height:18px;border-radius:3px;margin-right:8px;border:1px solid #475569;flex-shrink:0}
 #trace-bar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:10;display:none;gap:8px;align-items:center;border-color:#f59e0b}
 #trace-bar.show{display:flex}
 #trace-bar select,#trace-bar .btn{font-size:11px;padding:4px 8px}
-#model-info{position:absolute;top:12px;left:12px;max-width:260px}
-#model-views{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:4px}
-#model-legend{position:absolute;bottom:12px;left:12px;max-height:50vh;overflow-y:auto}
-.legend-row{display:flex;align-items:center;margin-bottom:4px}
-.legend-sw{width:14px;height:14px;border-radius:3px;margin-right:8px;border:1px solid #475569;flex-shrink:0}
+
+/* Renders tab */
+#render-info{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:10;text-align:center}
+
 canvas{display:block}
 </style>
 </head>
 <body>
+
 <nav>
-<button class="active" data-tab="plans">Floor Plans</button>
-<button data-tab="elevations">Elevations</button>
-<button data-tab="model">3D Model</button>
+<button class="active" data-tab="elevations">Elevations &amp; Colours</button>
+<button data-tab="plans">Floor Plans</button>
+<button data-tab="renders">3D Renders</button>
 </nav>
 
-<div id="tab-plans" class="tab active">
-<div id="plans-controls" class="btn-group">
-<button class="btn active" data-floor="LF">Lower Ground</button>
-<button class="btn" data-floor="GF">Ground</button>
-<button class="btn" data-floor="FF">First Floor</button>
-<button class="btn" data-floor="ALL">Overlay</button>
-</div>
-<div id="plans-info" class="panel">
-<h4 id="plan-title">Lower Ground Floor</h4>
-<div id="plan-detail">RL 28.890 &middot; 12.01m &times; 18.71m</div>
-<div style="margin-top:6px;font-size:11px;color:#64748b">Drag to pan &middot; Scroll to zoom &middot; Dbl-click reset</div>
-<div class="note">Outlines from DA Plans dimension strings (exact). Internal walls approximate.</div>
-</div>
-<canvas id="plans-canvas"></canvas>
-</div>
-
-<div id="tab-elevations" class="tab">
-<div id="elev-controls" class="btn-group">
+<!-- ═══════ TAB 1: ELEVATIONS WITH COLOUR SWAP (main feature) ═══════ -->
+<div id="tab-elevations" class="tab active">
+<div class="page-controls btn-group" id="elev-controls">
 <button class="btn active" data-elev="WN">West &amp; North</button>
 <button class="btn" data-elev="ES">East &amp; South</button>
 </div>
 <div id="elev-panel" class="panel">
-<h4>Materials &amp; Colours</h4>
+<h4>Exterior Colours</h4>
 <div id="mat-list"></div>
-<div class="note">PDF elevation from DA Plans Rev K.<br>Add ?edit=1 to URL to enable region tracing tool.</div>
+<div class="note" id="elev-hint">Trace mode: add ?edit=1 to URL to define colour regions on the elevations.</div>
 </div>
-<canvas id="elev-canvas"></canvas>
+<div class="loading" id="elev-loading">Loading elevations...<small>DA Plans Rev K (9.6 MB)</small></div>
+<canvas id="elev-canvas" style="display:none"></canvas>
 <div id="trace-bar" class="panel">
 <span style="color:#f59e0b;font-weight:600">Trace Mode</span>
 <select id="trace-mat"></select>
-<button class="btn" id="btn-undo">Undo</button>
-<button class="btn" id="btn-close-poly">Close Polygon</button>
+<button class="btn" id="btn-undo">Undo Pt</button>
+<button class="btn" id="btn-close-poly">Close Shape</button>
+<button class="btn" id="btn-delete-last">Delete Last</button>
 <button class="btn" id="btn-export">Export JSON</button>
 <button class="btn" id="btn-clear">Clear All</button>
 </div>
 </div>
 
-<div id="tab-model" class="tab">
-<div id="model-info" class="panel">
-<h4>49 Balls Head Rd, Waverton</h4>
-Lot 29 Sect 7 DP 6894<br>Horizon Homes J1672 Rev K
-<div style="margin-top:6px;color:#64748b">Drag to orbit &middot; Scroll to zoom &middot; Right-drag to pan</div>
-<div class="note">Massing model &mdash; see Floor Plans tab for accurate geometry</div>
+<!-- ═══════ TAB 2: FLOOR PLANS (PDF pages) ═══════ -->
+<div id="tab-plans" class="tab">
+<div class="page-controls btn-group" id="plans-controls">
+<button class="btn" data-page="3">Site Plan</button>
+<button class="btn active" data-page="4">Lower Ground</button>
+<button class="btn" data-page="5">Ground Floor</button>
+<button class="btn" data-page="6">First Floor</button>
 </div>
-<div id="model-views"></div>
-<div id="model-legend" class="panel"></div>
+<div class="loading" id="plans-loading">Loading floor plans...</div>
+<canvas id="plans-canvas" style="display:none"></canvas>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- ═══════ TAB 3: 3D RENDERS (from architect, PDF page 1) ═══════ -->
+<div id="tab-renders" class="tab">
+<div class="loading" id="renders-loading">Loading 3D renders...</div>
+<canvas id="renders-canvas" style="display:none"></canvas>
+<div id="render-info" class="panel">
+<h4>Architect's 3D Renders</h4>
+<div style="color:#94a3b8;font-size:11px">From DA Plans Rev K, Page 1 — Horizon Homes J1672</div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 <script>
-THREE.OrbitControls=function(o,d){var s=this;this.object=o;this.domElement=d;this.enabled=true;this.target=new THREE.Vector3;this.minDistance=0;this.maxDistance=Infinity;this.enableDamping=false;this.dampingFactor=0.05;this.enableZoom=true;this.zoomSpeed=1;this.enableRotate=true;this.rotateSpeed=1;this.enablePan=true;this.panSpeed=1;var S={NONE:-1,ROTATE:0,DOLLY:1,PAN:2};var state=S.NONE;var spherical=new THREE.Spherical;var sphericalDelta=new THREE.Spherical;var scl=1;var panOff=new THREE.Vector3;var rS=new THREE.Vector2;var rE=new THREE.Vector2;var rD=new THREE.Vector2;var pS=new THREE.Vector2;var pE=new THREE.Vector2;var pD=new THREE.Vector2;var dS=new THREE.Vector2;var dE=new THREE.Vector2;var dD=new THREE.Vector2;var off=new THREE.Vector3;var q=new THREE.Quaternion().setFromUnitVectors(o.up,new THREE.Vector3(0,1,0));var qi=q.clone().invert();this.update=function(){var p=s.object.position;off.copy(p).sub(s.target);off.applyQuaternion(q);spherical.setFromVector3(off);if(s.enableDamping){spherical.theta+=sphericalDelta.theta*s.dampingFactor;spherical.phi+=sphericalDelta.phi*s.dampingFactor}else{spherical.theta+=sphericalDelta.theta;spherical.phi+=sphericalDelta.phi}spherical.phi=Math.max(0.01,Math.min(Math.PI-0.01,spherical.phi));spherical.radius*=scl;spherical.radius=Math.max(s.minDistance,Math.min(s.maxDistance,spherical.radius));s.target.add(panOff);off.setFromSpherical(spherical);off.applyQuaternion(qi);p.copy(s.target).add(off);s.object.lookAt(s.target);if(s.enableDamping){sphericalDelta.theta*=(1-s.dampingFactor);sphericalDelta.phi*=(1-s.dampingFactor)}else{sphericalDelta.set(0,0,0)}scl=1;panOff.set(0,0,0)};function rL(a){sphericalDelta.theta-=a}function rU(a){sphericalDelta.phi-=a}var panL=function(){var v=new THREE.Vector3;return function(dist,m){v.setFromMatrixColumn(m,0);v.multiplyScalar(-dist);panOff.add(v)}}();var panU=function(){var v=new THREE.Vector3;return function(dist,m){v.setFromMatrixColumn(m,1);v.multiplyScalar(dist);panOff.add(v)}}();var pan=function(){return function(dX,dY){var el=s.domElement;if(s.object.isPerspectiveCamera){var ov=new THREE.Vector3;ov.copy(s.object.position).sub(s.target);var tD=ov.length()*Math.tan(s.object.fov/2*Math.PI/180);panL(2*dX*tD/el.clientHeight,s.object.matrix);panU(2*dY*tD/el.clientHeight,s.object.matrix)}}}();function dIn(ds){scl/=ds}function dOut(ds){scl*=ds}function onMD(e){if(!s.enabled)return;e.preventDefault();if(e.button===0){state=S.ROTATE;rS.set(e.clientX,e.clientY)}else if(e.button===1){state=S.DOLLY;dS.set(e.clientX,e.clientY)}else if(e.button===2){state=S.PAN;pS.set(e.clientX,e.clientY)}if(state!==S.NONE){document.addEventListener('mousemove',onMM,false);document.addEventListener('mouseup',onMU,false)}}function onMM(e){if(!s.enabled)return;e.preventDefault();if(state===S.ROTATE){rE.set(e.clientX,e.clientY);rD.subVectors(rE,rS);rL(2*Math.PI*rD.x/d.clientHeight*s.rotateSpeed);rU(2*Math.PI*rD.y/d.clientHeight*s.rotateSpeed);rS.copy(rE)}else if(state===S.DOLLY){dE.set(e.clientX,e.clientY);dD.subVectors(dE,dS);if(dD.y>0)dIn(Math.pow(0.95,s.zoomSpeed));else if(dD.y<0)dOut(Math.pow(0.95,s.zoomSpeed));dS.copy(dE)}else if(state===S.PAN){pE.set(e.clientX,e.clientY);pD.subVectors(pE,pS);pan(pD.x,pD.y);pS.copy(pE)}s.update()}function onMU(){document.removeEventListener('mousemove',onMM,false);document.removeEventListener('mouseup',onMU,false);state=S.NONE}function onW(e){if(!s.enabled||!s.enableZoom)return;e.preventDefault();e.stopPropagation();if(e.deltaY<0)dOut(Math.pow(0.95,s.zoomSpeed));else if(e.deltaY>0)dIn(Math.pow(0.95,s.zoomSpeed));s.update()}function onTS(e){if(!s.enabled)return;switch(e.touches.length){case 1:state=S.ROTATE;rS.set(e.touches[0].pageX,e.touches[0].pageY);break;case 2:state=S.DOLLY;var dx=e.touches[0].pageX-e.touches[1].pageX,dy=e.touches[0].pageY-e.touches[1].pageY;dS.set(0,Math.sqrt(dx*dx+dy*dy));break}}function onTM(e){if(!s.enabled)return;e.preventDefault();e.stopPropagation();switch(e.touches.length){case 1:rE.set(e.touches[0].pageX,e.touches[0].pageY);rD.subVectors(rE,rS);rL(2*Math.PI*rD.x/d.clientHeight*s.rotateSpeed);rU(2*Math.PI*rD.y/d.clientHeight*s.rotateSpeed);rS.copy(rE);break;case 2:var dx=e.touches[0].pageX-e.touches[1].pageX,dy=e.touches[0].pageY-e.touches[1].pageY;dE.set(0,Math.sqrt(dx*dx+dy*dy));dD.subVectors(dE,dS);if(dD.y>0)dOut(Math.pow(0.95,s.zoomSpeed));else if(dD.y<0)dIn(Math.pow(0.95,s.zoomSpeed));dS.copy(dE);break}s.update()}d.addEventListener('mousedown',onMD,false);d.addEventListener('wheel',onW,{passive:false});d.addEventListener('touchstart',onTS,{passive:false});d.addEventListener('touchmove',onTM,{passive:false});d.addEventListener('touchend',function(){state=S.NONE},false);d.addEventListener('contextmenu',function(e){e.preventDefault()},false);this.update()};
-</script>
-<script>
+'use strict';
+
 // ══════════════════════════════════════════
-// SHARED CONSTANTS
+// COLOUR DATA — single source of truth
 // ══════════════════════════════════════════
-var MATERIALS = {
-  render:   {name:'Dulux Grey Pebble 1/2',  hex:'#cec8c1'},
-  monument: {name:'Colorbond Monument',     hex:'#3d4040'},
-  surfmist: {name:'Colorbond Surfmist',     hex:'#e8e1d4'},
-  timber:   {name:'Pacific Maple',          hex:'#8b6f47'},
-  brick:    {name:'Selected brick',         hex:'#9a8878'},
-  glazing:  {name:'Aluminium Monument',     hex:'#3d4040'},
-  glass:    {name:'Glass',                  hex:'#8ec8d8'},
-  concrete: {name:'Concrete',              hex:'#b0a898'},
-  roof:     {name:'Surfmist Roof',          hex:'#e8e1d4'}
+var COLOURS = {
+  render:   {name:'Dulux Grey Pebble Half',   hex:'#cec8c1', code:'S14B1H'},
+  monument: {name:'Colorbond Monument',       hex:'#3d4040', code:'MON'},
+  surfmist: {name:'Colorbond Surfmist',       hex:'#e8e1d4', code:'SUR'},
+  timber:   {name:'Pacific Maple',            hex:'#8b6f47', code:'PMP'},
+  brick:    {name:'Selected Brick',           hex:'#9a8878', code:'BRK'},
+  glazing:  {name:'Aluminium Monument',       hex:'#3d4040', code:'ALU'},
+  glass:    {name:'Glass',                    hex:'#8ec8d8', code:'GLS'},
+  roof:     {name:'Colorbond Surfmist (Roof)',hex:'#e8e1d4', code:'SRF'}
 };
+
 var PDF_FILE = 'J1672 - Lot 29, No-49 Balls Head Road, Waverton - DA PLANS - REV K.pdf';
+var pdfDoc = null;
+var pdfLoading = false;
+
+// ══════════════════════════════════════════
+// PDF LOADER (shared across all tabs)
+// ══════════════════════════════════════════
+function loadPdf(callback) {
+  if (pdfDoc) { callback(pdfDoc); return; }
+  if (pdfLoading) { var iv=setInterval(function(){if(pdfDoc){clearInterval(iv);callback(pdfDoc);}},200); return; }
+  pdfLoading = true;
+
+  if (typeof pdfjsLib === 'undefined') {
+    document.querySelectorAll('.loading').forEach(function(el){
+      el.innerHTML = 'PDF library not loaded.<small>Check internet connection or serve via HTTP.</small>';
+    });
+    return;
+  }
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+  pdfjsLib.getDocument(PDF_FILE).promise.then(function(pdf) {
+    pdfDoc = pdf;
+    callback(pdf);
+  }).catch(function(err) {
+    document.querySelectorAll('.loading').forEach(function(el){
+      el.innerHTML = 'Failed to load PDF: ' + err.message + '<small>Serve page via HTTP, not file://</small>';
+    });
+  });
+}
+
+function renderPage(pdf, pageNum, canvas, container, callback) {
+  pdf.getPage(pageNum).then(function(page) {
+    var cw = container.clientWidth, ch = container.clientHeight;
+    var vp = page.getViewport({scale:1});
+    var scale = Math.min(cw/vp.width, ch/vp.height) * 0.92;
+    var viewport = page.getViewport({scale:scale});
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    canvas.style.display = 'block';
+    var ctx = canvas.getContext('2d');
+    page.render({canvasContext:ctx, viewport:viewport}).promise.then(function(){
+      if(callback) callback(ctx);
+    });
+  });
+}
 
 // ══════════════════════════════════════════
 // TAB SWITCHING
 // ══════════════════════════════════════════
-var activeTab = 'plans';
-var inited = {};
+var activeTab = 'elevations';
+var tabInited = {};
 
-document.querySelectorAll('nav button').forEach(function(b) {
-  b.addEventListener('click', function() { switchTab(b.dataset.tab); });
+document.querySelectorAll('nav button').forEach(function(b){
+  b.addEventListener('click', function(){ switchTab(b.dataset.tab); });
 });
 
 function switchTab(tab) {
   activeTab = tab;
-  document.querySelectorAll('nav button').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.tab === tab);
+  document.querySelectorAll('nav button').forEach(function(b){
+    b.classList.toggle('active', b.dataset.tab===tab);
   });
-  document.querySelectorAll('.tab').forEach(function(t) {
-    t.classList.toggle('active', t.id === 'tab-' + tab);
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.classList.toggle('active', t.id==='tab-'+tab);
   });
-  if (!inited[tab]) {
-    inited[tab] = true;
-    if (tab === 'plans') initPlans();
-    else if (tab === 'elevations') initElevations();
-    else if (tab === 'model') initModel();
+  if (!tabInited[tab]) {
+    tabInited[tab] = true;
+    loadPdf(function(pdf){
+      if (tab==='elevations') initElevations(pdf);
+      else if (tab==='plans') initPlans(pdf);
+      else if (tab==='renders') initRenders(pdf);
+    });
   }
-  if (tab === 'plans') resizePlansCanvas();
-  else if (tab === 'model' && window._resizeModel) window._resizeModel();
-  else if (tab === 'elevations' && elevPdf) loadElevPage();
 }
 
 // ══════════════════════════════════════════
-// FLOOR PLAN DATA — all mm, origin at building SW corner
-// Y increases northward. Screen: south at top, north at bottom.
+// TAB 1: ELEVATIONS WITH COLOUR SWAP
 // ══════════════════════════════════════════
-var FLOORS = {
-  LF: {
-    name:'Lower Ground Floor', detail:'RL 28.890 · 12.01m × 18.71m',
-    outline:[[0,0],[12010,0],[12010,18710],[0,18710]],
-    color:'#3b82f6',
-    walls:[
-      [[5900,0],[5900,18710]],
-      [[0,11980],[12010,11980]]
-    ],
-    rooms:[
-      {x:2950,y:2500,name:'Dining'},
-      {x:2950,y:7500,name:'Family'},
-      {x:9000,y:3500,name:'Kitchen'},
-      {x:9000,y:8000,name:'Pantry'},
-      {x:8500,y:11000,name:'Stairs'},
-      {x:2950,y:14500,name:'Media Room'},
-      {x:2950,y:17500,name:'Wine Cellar'},
-      {x:9000,y:13500,name:'Bath'},
-      {x:9000,y:15500,name:'Laundry'},
-      {x:9000,y:17500,name:'WIL/Storage'}
-    ],
-    features:[
-      {pts:[[0,-4000],[5500,-4000],[5500,0],[0,0]],label:'Alfresco',type:'outdoor'}
-    ],
-    dims:[
-      {dir:'h',a:0,b:12010,at:-1500,label:'12,010'},
-      {dir:'v',a:0,b:18710,at:-1500,label:'18,710'},
-      {dir:'v',a:0,b:11980,at:13500,label:'11,980'},
-      {dir:'v',a:11980,b:18710,at:13500,label:'6,730'}
-    ]
-  },
-  GF: {
-    name:'Ground Floor', detail:'RL 32.340 · 12.01m × 21.02m',
-    outline:[[0,0],[12010,0],[12010,21020],[0,21020]],
-    color:'#22c55e',
-    walls:[
-      [[6000,0],[6000,21020]],
-      [[0,7350],[12010,7350]],
-      [[0,12560],[12010,12560]]
-    ],
-    rooms:[
-      {x:3000,y:1800,name:'Bed 2'},
-      {x:9000,y:2100,name:'Master'},
-      {x:3000,y:5500,name:'Bed 3'},
-      {x:9000,y:5800,name:'Ensuite/WIR'},
-      {x:3000,y:9500,name:'Bath'},
-      {x:6000,y:10500,name:'Entry/Hall'},
-      {x:9500,y:9500,name:'Workshop'},
-      {x:6000,y:11800,name:'Void/Stairs'},
-      {x:3000,y:17000,name:'Garage'},
-      {x:9000,y:18000,name:'Guest/Study'}
-    ],
-    features:[
-      {pts:[[8500,21020],[12010,21020],[12010,22520],[8500,22520]],label:'Porch',type:'outdoor'}
-    ],
-    dims:[
-      {dir:'h',a:0,b:12010,at:-1500,label:'12,010'},
-      {dir:'v',a:0,b:21020,at:-1500,label:'21,020'},
-      {dir:'v',a:0,b:7350,at:13500,label:'7,350'},
-      {dir:'v',a:7350,b:12560,at:13500,label:'5,210'},
-      {dir:'v',a:12560,b:21020,at:13500,label:'8,460'}
-    ]
-  },
-  FF: {
-    name:'First Floor', detail:'RL 35.540 · 8.26m × 11.57m',
-    outline:[[0,7140],[8260,7140],[8260,18710],[0,18710]],
-    color:'#f59e0b',
-    walls:[
-      [[3600,7140],[3600,18710]]
-    ],
-    rooms:[
-      {x:1800,y:9500,name:'Guest BR'},
-      {x:1800,y:13000,name:'P\'der'},
-      {x:1800,y:16000,name:'Stairs'},
-      {x:5930,y:8500,name:'Void'},
-      {x:5930,y:14000,name:'Rumpus'}
-    ],
-    features:[
-      {pts:[[4160,18710],[8260,18710],[8260,20310],[4160,20310]],label:'Front Balcony',type:'outdoor'},
-      {pts:[[1380,4240],[7630,4240],[7630,7140],[1380,7140]],label:'Rear Balcony',type:'outdoor'},
-      {pts:[[8260,7140],[12010,7140],[12010,18710],[8260,18710]],label:'Courtyard\n(over GF roof)',type:'courtyard'}
-    ],
-    dims:[
-      {dir:'h',a:0,b:8260,at:6000,label:'8,260'},
-      {dir:'v',a:7140,b:18710,at:-1500,label:'11,570'}
-    ]
-  }
-};
+var elevCanvas, elevCtx, elevBaseImage = null;
+var currentElevPage = 'WN';
+var elevPageMap = {WN:7, ES:8};
+var editMode = location.search.indexOf('edit=1') !== -1;
+var ELEV_REGIONS = {WN:[], ES:[]};
+var currentPoly = [];
+var selectedMaterial = 'render';
 
-// ══════════════════════════════════════════
-// TAB 1: FLOOR PLANS
-// ══════════════════════════════════════════
-var planCanvas, planCtx, currentFloor='LF';
-var planPan={x:0,y:0}, planZoom=1, planDragging=false, planLast={x:0,y:0};
+function initElevations(pdf) {
+  elevCanvas = document.getElementById('elev-canvas');
+  elevCtx = elevCanvas.getContext('2d');
 
-function initPlans() {
-  planCanvas = document.getElementById('plans-canvas');
-  planCtx = planCanvas.getContext('2d');
+  // Build material panel
+  var matList = document.getElementById('mat-list');
+  var html = '';
+  Object.keys(COLOURS).forEach(function(k){
+    var c = COLOURS[k];
+    html += '<div class="mat-row'+(k===selectedMaterial?' active':'')+'" data-mat="'+k+'">'
+      + '<div class="mat-swatch" style="background:'+c.hex+'" title="Click to pick alternative"></div>'
+      + '<div><div class="mat-name">'+c.name+'</div><div class="mat-code">'+c.code+'</div></div></div>';
+  });
+  matList.innerHTML = html;
 
-  document.querySelectorAll('#plans-controls .btn').forEach(function(b) {
-    b.addEventListener('click', function() {
-      document.querySelectorAll('#plans-controls .btn').forEach(function(bb){bb.classList.remove('active');});
-      b.classList.add('active');
-      currentFloor = b.dataset.floor;
-      updatePlanInfo();
-      planPan={x:0,y:0}; planZoom=1;
-      drawPlans();
+  matList.querySelectorAll('.mat-row').forEach(function(row){
+    row.addEventListener('click', function(){
+      selectedMaterial = row.dataset.mat;
+      matList.querySelectorAll('.mat-row').forEach(function(r){r.classList.remove('active');});
+      row.classList.add('active');
+      if(editMode) document.getElementById('trace-mat').value = selectedMaterial;
     });
   });
 
-  planCanvas.addEventListener('mousedown', function(e) {
-    planDragging=true; planLast={x:e.clientX,y:e.clientY};
-    planCanvas.style.cursor='grabbing';
-  });
-  window.addEventListener('mousemove', function(e) {
-    if (!planDragging) return;
-    planPan.x += e.clientX-planLast.x;
-    planPan.y += e.clientY-planLast.y;
-    planLast={x:e.clientX,y:e.clientY};
-    drawPlans();
-  });
-  window.addEventListener('mouseup', function() {
-    planDragging=false;
-    if (planCanvas) planCanvas.style.cursor='grab';
-  });
-  planCanvas.addEventListener('wheel', function(e) {
-    e.preventDefault();
-    var f = e.deltaY>0 ? 0.9 : 1.1;
-    var r = planCanvas.getBoundingClientRect();
-    var mx=e.clientX-r.left, my=e.clientY-r.top;
-    planPan.x = mx-(mx-planPan.x)*f;
-    planPan.y = my-(my-planPan.y)*f;
-    planZoom *= f;
-    drawPlans();
-  }, {passive:false});
-  planCanvas.addEventListener('dblclick', function() {
-    planPan={x:0,y:0}; planZoom=1; drawPlans();
-  });
-
-  updatePlanInfo();
-  resizePlansCanvas();
-}
-
-function updatePlanInfo() {
-  var t=document.getElementById('plan-title'), d=document.getElementById('plan-detail');
-  if (currentFloor==='ALL') { t.textContent='All Floors Overlay'; d.textContent='LF (blue) · GF (green) · FF (amber)'; }
-  else { var f=FLOORS[currentFloor]; t.textContent=f.name; d.textContent=f.detail; }
-}
-
-function resizePlansCanvas() {
-  if (!planCanvas) return;
-  var c=document.getElementById('tab-plans');
-  planCanvas.width=c.clientWidth; planCanvas.height=c.clientHeight;
-  drawPlans();
-}
-
-function floorBounds(fl) {
-  var mnX=Infinity,mxX=-Infinity,mnY=Infinity,mxY=-Infinity;
-  function ext(pts){pts.forEach(function(p){if(p[0]<mnX)mnX=p[0];if(p[0]>mxX)mxX=p[0];if(p[1]<mnY)mnY=p[1];if(p[1]>mxY)mxY=p[1];});}
-  ext(fl.outline);
-  if(fl.features) fl.features.forEach(function(f){ext(f.pts);});
-  return {minX:mnX,maxX:mxX,minY:mnY,maxY:mxY};
-}
-
-function makeTransform(bounds) {
-  var cw=planCanvas.width, ch=planCanvas.height, margin=100;
-  var rX=bounds.maxX-bounds.minX, rY=bounds.maxY-bounds.minY;
-  var sc=Math.min((cw-2*margin)/rX,(ch-2*margin)/rY)*planZoom;
-  var ox=(cw-rX*sc)/2+planPan.x, oy=(ch-rY*sc)/2+planPan.y;
-  return {
-    scale:sc,
-    tx:function(x){return ox+(x-bounds.minX)*sc;},
-    ty:function(y){return oy+(y-bounds.minY)*sc;}
-  };
-}
-
-function drawPlans() {
-  if(!planCtx) return;
-  var ctx=planCtx, cw=planCanvas.width, ch=planCanvas.height;
-  ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,cw,ch);
-
-  if (currentFloor==='ALL') {
-    var ab={minX:-2000,maxX:14000,minY:-5000,maxY:23500};
-    var t=makeTransform(ab);
-    ['LF','GF','FF'].forEach(function(k){
-      var f=FLOORS[k];
-      drawFeatures(ctx,f,t);
-      drawFill(ctx,f,t,0.15);
-      drawOutline(ctx,f,t,0.6);
-      drawWalls(ctx,f,t,0.3);
-      drawRooms(ctx,f,t,0.5);
-    });
-    drawNorthArrow(ctx,cw-60,ch-80);
-    drawScaleBar(ctx,t,50,ch-30);
-  } else {
-    var f=FLOORS[currentFloor];
-    var b=floorBounds(f);
-    b.minX-=2500; b.maxX+=2500; b.minY-=2500; b.maxY+=2500;
-    var t=makeTransform(b);
-    drawFeatures(ctx,f,t);
-    drawFill(ctx,f,t,0.3);
-    drawOutline(ctx,f,t,1);
-    drawWalls(ctx,f,t,1);
-    drawRooms(ctx,f,t,1);
-    drawDims(ctx,f,t);
-    drawNorthArrow(ctx,cw-60,ch-80);
-    drawScaleBar(ctx,t,50,ch-30);
-  }
-}
-
-function drawFill(ctx,f,t,a) {
-  ctx.globalAlpha=a; ctx.fillStyle='rgba(30,58,95,0.8)';
-  ctx.beginPath();
-  f.outline.forEach(function(p,i){if(i===0)ctx.moveTo(t.tx(p[0]),t.ty(p[1]));else ctx.lineTo(t.tx(p[0]),t.ty(p[1]));});
-  ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
-}
-
-function drawOutline(ctx,f,t,a) {
-  ctx.globalAlpha=a; ctx.strokeStyle=f.color||'#e2e8f0'; ctx.lineWidth=3;
-  ctx.beginPath();
-  f.outline.forEach(function(p,i){if(i===0)ctx.moveTo(t.tx(p[0]),t.ty(p[1]));else ctx.lineTo(t.tx(p[0]),t.ty(p[1]));});
-  ctx.closePath(); ctx.stroke(); ctx.globalAlpha=1;
-}
-
-function drawWalls(ctx,f,t,a) {
-  ctx.globalAlpha=a; ctx.strokeStyle='#64748b'; ctx.lineWidth=1.5; ctx.setLineDash([8,4]);
-  f.walls.forEach(function(w){
-    ctx.beginPath(); ctx.moveTo(t.tx(w[0][0]),t.ty(w[0][1])); ctx.lineTo(t.tx(w[1][0]),t.ty(w[1][1])); ctx.stroke();
-  });
-  ctx.setLineDash([]); ctx.globalAlpha=1;
-}
-
-function drawRooms(ctx,f,t,a) {
-  ctx.globalAlpha=a; ctx.textAlign='center';
-  f.rooms.forEach(function(r){
-    ctx.fillStyle='#e2e8f0'; ctx.font='bold 12px sans-serif';
-    ctx.fillText(r.name,t.tx(r.x),t.ty(r.y));
-  });
-  ctx.globalAlpha=1;
-}
-
-function drawFeatures(ctx,f,t) {
-  if(!f.features) return;
-  f.features.forEach(function(feat){
-    ctx.fillStyle=feat.type==='courtyard'?'rgba(59,130,246,0.08)':'rgba(34,197,94,0.12)';
-    ctx.strokeStyle=feat.type==='courtyard'?'#3b82f6':'#22c55e';
-    ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
-    ctx.beginPath();
-    feat.pts.forEach(function(p,i){if(i===0)ctx.moveTo(t.tx(p[0]),t.ty(p[1]));else ctx.lineTo(t.tx(p[0]),t.ty(p[1]));});
-    ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
-    var cx=feat.pts.reduce(function(s,p){return s+p[0];},0)/feat.pts.length;
-    var cy=feat.pts.reduce(function(s,p){return s+p[1];},0)/feat.pts.length;
-    ctx.fillStyle=feat.type==='courtyard'?'#60a5fa':'#4ade80';
-    ctx.font='10px sans-serif'; ctx.textAlign='center';
-    feat.label.split('\n').forEach(function(ln,i){ctx.fillText(ln,t.tx(cx),t.ty(cy)+i*14);});
-  });
-}
-
-function drawDims(ctx,f,t) {
-  if(!f.dims) return;
-  ctx.strokeStyle='#60a5fa'; ctx.fillStyle='#60a5fa'; ctx.lineWidth=0.8; ctx.font='11px sans-serif'; ctx.textAlign='center';
-  f.dims.forEach(function(d){
-    if(d.dir==='h'){
-      var sy=t.ty(d.at), sx1=t.tx(d.a), sx2=t.tx(d.b);
-      ctx.beginPath();
-      ctx.moveTo(sx1,t.ty(d.at+1000)); ctx.lineTo(sx1,sy);
-      ctx.moveTo(sx2,t.ty(d.at+1000)); ctx.lineTo(sx2,sy);
-      ctx.moveTo(sx1,sy); ctx.lineTo(sx2,sy); ctx.stroke();
-      drawArr(ctx,sx1,sy,1,0); drawArr(ctx,sx2,sy,-1,0);
-      ctx.fillText(d.label,(sx1+sx2)/2,sy-4);
-    } else {
-      var sx=t.tx(d.at), sy1=t.ty(d.a), sy2=t.ty(d.b);
-      var vExtDir = d.at>6005 ? -1 : 1;
-      ctx.beginPath();
-      ctx.moveTo(t.tx(d.at+vExtDir*1000),sy1); ctx.lineTo(sx,sy1);
-      ctx.moveTo(t.tx(d.at+vExtDir*1000),sy2); ctx.lineTo(sx,sy2);
-      ctx.moveTo(sx,sy1); ctx.lineTo(sx,sy2); ctx.stroke();
-      drawArr(ctx,sx,sy1,0,1); drawArr(ctx,sx,sy2,0,-1);
-      ctx.save(); ctx.translate(sx-6,(sy1+sy2)/2); ctx.rotate(-Math.PI/2);
-      ctx.fillText(d.label,0,0); ctx.restore();
-    }
-  });
-}
-
-function drawArr(ctx,x,y,dx,dy) {
-  var s=6; ctx.beginPath();
-  ctx.moveTo(x,y); ctx.lineTo(x-dx*s+dy*s/2,y-dy*s-dx*s/2); ctx.lineTo(x-dx*s-dy*s/2,y-dy*s+dx*s/2);
-  ctx.closePath(); ctx.fill();
-}
-
-function drawNorthArrow(ctx,x,y) {
-  ctx.fillStyle='#94a3b8'; ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.moveTo(x,y+30); ctx.lineTo(x-8,y+10); ctx.lineTo(x+8,y+10); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(x,y-10); ctx.lineTo(x,y+10); ctx.stroke();
-  ctx.font='bold 14px sans-serif'; ctx.textAlign='center'; ctx.fillText('N',x,y-15);
-}
-
-function drawScaleBar(ctx,t,x,y) {
-  var scales=[500,1000,2000,5000,10000], chosen=1000;
-  for(var i=0;i<scales.length;i++){var sl=scales[i]*t.scale; if(sl>=40&&sl<=200){chosen=scales[i];break;}}
-  var sw=chosen*t.scale;
-  ctx.strokeStyle='#94a3b8'; ctx.fillStyle='#94a3b8'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+sw,y);
-  ctx.moveTo(x,y-5); ctx.lineTo(x,y+5); ctx.moveTo(x+sw,y-5); ctx.lineTo(x+sw,y+5); ctx.stroke();
-  ctx.font='10px sans-serif'; ctx.textAlign='center';
-  ctx.fillText(chosen>=1000?(chosen/1000)+'m':chosen+'mm', x+sw/2, y-8);
-}
-
-// ══════════════════════════════════════════
-// TAB 2: ELEVATIONS
-// ══════════════════════════════════════════
-var elevCanvas, elevCtx, elevPdf=null, currentElevPage='WN';
-var elevPageNum={WN:7,ES:8}, elevRendered=null;
-var editMode = window.location.search.indexOf('edit=1')!==-1;
-var ELEVATION_REGIONS={WN:[],ES:[]}, currentPoly=[];
-
-function initElevations() {
-  elevCanvas=document.getElementById('elev-canvas');
-  elevCtx=elevCanvas.getContext('2d');
-  var container=document.getElementById('tab-elevations');
-  elevCanvas.width=container.clientWidth; elevCanvas.height=container.clientHeight;
-
-  var matList=document.getElementById('mat-list'), html='';
-  Object.keys(MATERIALS).forEach(function(k){
-    html+='<div class="mat-row"><div class="mat-swatch" style="background:'+MATERIALS[k].hex+'"></div><span>'+MATERIALS[k].name+'</span></div>';
-  });
-  matList.innerHTML=html;
-
-  var sel=document.getElementById('trace-mat');
-  Object.keys(MATERIALS).forEach(function(k){
-    var o=document.createElement('option'); o.value=k; o.textContent=MATERIALS[k].name; sel.appendChild(o);
-  });
-
+  // Page selector
   document.querySelectorAll('#elev-controls .btn').forEach(function(b){
     b.addEventListener('click', function(){
       document.querySelectorAll('#elev-controls .btn').forEach(function(bb){bb.classList.remove('active');});
-      b.classList.add('active'); currentElevPage=b.dataset.elev; loadElevPage();
+      b.classList.add('active');
+      currentElevPage = b.dataset.elev;
+      currentPoly = [];
+      loadElevPage(pdf);
     });
   });
 
-  if(editMode){
+  // Trace mode
+  if (editMode) {
     document.getElementById('trace-bar').classList.add('show');
+    document.getElementById('elev-hint').textContent = 'Trace mode active. Click to place vertices, close shape, tag with material.';
+
+    var sel = document.getElementById('trace-mat');
+    Object.keys(COLOURS).forEach(function(k){
+      var o = document.createElement('option'); o.value=k; o.textContent=COLOURS[k].name; sel.appendChild(o);
+    });
+    sel.value = selectedMaterial;
+    sel.addEventListener('change', function(){ selectedMaterial = sel.value; });
+
     elevCanvas.addEventListener('click', function(e){
-      var r=elevCanvas.getBoundingClientRect();
-      currentPoly.push([e.clientX-r.left, e.clientY-r.top]);
+      var r = elevCanvas.getBoundingClientRect();
+      var x = (e.clientX - r.left) * (elevCanvas.width / r.width);
+      var y = (e.clientY - r.top) * (elevCanvas.height / r.height);
+      currentPoly.push([Math.round(x), Math.round(y)]);
       drawElevOverlay();
     });
-    elevCanvas.addEventListener('dblclick', closePoly);
-    document.getElementById('btn-undo').addEventListener('click', function(){currentPoly.pop();drawElevOverlay();});
-    document.getElementById('btn-close-poly').addEventListener('click', closePoly);
+
+    elevCanvas.addEventListener('dblclick', function(e){
+      e.preventDefault();
+      closeTracePoly();
+    });
+
+    document.getElementById('btn-undo').addEventListener('click', function(){
+      currentPoly.pop(); drawElevOverlay();
+    });
+    document.getElementById('btn-close-poly').addEventListener('click', closeTracePoly);
+    document.getElementById('btn-delete-last').addEventListener('click', function(){
+      ELEV_REGIONS[currentElevPage].pop(); drawElevOverlay();
+    });
     document.getElementById('btn-export').addEventListener('click', function(){
-      var j=JSON.stringify(ELEVATION_REGIONS,null,2);
-      navigator.clipboard.writeText(j).then(function(){alert('Copied!');}).catch(function(){prompt('Copy:',j);});
+      var json = JSON.stringify(ELEV_REGIONS, null, 2);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(json).then(function(){alert('Copied to clipboard!');});
+      } else { prompt('Copy this JSON:', json); }
     });
     document.getElementById('btn-clear').addEventListener('click', function(){
-      ELEVATION_REGIONS[currentElevPage]=[]; currentPoly=[]; drawElevOverlay();
+      ELEV_REGIONS[currentElevPage] = []; currentPoly = []; drawElevOverlay();
     });
   }
 
-  loadPdf();
+  loadElevPage(pdf);
 }
 
-function closePoly() {
-  if(currentPoly.length<3) return;
-  ELEVATION_REGIONS[currentElevPage].push({material:document.getElementById('trace-mat').value, pts:currentPoly.slice()});
-  currentPoly=[]; drawElevOverlay();
-}
-
-function loadPdf() {
-  var ctx=elevCtx, cw=elevCanvas.width, ch=elevCanvas.height;
-  ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,cw,ch);
-  ctx.fillStyle='#94a3b8'; ctx.font='16px sans-serif'; ctx.textAlign='center';
-
-  if(typeof pdfjsLib==='undefined'){
-    ctx.fillText('PDF viewer requires pdf.js library',cw/2,ch/2);
-    ctx.font='13px sans-serif';
-    ctx.fillText('Add pdf.js script tag or serve page via HTTP',cw/2,ch/2+24);
-    return;
-  }
-
-  ctx.fillText('Loading PDF (9.6 MB)...',cw/2,ch/2);
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
-
-  pdfjsLib.getDocument(PDF_FILE).promise.then(function(pdf){
-    elevPdf=pdf; loadElevPage();
-  }).catch(function(err){
-    ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,cw,ch);
-    ctx.fillStyle='#ef4444'; ctx.font='14px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('PDF load failed: '+err.message,cw/2,ch/2);
-    ctx.fillStyle='#94a3b8'; ctx.font='12px sans-serif';
-    ctx.fillText('Ensure PDF is in same directory and page is served via HTTP (not file://)',cw/2,ch/2+24);
+function closeTracePoly() {
+  if (currentPoly.length < 3) return;
+  ELEV_REGIONS[currentElevPage].push({
+    material: selectedMaterial,
+    pts: currentPoly.slice()
   });
+  currentPoly = [];
+  drawElevOverlay();
 }
 
-function loadElevPage() {
-  if(!elevPdf) return;
-  elevPdf.getPage(elevPageNum[currentElevPage]).then(function(page){
-    var container=document.getElementById('tab-elevations');
-    var cw=container.clientWidth, ch=container.clientHeight;
-    var vp=page.getViewport({scale:1});
-    var scale=Math.min(cw/vp.width, ch/vp.height)*0.85;
-    var viewport=page.getViewport({scale:scale});
-    elevCanvas.width=viewport.width; elevCanvas.height=viewport.height;
-    elevCanvas.style.position='absolute';
-    elevCanvas.style.left=((cw-viewport.width)/2)+'px';
-    elevCanvas.style.top=((ch-viewport.height)/2)+'px';
-    page.render({canvasContext:elevCtx,viewport:viewport}).promise.then(function(){
-      elevRendered=elevCtx.getImageData(0,0,elevCanvas.width,elevCanvas.height);
-      drawElevOverlay();
-    });
+function loadElevPage(pdf) {
+  document.getElementById('elev-loading').style.display = 'block';
+  elevCanvas.style.display = 'none';
+  var container = document.getElementById('tab-elevations');
+  renderPage(pdf, elevPageMap[currentElevPage], elevCanvas, container, function(){
+    document.getElementById('elev-loading').style.display = 'none';
+    elevBaseImage = elevCtx.getImageData(0, 0, elevCanvas.width, elevCanvas.height);
+    drawElevOverlay();
   });
 }
 
 function drawElevOverlay() {
-  if(!elevRendered) return;
-  elevCtx.putImageData(elevRendered,0,0);
-  (ELEVATION_REGIONS[currentElevPage]||[]).forEach(function(r){
-    var m=MATERIALS[r.material]; if(!m) return;
-    elevCtx.fillStyle=m.hex+'66'; elevCtx.strokeStyle=m.hex; elevCtx.lineWidth=2;
+  if (!elevBaseImage) return;
+  elevCtx.putImageData(elevBaseImage, 0, 0);
+
+  // Draw saved regions
+  var regions = ELEV_REGIONS[currentElevPage] || [];
+  regions.forEach(function(r){
+    var c = COLOURS[r.material];
+    if (!c) return;
+    elevCtx.fillStyle = c.hex + '55';
+    elevCtx.strokeStyle = c.hex;
+    elevCtx.lineWidth = 2;
     elevCtx.beginPath();
-    r.pts.forEach(function(p,i){if(i===0)elevCtx.moveTo(p[0],p[1]);else elevCtx.lineTo(p[0],p[1]);});
-    elevCtx.closePath(); elevCtx.fill(); elevCtx.stroke();
+    r.pts.forEach(function(p,i){ i===0 ? elevCtx.moveTo(p[0],p[1]) : elevCtx.lineTo(p[0],p[1]); });
+    elevCtx.closePath();
+    elevCtx.fill();
+    elevCtx.stroke();
+    // Label
+    var cx = r.pts.reduce(function(s,p){return s+p[0];},0)/r.pts.length;
+    var cy = r.pts.reduce(function(s,p){return s+p[1];},0)/r.pts.length;
+    elevCtx.fillStyle = '#fff';
+    elevCtx.font = 'bold 11px sans-serif';
+    elevCtx.textAlign = 'center';
+    elevCtx.fillText(COLOURS[r.material].name, cx, cy);
   });
-  if(currentPoly.length>0){
-    elevCtx.strokeStyle='#f59e0b'; elevCtx.lineWidth=2; elevCtx.setLineDash([4,4]);
+
+  // Draw current polygon being traced
+  if (currentPoly.length > 0) {
+    elevCtx.strokeStyle = '#f59e0b';
+    elevCtx.lineWidth = 2;
+    elevCtx.setLineDash([5,3]);
     elevCtx.beginPath();
-    currentPoly.forEach(function(p,i){if(i===0)elevCtx.moveTo(p[0],p[1]);else elevCtx.lineTo(p[0],p[1]);});
-    elevCtx.stroke(); elevCtx.setLineDash([]);
+    currentPoly.forEach(function(p,i){ i===0 ? elevCtx.moveTo(p[0],p[1]) : elevCtx.lineTo(p[0],p[1]); });
+    elevCtx.stroke();
+    elevCtx.setLineDash([]);
+
+    elevCtx.fillStyle = '#f59e0b';
     currentPoly.forEach(function(p){
-      elevCtx.fillStyle='#f59e0b'; elevCtx.beginPath();
-      elevCtx.arc(p[0],p[1],4,0,Math.PI*2); elevCtx.fill();
+      elevCtx.beginPath();
+      elevCtx.arc(p[0], p[1], 5, 0, Math.PI*2);
+      elevCtx.fill();
     });
-  }
-}
 
-// ══════════════════════════════════════════
-// TAB 3: 3D MASSING MODEL
-// ══════════════════════════════════════════
-function initModel() {
-  var container=document.getElementById('tab-model');
-  var scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x87ceeb);
-  scene.fog=new THREE.Fog(0x87ceeb,80,150);
-  var w=container.clientWidth, h=container.clientHeight;
-  var camera=new THREE.PerspectiveCamera(45,w/h,0.1,200);
-  camera.position.set(20,15,-24);
-  var renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(w,h); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.2;
-  container.appendChild(renderer.domElement);
-  var controls=new THREE.OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true; controls.dampingFactor=0.08;
-  controls.target.set(0,4,0); controls.minDistance=5; controls.maxDistance=80;
-
-  scene.add(new THREE.AmbientLight(0xffffff,0.5));
-  var sun=new THREE.DirectionalLight(0xffffff,1.0);
-  sun.position.set(15,25,-10); sun.castShadow=true;
-  sun.shadow.mapSize.set(2048,2048);
-  sun.shadow.camera.left=-25; sun.shadow.camera.right=25;
-  sun.shadow.camera.top=25; sun.shadow.camera.bottom=-25;
-  scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0xddeeff,0x8b7d6b,0.3));
-
-  var mat={
-    render:new THREE.MeshStandardMaterial({color:0xcec8c1,roughness:0.85}),
-    monument:new THREE.MeshStandardMaterial({color:0x3d4040,roughness:0.5}),
-    surfmist:new THREE.MeshStandardMaterial({color:0xe8e1d4,roughness:0.4,metalness:0.1}),
-    concrete:new THREE.MeshStandardMaterial({color:0xb0a898,roughness:0.9}),
-    glass:new THREE.MeshStandardMaterial({color:0x8ec8d8,roughness:0.1,transparent:true,opacity:0.35,side:THREE.DoubleSide}),
-    ground:new THREE.MeshStandardMaterial({color:0x6b8e5a,roughness:1}),
-    timber:new THREE.MeshStandardMaterial({color:0x8b6f47,roughness:0.7})
-  };
-  var house=new THREE.Group(); scene.add(house);
-
-  function bx(bw,bh,bd,bm){var m=new THREE.Mesh(new THREE.BoxGeometry(bw,bh,bd),bm);m.castShadow=true;m.receiveShadow=true;return m;}
-
-  // Dimensions (metres)
-  var WALL=0.27;
-  var LF_W=12.01,LF_D=18.71,LF_H=3.0,LF_Y=0;
-  var GF_W=12.01,GF_D=21.02,GF_H=2.75,GF_Y=3.45;
-  var FF_W=8.26,FF_D=11.57,FF_H=2.6,FF_Y=6.65;
-  var LF_E=LF_W/2,LF_Wst=-LF_W/2,LF_N=LF_D/2,LF_S=-LF_D/2;
-  var GF_S=LF_S,GF_N=GF_S+GF_D,GF_CZ=(GF_N+GF_S)/2;
-  var FF_N=LF_N,FF_S=FF_N-FF_D,FF_Wst=LF_Wst,FF_E=FF_Wst+FF_W;
-  var FF_CX=(FF_E+FF_Wst)/2,FF_CZ=(FF_N+FF_S)/2;
-
-  // Ground terrain
-  var gndGeo=new THREE.PlaneGeometry(80,80,20,20);
-  var gndPos=gndGeo.attributes.position;
-  for(var i=0;i<gndPos.count;i++){
-    var lx=gndPos.getX(i),ly=gndPos.getY(i);
-    gndPos.setZ(i,-ly*0.08+1.7+Math.sin(lx*0.08)*0.15);
-  }
-  gndGeo.computeVertexNormals();
-  var gnd=new THREE.Mesh(gndGeo,mat.ground); gnd.rotation.x=-Math.PI/2; gnd.receiveShadow=true; scene.add(gnd);
-
-  // Lower Floor — face order: +X(E), -X(W), +Y, -Y, +Z(N), -Z(S)
-  var lfMats=[mat.render,mat.monument,mat.concrete,mat.concrete,mat.render,mat.render];
-  var lfBox=new THREE.Mesh(new THREE.BoxGeometry(LF_W,LF_H,LF_D),lfMats);
-  lfBox.position.set(0,LF_Y+LF_H/2,0); lfBox.castShadow=true; lfBox.receiveShadow=true; house.add(lfBox);
-
-  // Ground Floor
-  var gfMats=[mat.render,mat.monument,mat.concrete,mat.concrete,mat.render,mat.render];
-  var gfBox=new THREE.Mesh(new THREE.BoxGeometry(GF_W,GF_H,GF_D),gfMats);
-  gfBox.position.set(0,GF_Y+GF_H/2,GF_CZ); gfBox.castShadow=true; gfBox.receiveShadow=true; house.add(gfBox);
-
-  // First Floor
-  var ffMats=[mat.render,mat.monument,mat.concrete,mat.concrete,mat.render,mat.render];
-  var ffBox=new THREE.Mesh(new THREE.BoxGeometry(FF_W,FF_H,FF_D),ffMats);
-  ffBox.position.set(FF_CX,FF_Y+FF_H/2,FF_CZ); ffBox.castShadow=true; ffBox.receiveShadow=true; house.add(ffBox);
-
-  // Main roof — 5deg pitch, ridge at south, slopes to north
-  var ROVER=0.5,NOVER=1.8;
-  var roofD=FF_D+NOVER+ROVER, roofW=FF_W+ROVER;
-  var roofCZ=FF_S-ROVER+roofD/2, roofCX=FF_Wst+roofW/2;
-  var mainRoof=bx(roofW,0.15,roofD,mat.surfmist);
-  mainRoof.position.set(roofCX,FF_Y+FF_H+0.25,roofCZ);
-  mainRoof.rotation.x=5*Math.PI/180; house.add(mainRoof);
-
-  // Flat roofs over GF areas not under FF
-  var gfRoofSD=Math.abs(FF_S-GF_S);
-  var sr1=bx(GF_W+0.4,0.12,gfRoofSD+0.4,mat.surfmist);
-  sr1.position.set(0,GF_Y+GF_H+0.06,(FF_S+GF_S)/2); house.add(sr1);
-
-  if(GF_N-FF_N>0.5){
-    var sr2=bx(GF_W+0.4,0.12,(GF_N-FF_N)+0.4,mat.surfmist);
-    sr2.position.set(0,GF_Y+GF_H+0.06,(FF_N+GF_N)/2); house.add(sr2);
-  }
-  var courtW=LF_E-FF_E;
-  if(courtW>0.3){
-    var sr3=bx(courtW+0.2,0.12,FF_D+0.4,mat.surfmist);
-    sr3.position.set(FF_E+courtW/2,GF_Y+GF_H+0.06,FF_CZ); house.add(sr3);
-  }
-
-  // West parapet
-  var parH=0.85;
-  var par=bx(WALL,parH,GF_D+0.4,mat.monument);
-  par.position.set(LF_Wst,FF_Y+FF_H+parH/2,GF_CZ); house.add(par);
-  var parCap=bx(0.35,0.06,GF_D+0.4,mat.surfmist);
-  parCap.position.set(LF_Wst,FF_Y+FF_H+parH+0.03,GF_CZ); house.add(parCap);
-
-  // North fascia (prominent canopy edge)
-  var nFas=bx(roofW,0.40,0.12,mat.monument);
-  nFas.position.set(roofCX,FF_Y+FF_H+0.05,FF_N+NOVER); house.add(nFas);
-
-  // Soffit under north canopy
-  var soffit=bx(roofW,0.03,NOVER,mat.render);
-  soffit.position.set(roofCX,FF_Y+FF_H-0.02,FF_N+NOVER/2); house.add(soffit);
-
-  // Capping strips at level transitions
-  var cap1=bx(LF_W+0.4,0.06,LF_D+0.4,mat.surfmist);
-  cap1.position.set(0,LF_Y+LF_H+0.03,0); house.add(cap1);
-  var cap2=bx(GF_W+0.4,0.06,GF_D+0.4,mat.surfmist);
-  cap2.position.set(0,GF_Y+GF_H+0.03,GF_CZ); house.add(cap2);
-
-  // Garage door
-  var garDoor=bx(5.0,2.38,0.08,mat.monument);
-  garDoor.position.set(-GF_W/4,GF_Y+2.38/2,GF_N+WALL/2+0.02); house.add(garDoor);
-
-  // Entry door
-  var entDoor=bx(1.2,2.34,0.06,mat.timber);
-  entDoor.position.set(GF_W/4,GF_Y+2.34/2,GF_N+WALL/2+0.02); house.add(entDoor);
-
-  // Retaining walls
-  var retW=0.4,retH=LF_H+0.3;
-  var r1=bx(retW,retH,6.35,mat.concrete); r1.position.set(LF_Wst-retW/2-0.01,LF_Y+retH/2-0.3,LF_S+6.35/2); house.add(r1);
-  var r2=bx(retW,retH,6.35,mat.concrete); r2.position.set(LF_Wst-retW/2-0.01,LF_Y+retH/2-0.3,-0.795+6.35/2); house.add(r2);
-
-  // Driveway
-  var driveGeo=new THREE.PlaneGeometry(3.5,12.0);
-  var drive=new THREE.Mesh(driveGeo,new THREE.MeshStandardMaterial({color:0x888888,roughness:0.95}));
-  drive.rotation.x=-Math.PI/2; drive.position.set(2.5,GF_Y+0.02,GF_N+6); drive.receiveShadow=true; scene.add(drive);
-
-  // Courtyard parapet
-  var cpH=0.3;
-  var cp=bx(courtW,cpH,0.15,mat.render);
-  cp.position.set(FF_E+courtW/2,GF_Y+GF_H+cpH/2,FF_CZ); house.add(cp);
-
-  // Key windows — large glazing that defines the elevations
-  function addWin(face,wallX,wallZ,baseY,cx,winW,winH,sillH,wallThk){
-    sillH=sillH||0.9; wallThk=wallThk||WALL;
-    var wy=baseY+sillH+winH/2, frame, glass, outOff=wallThk/2+0.02;
-    if(face==='N'||face==='S'){
-      var zOff=face==='N'?outOff:-outOff;
-      frame=bx(winW,winH,0.05,mat.monument); glass=bx(winW-0.06,winH-0.06,0.02,mat.glass);
-      frame.position.set(cx,wy,wallZ+zOff); glass.position.set(cx,wy,wallZ+zOff);
-    } else {
-      var xOff=face==='E'?outOff:-outOff;
-      frame=bx(0.05,winH,winW,mat.monument); glass=bx(0.02,winH-0.06,winW-0.06,mat.glass);
-      frame.position.set(wallX+xOff,wy,cx); glass.position.set(wallX+xOff,wy,cx);
+    // Close-preview line
+    if (currentPoly.length > 2) {
+      elevCtx.strokeStyle = 'rgba(245,158,11,0.4)';
+      elevCtx.setLineDash([3,3]);
+      elevCtx.beginPath();
+      var last = currentPoly[currentPoly.length-1], first = currentPoly[0];
+      elevCtx.moveTo(last[0],last[1]);
+      elevCtx.lineTo(first[0],first[1]);
+      elevCtx.stroke();
+      elevCtx.setLineDash([]);
     }
-    house.add(frame); house.add(glass);
   }
-  // LF: Dining east (W4), Family south stacker (D02)
-  addWin('E',LF_E,0,0,-7.4,4.2,2.7,0.15);
-  addWin('S',0,LF_S,0,1.85,4.7,2.7,0.15);
-  // GF: Master east (W12), Garage north (W19)
-  addWin('E',LF_E,0,GF_Y,-7.25,5.2,1.8,0.3);
-  addWin('N',0,GF_N,GF_Y,-3.05,3.01,0.6,2.45);
-  // FF: West windows (W18 stairs, W20 guest)
-  addWin('W',FF_Wst,0,FF_Y,6.5,1.81,2.5,0.05,0.185);
-  addWin('W',FF_Wst,0,FF_Y,-0.4,3.17,1.8,0.3,0.185);
-  // FF: North (W21 rumpus)
-  addWin('N',0,FF_N,FF_Y,0.2,4.76,0.9,0.6,0.185);
-
-  // Front balcony (north, FF level)
-  var balcFW=4.1,balcFD=1.6,balcFX=FF_E-balcFW/2;
-  var balcFS=bx(balcFW,0.15,balcFD,mat.concrete);
-  balcFS.position.set(balcFX,FF_Y-0.075,FF_N+balcFD/2); house.add(balcFS);
-  var balcFG=bx(balcFW,1.0,0.012,mat.glass);
-  balcFG.position.set(balcFX,FF_Y+0.5,FF_N+balcFD); house.add(balcFG);
-
-  // Privacy screen (west portion of FF north face)
-  var privW=FF_W-balcFW-0.3, privX=FF_Wst+privW/2+0.1;
-  var privP=bx(privW,FF_H-0.2,0.04,mat.monument);
-  privP.position.set(privX,FF_Y+0.1+(FF_H-0.2)/2,FF_N+0.185/2+0.04); house.add(privP);
-
-  // Rear balcony (south, FF level)
-  var balcRW=5.5,balcRD=2.9;
-  var balcRS=bx(balcRW,0.15,balcRD,mat.concrete);
-  balcRS.position.set(0.5,FF_Y-0.075,FF_S-balcRD/2); house.add(balcRS);
-  var balcRG=bx(balcRW,1.0,0.012,mat.glass);
-  balcRG.position.set(0.5,FF_Y+0.5,FF_S-balcRD); house.add(balcRG);
-
-  // Vergola over alfresco (south LF)
-  var vergW=5.5,vergD=5.2,vergY2=LF_H+0.3,vergX=LF_Wst+vergW/2;
-  var vFrame=bx(vergW,0.12,vergD,mat.surfmist);
-  vFrame.position.set(vergX,vergY2,LF_S-vergD/2); house.add(vFrame);
-
-  // Floor slabs (fill gaps between levels)
-  var slab1=bx(LF_W,0.45,LF_D,mat.concrete);
-  slab1.position.set(0,LF_H+0.225,0); house.add(slab1);
-  var slab2=bx(GF_W,0.45,GF_D,mat.concrete);
-  slab2.position.set(0,GF_Y+GF_H+0.225,GF_CZ); house.add(slab2);
-
-  // View presets
-  var viewsDiv=document.getElementById('model-views');
-  [{name:'Street (N)',pos:[0,8,28],tgt:[0,4,0]},
-   {name:'Harbour (S)',pos:[0,8,-28],tgt:[0,4,0]},
-   {name:'East',pos:[28,8,0],tgt:[0,4,0]},
-   {name:'West',pos:[-28,8,0],tgt:[0,4,0]},
-   {name:'Aerial',pos:[15,30,-15],tgt:[0,3,0]},
-   {name:'Default',pos:[20,15,-24],tgt:[0,4,0]}
-  ].forEach(function(p){
-    var btn=document.createElement('button'); btn.className='btn'; btn.textContent=p.name;
-    btn.addEventListener('click',function(){
-      camera.position.set(p.pos[0],p.pos[1],p.pos[2]);
-      controls.target.set(p.tgt[0],p.tgt[1],p.tgt[2]); controls.update();
-    });
-    viewsDiv.appendChild(btn);
-  });
-
-  // Legend
-  var legDiv=document.getElementById('model-legend');
-  var lh='<h4 style="color:#93c5fd;margin-bottom:8px;font-size:13px">Colours &amp; Materials</h4>';
-  [{c:'#cec8c1',l:'Render — Dulux Grey Pebble 1/2 Str'},
-   {c:'#3d4040',l:'Cladding — Colorbond Monument'},
-   {c:'#e8e1d4',l:'Roof/Capping — Colorbond Surfmist'},
-   {c:'#3d4040',l:'Fascia — Monument'},
-   {c:'#b0a898',l:'Concrete/Retaining'},
-   {c:'#8b6f47',l:'Entry Door — Pacific Maple'},
-   {c:'#888888',l:'Driveway'}
-  ].forEach(function(it){
-    lh+='<div class="legend-row"><div class="legend-sw" style="background:'+it.c+'"></div><span>'+it.l+'</span></div>';
-  });
-  lh+='<div class="note">Massing model shows correct overall dimensions.<br>See Floor Plans for room-level detail.</div>';
-  legDiv.innerHTML=lh;
-
-  // Animate
-  (function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);})();
-
-  window._resizeModel=function(){
-    var w2=container.clientWidth,h2=container.clientHeight;
-    camera.aspect=w2/h2; camera.updateProjectionMatrix(); renderer.setSize(w2,h2);
-  };
 }
+
+// ══════════════════════════════════════════
+// TAB 2: FLOOR PLANS (actual PDF pages)
+// ══════════════════════════════════════════
+var plansCanvas, plansCtx;
+var currentPlanPage = 4;
+
+function initPlans(pdf) {
+  plansCanvas = document.getElementById('plans-canvas');
+  plansCtx = plansCanvas.getContext('2d');
+
+  document.querySelectorAll('#plans-controls .btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#plans-controls .btn').forEach(function(bb){bb.classList.remove('active');});
+      b.classList.add('active');
+      currentPlanPage = parseInt(b.dataset.page);
+      loadPlanPage(pdf);
+    });
+  });
+
+  loadPlanPage(pdf);
+}
+
+function loadPlanPage(pdf) {
+  document.getElementById('plans-loading').style.display = 'block';
+  plansCanvas.style.display = 'none';
+  var container = document.getElementById('tab-plans');
+  renderPage(pdf, currentPlanPage, plansCanvas, container, function(){
+    document.getElementById('plans-loading').style.display = 'none';
+  });
+}
+
+// ══════════════════════════════════════════
+// TAB 3: 3D RENDERS (architect's page 1)
+// ══════════════════════════════════════════
+function initRenders(pdf) {
+  var canvas = document.getElementById('renders-canvas');
+  var container = document.getElementById('tab-renders');
+  renderPage(pdf, 1, canvas, container, function(){
+    document.getElementById('renders-loading').style.display = 'none';
+  });
+}
+
+// ══════════════════════════════════════════
+// WINDOW RESIZE
+// ══════════════════════════════════════════
+window.addEventListener('resize', function(){
+  if (!pdfDoc) return;
+  if (activeTab==='elevations') loadElevPage(pdfDoc);
+  else if (activeTab==='plans') loadPlanPage(pdfDoc);
+  else if (activeTab==='renders') {
+    var c = document.getElementById('renders-canvas');
+    var container = document.getElementById('tab-renders');
+    renderPage(pdfDoc, 1, c, container);
+  }
+});
 
 // ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
-window.addEventListener('resize',function(){
-  if(activeTab==='plans') resizePlansCanvas();
-  else if(activeTab==='model'&&window._resizeModel) window._resizeModel();
-  else if(activeTab==='elevations'&&elevPdf) loadElevPage();
-});
-
-switchTab('plans');
+switchTab('elevations');
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 </body>
 </html>
