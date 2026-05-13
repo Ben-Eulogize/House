@@ -30,15 +30,6 @@
   #info .verdict.mid { background: rgba(255, 211, 61, 0.15); color: #ffd33d; }
   #info .verdict.bad { background: rgba(255, 61, 110, 0.12); color: #ff7a8a; }
 
-  #controls { top: 12px; right: 12px; max-width: 260px; font-size: 12px; }
-  #controls label { display: block; color: #b9c2cf; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
-  #controls input[type="text"], #controls input[type="password"] {
-    width: 100%; box-sizing: border-box; background: #131a23; color: #eaeef3;
-    border: 1px solid #2a3340; border-radius: 4px; padding: 6px 8px; font-size: 12px;
-  }
-  #controls .hint { color: #6f7a8a; font-size: 11px; margin-top: 6px; line-height: 1.4; }
-  #controls .hint a { color: #8fb8ff; }
-
   #timeline { bottom: 12px; left: 12px; right: 12px; padding: 10px 14px; }
   #timeline .ticks { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
   #timeline .tick {
@@ -76,18 +67,9 @@
   <div class="verdict" id="verdict">Loading…</div>
 </div>
 
-<div id="controls" class="panel">
-  <label for="key">OpenWeather API key</label>
-  <input id="key" type="password" placeholder="paste key — stored locally" autocomplete="off" />
-  <div class="hint">
-    Free key at <a href="https://openweathermap.org/api" target="_blank" rel="noopener">openweathermap.org</a>.
-    Stored in localStorage. Reload after pasting.
-  </div>
-</div>
-
 <div id="timeline" class="panel">
   <div style="font-size:11px; color:#b9c2cf; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em;">Forecast — next 24 h (3 h steps)</div>
-  <div class="ticks" id="ticks"><span style="color:#6f7a8a; font-size:12px;">Add API key to load forecast…</span></div>
+  <div class="ticks" id="ticks"><span style="color:#6f7a8a; font-size:12px;">Loading forecast…</span></div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -98,7 +80,7 @@
 const KIRRIBILLI = [-33.8472, 151.2169]; // [lat, lon]
 const RADIUS_KM = 10;
 const PRIMARY_BOW_DEG = 42;
-const KEY_STORAGE = "rainbow.owm.key";
+const OWM_API_KEY = "b3f030048e470e6f1f567401ad06b09d";
 
 // ---- Map setup ----------------------------------------------------------
 const map = L.map("map", { zoomControl: true }).setView(KIRRIBILLI, 12);
@@ -302,25 +284,10 @@ async function loadWeather(key) {
 }
 
 // ---- Boot ---------------------------------------------------------------
-const keyEl = document.getElementById("key");
-const savedKey = localStorage.getItem(KEY_STORAGE) || "";
-keyEl.value = savedKey;
-keyEl.addEventListener("change", () => {
-  localStorage.setItem(KEY_STORAGE, keyEl.value.trim());
-  if (keyEl.value.trim()) loadWeather(keyEl.value.trim());
-});
-
-if (savedKey) {
-  loadWeather(savedKey);
-} else {
-  renderNow(null); // draw sun + wedge with no weather
-}
+loadWeather(OWM_API_KEY);
 
 // Refresh every 5 minutes
-setInterval(() => {
-  const k = localStorage.getItem(KEY_STORAGE);
-  if (k) loadWeather(k); else renderNow(null);
-}, 5 * 60 * 1000);
+setInterval(() => loadWeather(OWM_API_KEY), 5 * 60 * 1000);
 </script>
 </body>
 </html>
