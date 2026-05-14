@@ -404,12 +404,16 @@ function showRadarFrame(i) {
   if (!radarState.frames.length) return;
   radarState.idx = (i + radarState.frames.length) % radarState.frames.length;
   const f = radarState.frames[radarState.idx];
-  if (radarState.layer) map.removeLayer(radarState.layer);
   // color 2 = Universal Blue, smoothing on, no snow
   const url = `${f.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`;
-  radarState.layer = L.tileLayer(url, {
-    opacity: 0.75, pane: "radar-pane", attribution: "© RainViewer"
-  }).addTo(map);
+  if (radarState.layer) {
+    radarState.layer.setUrl(url);
+  } else {
+    radarState.layer = L.tileLayer(url, {
+      opacity: 0.75, pane: "radar-pane", attribution: "© RainViewer",
+      maxNativeZoom: 8, maxZoom: 19
+    }).addTo(map);
+  }
 
   const ts = document.getElementById("radar-ts");
   const d = new Date(f.time * 1000);
