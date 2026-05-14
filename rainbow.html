@@ -71,6 +71,7 @@
   <div class="row"><span>Rain (last 1h)</span><b id="rain">—</b></div>
   <div class="row"><span>Cloud cover</span><b id="cloud">—</b></div>
   <div class="row"><span>Conditions</span><b id="cond">—</b></div>
+  <div class="row"><span>Showing</span><b id="showing-time">now</b></div>
   <div style="margin-top:8px">
     <div class="row"><span>Rainbow probability</span><b id="score-pct">—</b></div>
     <div class="score-bar"><div class="score-fill" id="score-fill" style="width:0"></div></div>
@@ -94,7 +95,7 @@
 </div>
 
 <div id="timeline" class="panel">
-  <div style="font-size:11px; color:#b9c2cf; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em;">Forecast — next 24 h (3 h steps)</div>
+  <div style="font-size:11px; color:#b9c2cf; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em;">Forecast — tap a step to preview · 3 h apart</div>
   <div class="ticks" id="ticks"><span style="color:#6f7a8a; font-size:12px;">Loading forecast…</span></div>
 </div>
 
@@ -120,19 +121,30 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19
 }).addTo(map);
 
-L.circle(KIRRIBILLI, {
+let observer = KIRRIBILLI.slice();
+const radiusCircle = L.circle(observer, {
   radius: RADIUS_KM * 1000,
   color: "#8fb8ff", weight: 1.5, fillOpacity: 0.04, dashArray: "4 4"
-}).addTo(map).bindTooltip("10 km radius — Kirribilli");
+}).addTo(map).bindTooltip("10 km viewing radius");
 
-L.marker(KIRRIBILLI, {
+const observerMarker = L.marker(observer, {
+  draggable: true,
   icon: L.divIcon({ html: "📍", className: "sun-icon", iconSize: [24,24] })
-}).addTo(map).bindPopup("Kirribilli (observer)");
+}).addTo(map).bindTooltip("Drag to move observer");
+
+observerMarker.on("dragend", e => {
+  const ll = e.target.getLatLng();
+  observer = [ll.lat, ll.lng];
+  radiusCircle.setLatLng(ll);
+  state.selectedIndex = null;
+  loadWeather(OWM_API_KEY);
+});
+
+const state = { current: null, forecast: [], selectedIndex: null };
 
 let sunMarker = null;
 let antiMarker = null;
 let rainbowWedge = null;
-let forecastMarkers = [];
 
 // ---- Solar geometry -----------------------------------------------------
 function sunInfo(date, lat, lon) {
@@ -214,47 +226,59 @@ function verdictFor(P, sunEl) {
 }
 
 // ---- Render -------------------------------------------------------------
-function renderNow(weather) {
-  const now = new Date();
-  const s = sunInfo(now, KIRRIBILLI[0], KIRRIBILLI[1]);
+function snapshotFromCurrent(w) {
+  if (!w) return null;
+  return {
+    rain: w.rain?.["1h"] || w.rain?.["3h"] || 0,
+    cloud: w.clouds?.all ?? 0,
+    cond: w.weather?.[0]?.description ?? "—"
+  };
+}
+function snapshotFromForecastRow(r) {
+  return {
+    rain: (r.rain?.["3h"] || 0) / 3,
+    cloud: r.clouds?.all ?? 0,
+    cond: r.weather?.[0]?.description ?? "—"
+  };
+}
+
+function renderForState(date, snap) {
+  const s = sunInfo(date, observer[0], observer[1]);
   const anti = antisolarBearing(s.az);
 
   document.getElementById("sun-az").textContent =
     `${s.az.toFixed(0)}° az · ${s.el.toFixed(1)}° el`;
   document.getElementById("anti-az").textContent = `${anti.toFixed(0)}°`;
 
-  // Sun direction marker (placed 8 km away in the sun's azimuth)
   if (sunMarker) map.removeLayer(sunMarker);
   if (antiMarker) map.removeLayer(antiMarker);
   if (s.el > 0) {
-    const sunPt = destPoint(KIRRIBILLI[0], KIRRIBILLI[1], s.az, 8);
+    const sunPt = destPoint(observer[0], observer[1], s.az, 8);
     sunMarker = L.marker(sunPt, {
       icon: L.divIcon({ html: "☀️", className: "sun-icon", iconSize: [24,24] })
     }).addTo(map).bindTooltip(`Sun bearing ${s.az.toFixed(0)}°`);
-    const antiPt = destPoint(KIRRIBILLI[0], KIRRIBILLI[1], anti, 8);
+    const antiPt = destPoint(observer[0], observer[1], anti, 8);
     antiMarker = L.marker(antiPt, {
       icon: L.divIcon({ html: "🌈", className: "anti-icon", iconSize: [24,24] })
     }).addTo(map).bindTooltip(`Antisolar (look here) ${anti.toFixed(0)}°`);
   }
 
-  // Wedge polygon
   if (rainbowWedge) map.removeLayer(rainbowWedge);
   if (s.el > 0 && s.el < PRIMARY_BOW_DEG) {
-    const pts = buildRainbowWedge(KIRRIBILLI[0], KIRRIBILLI[1], anti, 50, RADIUS_KM);
+    const pts = buildRainbowWedge(observer[0], observer[1], anti, 50, RADIUS_KM);
     rainbowWedge = L.polygon(pts, {
       color: "#ffd33d", weight: 1.5, fillColor: "#ffd33d", fillOpacity: 0.10
     }).addTo(map).bindTooltip("Rainbow viewing sector (~100° wide, opposite the sun)");
   }
 
-  // Weather + score
-  const rain = weather ? (weather.rain?.["1h"] || weather.rain?.["3h"] || 0) : 0;
-  const cloud = weather ? weather.clouds?.all ?? 0 : 0;
-  const cond = weather ? weather.weather?.[0]?.description ?? "—" : "—";
+  const rain = snap ? snap.rain : 0;
+  const cloud = snap ? snap.cloud : 0;
+  const cond = snap ? snap.cond : "—";
   document.getElementById("rain").textContent = `${rain.toFixed(2)} mm`;
   document.getElementById("cloud").textContent = `${cloud}%`;
   document.getElementById("cond").textContent = cond;
 
-  const sc = score(s.el, rain, cloud, now, KIRRIBILLI[0], KIRRIBILLI[1]);
+  const sc = score(s.el, rain, cloud, date, observer[0], observer[1]);
   const pct = Math.round(sc.P * 100);
   document.getElementById("score-pct").textContent = `${pct}%`;
   document.getElementById("score-fill").style.width = `${pct}%`;
@@ -262,29 +286,78 @@ function renderNow(weather) {
   const ve = document.getElementById("verdict");
   ve.textContent = v.text;
   ve.className = "verdict " + v.cls;
+
+  const showingEl = document.getElementById("showing-time");
+  if (state.selectedIndex === null) {
+    showingEl.innerHTML = "now";
+  } else {
+    const hh = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const dh = date.toLocaleDateString([], { weekday: "short" });
+    showingEl.innerHTML = `${dh} ${hh} <a href="#" id="clear-sel" style="color:#8fb8ff;margin-left:4px">×</a>`;
+    document.getElementById("clear-sel").addEventListener("click", e => {
+      e.preventDefault();
+      clearSelection();
+    });
+  }
 }
 
-function renderForecast(list) {
+function refresh() {
+  if (state.selectedIndex !== null && state.forecast[state.selectedIndex]) {
+    const row = state.forecast[state.selectedIndex];
+    renderForState(new Date(row.dt * 1000), snapshotFromForecastRow(row));
+  } else {
+    renderForState(new Date(), snapshotFromCurrent(state.current));
+  }
+  renderForecastTicks();
+}
+
+function selectStep(i) {
+  state.selectedIndex = i;
+  refresh();
+  const t = state.forecast[i]?.dt;
+  if (t && radarState.frames.length) {
+    let bestIdx = -1, bestDelta = Infinity;
+    radarState.frames.forEach((f, k) => {
+      const d = Math.abs(f.time - t);
+      if (d < bestDelta) { bestDelta = d; bestIdx = k; }
+    });
+    if (bestDelta <= 30 * 60) {
+      pauseRadar();
+      showRadarFrame(bestIdx);
+    }
+  }
+}
+
+function clearSelection() {
+  state.selectedIndex = null;
+  refresh();
+}
+
+function renderForecastTicks() {
   const ticksEl = document.getElementById("ticks");
+  if (!state.forecast.length) {
+    ticksEl.innerHTML = '<span style="color:#6f7a8a; font-size:12px;">Loading forecast…</span>';
+    return;
+  }
   ticksEl.innerHTML = "";
-  // First 8 entries = next 24 hours (OWM forecast endpoint is 3-hour steps)
-  list.slice(0, 8).forEach((row, i) => {
+  state.forecast.slice(0, 8).forEach((row, i) => {
     const d = new Date(row.dt * 1000);
-    const s = sunInfo(d, KIRRIBILLI[0], KIRRIBILLI[1]);
+    const s = sunInfo(d, observer[0], observer[1]);
     const rain = row.rain?.["3h"] || 0;
     const cloud = row.clouds?.all ?? 0;
-    const sc = score(s.el, rain / 3, cloud, d, KIRRIBILLI[0], KIRRIBILLI[1]); // rain mm/h
+    const sc = score(s.el, rain / 3, cloud, d, observer[0], observer[1]);
     const pct = Math.round(sc.P * 100);
     const hh = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const dh = d.toLocaleDateString([], { weekday: "short" });
     const tick = document.createElement("div");
-    tick.className = "tick";
+    tick.className = "tick" + (state.selectedIndex === i ? " active" : "");
     tick.innerHTML = `
       <div class="t-time">${dh} ${hh}</div>
       <div class="t-score">${pct}%</div>
       <div class="t-bar"><span style="width:${pct}%"></span></div>
     `;
     tick.title = `Sun ${s.el.toFixed(0)}° el · ${cloud}% cloud · ${(rain/3).toFixed(2)} mm/h rain`;
+    tick.addEventListener("click", () => selectStep(i));
     ticksEl.appendChild(tick);
   });
 }
@@ -368,7 +441,7 @@ function toggleRadar() { radarState.playing ? pauseRadar() : playRadar(); }
 // ---- OpenWeather --------------------------------------------------------
 async function loadWeather(key) {
   const base = "https://api.openweathermap.org/data/2.5";
-  const q = `lat=${KIRRIBILLI[0]}&lon=${KIRRIBILLI[1]}&units=metric&appid=${key}`;
+  const q = `lat=${observer[0]}&lon=${observer[1]}&units=metric&appid=${key}`;
   try {
     const [nowRes, fcRes] = await Promise.all([
       fetch(`${base}/weather?${q}`),
@@ -377,21 +450,23 @@ async function loadWeather(key) {
     if (!nowRes.ok || !fcRes.ok) {
       throw new Error(`HTTP ${nowRes.status} / ${fcRes.status}`);
     }
-    const weather = await nowRes.json();
+    state.current = await nowRes.json();
     const fc = await fcRes.json();
-    renderNow(weather);
-    renderForecast(fc.list || []);
+    state.forecast = fc.list || [];
+    refresh();
   } catch (e) {
     console.error(e);
     document.getElementById("verdict").textContent =
       "Couldn't load OpenWeather. Check the API key (new keys take ~10 min to activate).";
     document.getElementById("verdict").className = "verdict bad";
-    renderNow(null);
+    state.current = null;
+    refresh();
   }
 }
 
 // ---- Boot ---------------------------------------------------------------
 initRadarControls();
+refresh(); // render wedge/sun immediately, before weather arrives
 loadWeather(OWM_API_KEY);
 loadRainViewer();
 
