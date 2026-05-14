@@ -292,27 +292,35 @@ function renderForecast(list) {
 // ---- RainViewer radar ---------------------------------------------------
 const radarState = { frames: [], idx: 0, layer: null, timer: null, playing: true, nowcastStart: 0 };
 
+function initRadarControls() {
+  const scrub = document.getElementById("radar-scrub");
+  scrub.addEventListener("input", e => {
+    pauseRadar();
+    showRadarFrame(parseInt(e.target.value, 10));
+  });
+  document.getElementById("play-btn").addEventListener("click", toggleRadar);
+}
+
 async function loadRainViewer() {
   try {
     const res = await fetch("https://api.rainviewer.com/public/weather-maps.json");
     const data = await res.json();
     const past = (data.radar?.past || []).map(f => ({ ...f, host: data.host, kind: "past" }));
     const nowcast = (data.radar?.nowcast || []).map(f => ({ ...f, host: data.host, kind: "nowcast" }));
+    const wasAtLive = radarState.frames.length === 0 ||
+                       radarState.idx === radarState.nowcastStart - 1;
     radarState.frames = [...past, ...nowcast];
     radarState.nowcastStart = past.length;
-    radarState.idx = Math.max(0, past.length - 1); // start at "now"
+    radarState.idx = wasAtLive
+      ? Math.max(0, past.length - 1)
+      : Math.min(radarState.idx, radarState.frames.length - 1);
 
     const scrub = document.getElementById("radar-scrub");
     scrub.max = String(radarState.frames.length - 1);
     scrub.value = String(radarState.idx);
-    scrub.addEventListener("input", e => {
-      pauseRadar();
-      showRadarFrame(parseInt(e.target.value, 10));
-    });
-    document.getElementById("play-btn").addEventListener("click", toggleRadar);
 
     showRadarFrame(radarState.idx);
-    playRadar();
+    if (radarState.playing) playRadar();
   } catch (e) {
     console.error("RainViewer load failed", e);
     document.getElementById("radar-ts").textContent = "radar unavailable";
@@ -383,6 +391,7 @@ async function loadWeather(key) {
 }
 
 // ---- Boot ---------------------------------------------------------------
+initRadarControls();
 loadWeather(OWM_API_KEY);
 loadRainViewer();
 
