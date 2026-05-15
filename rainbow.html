@@ -363,7 +363,12 @@ function renderForecastTicks() {
 }
 
 // ---- RainViewer radar ---------------------------------------------------
-const radarState = { frames: [], idx: 0, layer: null, timer: null, playing: true, nowcastStart: 0 };
+const radarState = {
+  frames: [], idx: 0,
+  layers: { A: null, B: null }, active: "A",
+  tileErrors: 0,
+  timer: null, playing: true, nowcastStart: 0
+};
 
 function initRadarControls() {
   const scrub = document.getElementById("radar-scrub");
@@ -406,14 +411,32 @@ function showRadarFrame(i) {
   const f = radarState.frames[radarState.idx];
   // color 2 = Universal Blue, smoothing on, no snow
   const url = `${f.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`;
-  if (radarState.layer) {
-    radarState.layer.setUrl(url);
-  } else {
-    radarState.layer = L.tileLayer(url, {
-      opacity: 0.75, pane: "radar-pane", attribution: "© RainViewer",
-      maxNativeZoom: 8, maxZoom: 19
-    }).addTo(map);
-  }
+
+  // Crossfade: preload next frame at opacity 0 in the inactive slot, swap on `load`.
+  const activeKey = radarState.active;
+  const nextKey = activeKey === "A" ? "B" : "A";
+  if (radarState.layers[nextKey]) map.removeLayer(radarState.layers[nextKey]);
+  const nextLayer = L.tileLayer(url, {
+    opacity: 0, pane: "radar-pane", attribution: "© RainViewer",
+    maxNativeZoom: 8, maxZoom: 19, errorTileUrl: ""
+  });
+  let swapped = false;
+  const swap = () => {
+    if (swapped) return;
+    swapped = true;
+    nextLayer.setOpacity(0.75);
+    if (radarState.layers[activeKey]) {
+      map.removeLayer(radarState.layers[activeKey]);
+      radarState.layers[activeKey] = null;
+    }
+    radarState.active = nextKey;
+  };
+  nextLayer.on("load", swap);
+  nextLayer.on("tileerror", () => { radarState.tileErrors++; });
+  // Failsafe: if tiles take too long, swap anyway so we don't stall.
+  setTimeout(swap, 1500);
+  radarState.layers[nextKey] = nextLayer;
+  nextLayer.addTo(map);
 
   const ts = document.getElementById("radar-ts");
   const d = new Date(f.time * 1000);
@@ -433,7 +456,7 @@ function playRadar() {
   radarState.playing = true;
   document.getElementById("play-btn").textContent = "⏸︎";
   clearInterval(radarState.timer);
-  radarState.timer = setInterval(() => showRadarFrame(radarState.idx + 1), 500);
+  radarState.timer = setInterval(() => showRadarFrame(radarState.idx + 1), 800);
 }
 function pauseRadar() {
   radarState.playing = false;
