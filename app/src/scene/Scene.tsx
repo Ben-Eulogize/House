@@ -90,6 +90,9 @@ export function Scene() {
       camera={{ fov: 45, near: 0.1, far: 400, position: [24, 14, 26] }}
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
       onPointerMissed={() => deselect(null)}
+      // Elevation views render the face from outside; flip horizontally so the
+      // image reads the same way round as the architect's elevation sheets.
+      style={{ transform: isElev ? 'scaleX(-1)' : undefined }}
     >
       <color attach="background" args={[isElev ? '#ffffff' : '#aacbe6']} />
       {!isElev && <fog attach="fog" args={['#aacbe6', 90, 220]} />}
