@@ -46,7 +46,7 @@ export function Sidebar() {
   const setSun = useStore((s) => s.setSun)
 
   return (
-    <aside className="w-[330px] h-full shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col">
+    <aside className="order-2 md:order-1 w-full md:w-[330px] h-auto md:h-full max-h-[46vh] md:max-h-none shrink-0 bg-slate-50 border-t md:border-t-0 md:border-r border-slate-200 flex flex-col">
       <div className="px-4 py-3 border-b border-slate-200">
         <h1 className="text-[15px] font-semibold text-slate-900">49 Balls Head Road</h1>
         <p className="text-[11px] text-slate-500">External finishes — Horizon J1672 Rev S</p>

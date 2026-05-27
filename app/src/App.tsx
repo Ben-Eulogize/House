@@ -26,9 +26,9 @@ function SelectionChip() {
 
 export default function App() {
   return (
-    <div className="flex h-full w-full">
+    <div className="flex flex-col md:flex-row h-full w-full">
       <Sidebar />
-      <main className="relative flex-1 min-w-0">
+      <main className="relative flex-1 min-w-0 min-h-0 order-1 md:order-2">
         <Scene />
         <SelectionChip />
       </main>
