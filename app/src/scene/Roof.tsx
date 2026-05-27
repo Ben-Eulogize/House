@@ -1,12 +1,11 @@
 import { HOUSE, GEO } from '../data/house'
 import { SurfaceMaterial, useSurfaceHandlers } from './surface'
 
-const FF_CEIL = GEO.FF_Y + 2.6 // 9.25
-const GF_CEIL = GEO.GF_Y + 2.75 // 6.2
+const FF_CEIL = GEO.FF_CEIL
+const GF_CEIL = GEO.GF_CEIL
 
-function RoofPlane({
-  w, d, cx, cz, y, thickness, pitchDeg,
-}: { w: number; d: number; cx: number; cz: number; y: number; thickness: number; pitchDeg: number }) {
+function RoofPlane({ w, d, cx, cz, y, thickness, pitchDeg }:
+  { w: number; d: number; cx: number; cz: number; y: number; thickness: number; pitchDeg: number }) {
   const h = useSurfaceHandlers('roof')
   return (
     <mesh position={[cx, y, cz]} rotation={[-(pitchDeg * Math.PI) / 180, 0, 0]} castShadow receiveShadow {...h}>
@@ -22,8 +21,8 @@ export function Roof() {
   const eavesH = useSurfaceHandlers('eaves')
   const cladH = useSurfaceHandlers('wallWest')
 
-  const mainNorth = GEO.FF_N + 1.8 // canopy edge
   const parH = 0.85
+  const nsLen = GEO.GF_N - GEO.GF_S
 
   return (
     <group>
@@ -31,39 +30,35 @@ export function Roof() {
         <RoofPlane key={r.id} {...r} />
       ))}
 
-      {/* West parapet — body (cladding) + Surfmist capping */}
-      <mesh position={[GEO.GF_W, FF_CEIL + parH / 2, GEO.GF_CZ]} castShadow receiveShadow {...cladH}>
-        <boxGeometry args={[0.27, parH, 21.42]} />
+      {/* West (street) parapet — cladding body + Surfmist capping */}
+      <mesh position={[GEO.GF_W, FF_CEIL + parH / 2, 0]} castShadow receiveShadow {...cladH}>
+        <boxGeometry args={[0.27, parH, nsLen + 0.1]} />
         <SurfaceMaterial surface="wallWest" />
       </mesh>
-      <mesh position={[GEO.GF_W, FF_CEIL + parH + 0.03, GEO.GF_CZ]} castShadow {...capH}>
-        <boxGeometry args={[0.36, 0.07, 21.5]} />
+      <mesh position={[GEO.GF_W, FF_CEIL + parH + 0.03, 0]} castShadow {...capH}>
+        <boxGeometry args={[0.36, 0.07, nsLen + 0.2]} />
         <SurfaceMaterial surface="parapetCap" />
       </mesh>
 
-      {/* Prominent north canopy fascia (Monument) */}
-      <mesh position={[0, FF_CEIL + 0.18, mainNorth]} castShadow {...fasciaH}>
-        <boxGeometry args={[9.46, 0.42, 0.14]} />
+      {/* Main roof fascia (Monument) — east (view) and north edges */}
+      <mesh position={[GEO.FF_E + 0.45, FF_CEIL + 0.12, 0]} castShadow {...fasciaH}>
+        <boxGeometry args={[0.14, 0.34, GEO.FF_N - GEO.FF_S + 0.9]} />
         <SurfaceMaterial surface="fascia" />
       </mesh>
-      {/* Soffit under the canopy (eaves lining) */}
-      <mesh position={[0, FF_CEIL - 0.02, (GEO.FF_N + mainNorth) / 2]} {...eavesH}>
-        <boxGeometry args={[9.26, 0.04, 1.8]} />
-        <SurfaceMaterial surface="eaves" />
-      </mesh>
-      {/* East & south roof edge fascia */}
-      <mesh position={[GEO.FF_E + 0.5, FF_CEIL + 0.12, GEO.FF_CZ]} castShadow {...fasciaH}>
-        <boxGeometry args={[0.12, 0.28, 13.0]} />
-        <SurfaceMaterial surface="fascia" />
-      </mesh>
-      <mesh position={[GEO.FF_W - 0.5, FF_CEIL + 0.12, GEO.FF_CZ]} castShadow {...fasciaH}>
-        <boxGeometry args={[0.12, 0.28, 13.0]} />
+      <mesh position={[(GEO.FF_W + GEO.FF_E) / 2, FF_CEIL + 0.12, GEO.FF_N + 0.45]} castShadow {...fasciaH}>
+        <boxGeometry args={[GEO.FF_E - GEO.FF_W + 0.9, 0.34, 0.14]} />
         <SurfaceMaterial surface="fascia" />
       </mesh>
 
-      {/* Gutters (Monument) along GF roof edges, tied to fascia surface */}
-      <mesh position={[0, GF_CEIL - 0.03, GEO.GF_S - 0.18]} {...fasciaH}>
-        <boxGeometry args={[12.4, 0.12, 0.12]} />
+      {/* Eaves soffit under the east overhang */}
+      <mesh position={[GEO.FF_E + 0.25, FF_CEIL - 0.02, 0]} {...eavesH}>
+        <boxGeometry args={[0.4, 0.04, GEO.FF_N - GEO.FF_S]} />
+        <SurfaceMaterial surface="eaves" />
+      </mesh>
+
+      {/* GF roof gutter along the south edge (Monument) */}
+      <mesh position={[0, GF_CEIL - 0.03, GEO.GF_S - 0.16]} {...fasciaH}>
+        <boxGeometry args={[GEO.GF_E - GEO.GF_W - 0.4, 0.12, 0.12]} />
         <SurfaceMaterial surface="fascia" />
       </mesh>
     </group>

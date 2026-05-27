@@ -28,6 +28,7 @@ export interface Opening {
   offset: number // metres along the facade from the wall midpoint (+ = toward N/E end)
   room?: string
   code?: string
+  wall?: string // optional: pin the opening to a specific WallSeg.id
 }
 
 // A straight external wall run. Walls are extruded from a flat elevation

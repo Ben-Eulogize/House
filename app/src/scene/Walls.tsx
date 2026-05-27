@@ -102,10 +102,10 @@ function Wall({ wall }: { wall: WallSeg }) {
   const isPrimary = !wall.id.includes('alf')
   const holes = useMemo(
     () =>
-      isPrimary
-        ? HOUSE.openings.filter((o) => o.level === wall.level && o.facade === wall.facade)
-        : [],
-    [wall.level, wall.facade, isPrimary],
+      HOUSE.openings.filter((o) =>
+        o.wall ? o.wall === wall.id : isPrimary && o.level === wall.level && o.facade === wall.facade,
+      ),
+    [wall.id, wall.level, wall.facade, isPrimary],
   )
   const geom = useMemo(
     () => wallGeometry(wall.length, level.height, level.wallThickness, holes),
