@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { SURFACES, type SurfaceId } from '../data/finishes'
 
-export type ViewName = 'NE' | 'NW' | 'SE' | 'SW' | 'Aerial' | 'West'
+export type ViewName = 'NE' | 'NW' | 'SE' | 'SW' | 'Aerial' | 'West' | 'ElN' | 'ElS' | 'ElE' | 'ElW'
 
 function specDefaults(): Record<SurfaceId, string> {
   const out = {} as Record<SurfaceId, string>

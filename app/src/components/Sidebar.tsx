@@ -3,6 +3,12 @@ import { useStore, type ViewName } from '../store/useStore'
 
 const GROUP_ORDER: SurfaceDef['group'][] = ['Walls', 'Roof', 'Doors', 'Trim & Metal', 'Outdoor', 'Glazing']
 const VIEWS: ViewName[] = ['NE', 'NW', 'SE', 'SW', 'West', 'Aerial']
+const ELEV_VIEWS: { id: ViewName; label: string }[] = [
+  { id: 'ElN', label: 'North elev' },
+  { id: 'ElE', label: 'East elev' },
+  { id: 'ElS', label: 'South elev' },
+  { id: 'ElW', label: 'West elev' },
+]
 
 function Swatch({ color }: { color: string }) {
   return <span className="inline-block w-4 h-4 rounded-sm border border-black/20 shrink-0" style={{ background: color }} />
@@ -65,6 +71,18 @@ export function Sidebar() {
                   ${view === v ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'}`}
               >
                 {v}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {ELEV_VIEWS.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => setView(v.id)}
+                className={`px-2 py-1 rounded-md text-[10px] border transition
+                  ${view === v.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}
+              >
+                {v.label}
               </button>
             ))}
           </div>
