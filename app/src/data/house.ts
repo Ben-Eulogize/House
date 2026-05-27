@@ -29,14 +29,11 @@ const levels = [
 ]
 
 const walls: WallSeg[] = [
-  // ── Lower Floor ── (alfresco notch at NE)
+  // ── Lower Floor ── (rectangular envelope; alfresco is a covered NE corner)
   { id: 'LF-S', level: 'LF', facade: 'S', cx: (LF_W + LF_E) / 2, cz: LF_S, length: LF_E - LF_W, surface: 'wallSouth' },
+  { id: 'LF-N', level: 'LF', facade: 'N', cx: (LF_W + LF_E) / 2, cz: LF_N, length: LF_E - LF_W, surface: 'wallNorth' },
+  { id: 'LF-E', level: 'LF', facade: 'E', cx: LF_E, cz: 0, length: LF_N - LF_S, surface: 'wallEast' },
   { id: 'LF-W', level: 'LF', facade: 'W', cx: LF_W, cz: 0, length: LF_N - LF_S, surface: 'wallWest' },
-  { id: 'LF-N', level: 'LF', facade: 'N', cx: (LF_W + ALF_WEST) / 2, cz: LF_N, length: ALF_WEST - LF_W, surface: 'wallNorth' },
-  { id: 'LF-E', level: 'LF', facade: 'E', cx: LF_E, cz: (LF_S + ALF_SOUTH) / 2, length: ALF_SOUTH - LF_S, surface: 'wallEast' },
-  // alfresco inner walls
-  { id: 'LF-alfW', level: 'LF', facade: 'E', cx: ALF_WEST, cz: (ALF_SOUTH + LF_N) / 2, length: LF_N - ALF_SOUTH, surface: 'wallEast' },
-  { id: 'LF-alfS', level: 'LF', facade: 'N', cx: (ALF_WEST + LF_E) / 2, cz: ALF_SOUTH, length: LF_E - ALF_WEST, surface: 'wallNorth' },
 
   // ── Ground Floor ── (full rectangle, garage at west)
   { id: 'GF-S', level: 'GF', facade: 'S', cx: 0, cz: GF_S, length: GF_E - GF_W, surface: 'wallSouth' },
@@ -59,43 +56,42 @@ const D = (id: string, level: string, facade: Opening['facade'], width: number, 
   ({ id, kind: 'door', level, facade, width, height, sill: 0, offset, room })
 
 const openings: Opening[] = [
-  // ── Lower Floor ──
-  W('W1', 'LF', 'S', 1.51, 0.6, 1.5, -4.85, 'Bath'),
-  W('W2', 'LF', 'S', 0.45, 1.2, 1.0, -2.85, 'Laundry'),
-  W('W3', 'LF', 'S', 1.57, 0.6, 1.5, -0.85, 'Pantry'),
-  D('D1', 'LF', 'S', 0.9, 2.1, -6.65, 'Laundry'),
-  W('W5', 'LF', 'N', 1.57, 1.8, 0.6, 1.1, 'Family/Dining'),
-  W('W6', 'LF', 'N', 1.57, 1.8, 0.6, -1.9, 'Family/Dining'),
-  D('D2', 'LF', 'N', 3.25, 2.8, 5.1, 'Family — alfresco'),
+  // ── Lower Floor ──  (E facade offset = -worldZ; N offset = worldX-1.155; S = 1.155-worldX; W = worldZ)
+  W('W4', 'LF', 'E', 4.0, 2.85, 0.05, 3.3, 'Dining'), // south end
+  D('D3', 'LF', 'E', 4.7, 2.85, -2.6, 'Dining — alfresco'), // north end
+  W('W5', 'LF', 'N', 1.57, 1.8, 0.6, -2.155, 'Family/Dining'),
+  W('W6', 'LF', 'N', 1.57, 1.8, 0.6, -5.155, 'Family/Dining'),
+  D('D2', 'LF', 'N', 3.25, 2.85, 4.845, 'Family — alfresco'), // NE, by alfresco
   W('W7', 'LF', 'W', 1.81, 1.8, 0.6, -2.0, 'Family/Dining'),
   W('W9', 'LF', 'W', 2.17, 1.8, 0.6, 3.0, 'Guest/Study'),
-  D('D3', 'LF', 'E', 4.7, 2.85, 0.0, 'Dining — alfresco'),
-  { ...W('W4', 'LF', 'E', 4.0, 2.7, 0.2, -0.37, 'Dining'), wall: 'LF-alfW' },
-  { ...W('W8', 'LF', 'E', 1.81, 1.2, 0.9, 2.33, 'Media'), wall: 'LF-alfW' },
+  W('W1', 'LF', 'S', 1.51, 0.6, 1.5, -4.845, 'Bath'),
+  W('W2', 'LF', 'S', 0.45, 1.2, 1.0, -2.845, 'Laundry'),
+  W('W3', 'LF', 'S', 1.57, 0.6, 1.5, -0.845, 'Pantry'),
+  D('D1', 'LF', 'S', 0.9, 2.1, -6.345, 'Laundry'),
 
   // ── Ground Floor ──
-  D('D4', 'GF', 'W', 5.0, 2.38, 3.0, 'Garage'),
-  D('D5', 'GF', 'W', 1.2, 2.34, -3.5, 'Entry'),
+  W('W12', 'GF', 'E', 4.0, 1.8, 0.3, 3.0, 'Master'), // south end
+  W('W14', 'GF', 'E', 3.0, 1.37, 0.6, -2.8, 'Bed 2'), // north end
+  D('D4', 'GF', 'W', 5.0, 2.38, 3.0, 'Garage'), // NW
+  D('D5', 'GF', 'W', 1.2, 2.34, -3.5, 'Entry'), // SW
   W('W17', 'GF', 'W', 1.0, 1.37, 0.6, -0.5, 'Bed 3'),
   W('W19', 'GF', 'N', 3.01, 0.6, 1.95, -8.0, 'Garage'),
   W('W23', 'GF', 'N', 1.21, 0.6, 1.5, -2.0, 'Powder'),
   W('W16', 'GF', 'N', 2.41, 0.9, 0.9, 1.0, 'Bed 3'),
   W('W15', 'GF', 'N', 2.41, 0.9, 1.5, 4.0, 'Bed 2'),
   W('W13', 'GF', 'N', 1.81, 1.8, 0.3, 8.0, 'Master'),
-  W('W12', 'GF', 'E', 4.0, 1.8, 0.3, 4.0, 'Master'),
-  W('W14', 'GF', 'E', 3.0, 1.37, 0.6, -1.5, 'Bed 2'),
-  D('D7', 'GF', 'E', 1.81, 2.1, -4.5, 'Living'),
   W('W10', 'GF', 'S', 1.81, 0.6, 1.5, 3.0, 'Bath'),
   W('W11', 'GF', 'S', 1.57, 0.6, 1.5, -2.0, 'Ensuite'),
 
-  // ── First Floor ──
-  W('W21', 'FF', 'E', 4.56, 0.9, 1.6, -1.5, 'Stairs'),
-  D('D6', 'FF', 'E', 3.61, 2.2, 2.5, 'Rumpus — balcony'),
+  // ── First Floor ──  (D7 + W21 on east per elevation; D6 + W20 on west)
+  D('D7', 'FF', 'E', 1.81, 2.1, 2.5, 'Rumpus — balcony'), // south end
+  W('W21', 'FF', 'E', 4.56, 0.9, 1.6, -1.5, 'Stairs'), // north end, clerestory
+  D('D6', 'FF', 'W', 3.61, 2.2, -1.5, 'Guest'),
+  W('W20', 'FF', 'W', 3.12, 1.8, 0.3, 2.0, 'Guest'),
   W('W18', 'FF', 'N', 1.81, 2.4, 0.1, -3.315, 'Stairs'),
   W('W22', 'FF', 'N', 1.81, 2.4, 0.1, -5.315, 'Stairs'),
   W('W24', 'FF', 'N', 2.41, 1.2, 0.6, 1.685, 'Guest'),
-  W('W20', 'FF', 'W', 3.12, 1.8, 0.3, 0.0, 'Guest'),
-  W('W27', 'FF', 'S', 1.21, 0.6, 1.5, 1.3, 'Powder'),
+  W('W27', 'FF', 'S', 1.21, 0.6, 1.5, 1.315, 'Powder'),
 ]
 
 const FF_CEIL = FF_Y + 2.6 // 9.25

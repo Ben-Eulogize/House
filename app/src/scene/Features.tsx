@@ -128,22 +128,23 @@ export function Features() {
 function ExternalStairs() {
   const h = useSurfaceHandlers('stairs')
   const railH = useSurfaceHandlers('balustrade')
-  const n = 14
-  const run = 4.2
+  // Runs along the south wall (in X), descending GF -> ground, hugging the face.
+  const n = 13
+  const run = 4.4
   const rise = GEO.GF_Y / n
   const going = run / n
-  const x = 5.0
-  const z0 = GEO.GF_S - 0.6
+  const x0 = 3.0
+  const z = GEO.GF_S - 0.85
   return (
     <group>
       {Array.from({ length: n }).map((_, i) => (
-        <mesh key={i} position={[x, GEO.GF_Y - i * rise - rise / 2, z0 - i * going]} castShadow receiveShadow {...h}>
-          <boxGeometry args={[1.3, rise, going + 0.02]} />
+        <mesh key={i} position={[x0 + i * going, GEO.GF_Y - i * rise - rise / 2, z]} castShadow receiveShadow {...h}>
+          <boxGeometry args={[going + 0.02, rise, 1.5]} />
           <SurfaceMaterial surface="stairs" />
         </mesh>
       ))}
-      <mesh position={[x + 0.7, GEO.GF_Y / 2 + 0.5, z0 - run / 2]} rotation={[Math.atan2(GEO.GF_Y, run), 0, 0]} {...railH}>
-        <boxGeometry args={[0.05, 0.05, Math.sqrt(run * run + GEO.GF_Y * GEO.GF_Y)]} />
+      <mesh position={[x0 + run / 2, GEO.GF_Y / 2 + 0.5, z - 0.7]} rotation={[0, 0, Math.atan2(GEO.GF_Y, run)]} {...railH}>
+        <boxGeometry args={[Math.sqrt(run * run + GEO.GF_Y * GEO.GF_Y), 0.05, 0.05]} />
         <SurfaceMaterial surface="balustrade" />
       </mesh>
     </group>
