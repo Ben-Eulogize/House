@@ -1,161 +1,110 @@
 Category,Item,Plan Value,Model Value,Status,Notes
 ,,,,
+AUDIT VERSION,,,,
+Meta,Model rebuild,Rev S construction set (27-01-2026),Full rebuild 2026-07-10: L-shape footprints + skillion roofs + walkable interiors + first-person mode,OK,"Sheets used: p7/p8/p18 (LGF), p9/p19 (GF), p10/p20 (FF), p11-p14+p17 (elevations/sections), p15 (roof plan), p3 (site). Rev U CC set (17-04-25, DWG only) noted but not machine-readable here; Rev S remains source of truth per GOAL.md"
+,,,,
 FLOOR LEVELS,,,,
 Level,Lower Floor RL,28.890 (Y=0 datum),Y=0,OK,Datum correctly set
-Level,Lower Floor Ceiling RL,31.890 (Y=3.0),Y=3.0 (LF_H=3.0),OK,
-Level,Ground Floor RL,32.340 (Y=3.45),Y=3.45 (GF_Y=3.45),OK,
-Level,Ground Floor Ceiling RL,35.090 (Y=6.2),Y=6.2 (GF_Y+GF_H=3.45+2.75),OK,
-Level,First Floor RL,35.540 (Y=6.65),Y=6.65 (FF_Y=6.65),OK,
-Level,First Floor Ceiling RL,38.140 (Y=9.25),Y=9.25 (FF_Y+FF_H=6.65+2.6),OK,
-Level,Finished Ridge RL,38.970 (Y=10.08),~Y=9.325 (FF_Y+FF_H+0.075),ERROR,"Ridge height too low. Roof slab at FF ceiling+0.075 = 9.325 vs required 10.08. Missing ~0.75m — roof pitch should raise ridge to 10.08"
+Level,Lower Floor Ceiling RL,31.890 (Y=3.0),Y=3.0,OK,
+Level,Ground Floor RL,32.340 (Y=3.45),Y=3.45,OK,
+Level,Ground Floor Ceiling RL,35.090 (Y=6.2),Y=6.2,OK,
+Level,First Floor RL,35.540 (Y=6.65),Y=6.65,OK,
+Level,First Floor Ceiling RL,38.140 (Y=9.25),Y=9.25,OK,
+Level,Finished Ridge RL,38.970 (Y=10.08),Y=10.08 at street edge of main skillion,OK,"FIXED: main roof is a 5-deg skillion HIGH at the street edge (RL 38.970) falling toward the garden, per elevations + sections (not a symmetric pitched roof)"
+Level,Garage SFL,32.254 (86mm stepdown),Y=3.364,OK,
+Level,Porch SFL,32.254 (86mm stepdown),Y=3.364,OK,
+Level,Alfresco SFL,28.804 (86mm stepdown),Y=-0.086,OK,
+Level,Front balcony SFL,35.454,Y=6.564,OK,
+Level,Rear balcony SFL,35.390,Y=6.50,OK,
 ,,,,
-LOWER FLOOR,,,,
-Dimension,Width (E-W),12010mm,12.01m (LF_W),OK,
-Dimension,Depth (N-S),18710mm,18.71m (LF_D),OK,
-Dimension,Floor-to-ceiling height,3000mm,3.0m (LF_H),OK,
-Dimension,Wall thickness,270mm cavity brick,0.27m (WALL),OK,
-Area,Floor area,191.4 m²,"12.01×18.71=224.7 m²",QUERY,"Plan says 191.4 m² — implies L-shape or excluded areas (alfresco?). Model uses full rectangle"
-Feature,Alfresco 28.6 m²,South side separate covered area,Not modelled as separate area,ERROR,"Alfresco should be a separate open area on the south. Currently merged into main rectangular footprint"
-Colour,West wall,Monument (Scyon Axon),M.monument,OK,
-Colour,North wall,Rendered Grey Pebble,M.render,OK,
-Colour,East wall,Rendered Grey Pebble,M.render,OK,
-Colour,South wall,Rendered Grey Pebble,M.render,OK,
+FOOTPRINTS,,,,
+Area,Lower floor L-shape,191.4 m2 (12010 x 18710 minus alfresco + stair lightwell notch + east recess),"L-shape modelled: alfresco void SW (6350x4000), west notch at stair (2640x2530), east face recess 405 for garden 7325",OK,"FIXED: was a full 224.7 m2 rectangle"
+Area,Alfresco / courtyard,28.6 m2 covered outdoor room SW + open courtyard void above (vergola 6655x3075),"Double-height space: open garden edge (970 pier + 5610 clear), D3/D2 stackers, VERGOLA AT THE TOP of the void (GF-roof line) so the GF reads as a courtyard between Master (W13) and Bed2 (W14)",OK,"FIXED twice: was merged into the box; then vergola was wrongly at LGF ceiling — now at the void top per GF plan/roof plan"
+Area,Ground floor,163.0 m2 + garage 46.2 + porch 2.8,"12010 x 21020 envelope; garden-west void over alfresco (GF wall inset 3000 on west half); garage volume NW (5920x6135, 86 stepdown) with workshop (2530x2530); porch recess 1260 wide",OK,"FIXED: was a full 252.3 m2 rectangle with no garage volume"
+Area,First floor,65.9 m2 (8260 x 11570 envelope incl balconies),"FF box x -3.345..+4.915 (2660 off GF west face), z +0.095..+11.665; enclosed area minus front loggia + rear balcony + stair void",OK,"FIXED: was a 93.9 m2 rectangle; wall thickness now 185 EPS (was 270)"
+Feature,Front balcony,6.5 m2 at street facade,"Recessed loggia 4.57 x 1.29 behind the Axon facade line, glass balustrade, D6 stacker",OK,
+Feature,Rear balcony,15.6 m2 garden end east,"4.85 x 3.665 + L-return west (per FF slab plan stagger), glass balustrade + east privacy screen, roof over",OK,
 ,,,,
-LOWER FLOOR WINDOWS,,,,
-Window,W1 Bath South,H=600 W=1510 → 1.51m wide × 0.6m tall,addWin 1.51 wide 0.6 tall,OK,
-Window,W2 Laundry South,H=1200 W=450 → 0.45m wide × 1.2m tall,addWin 0.45 wide 1.2 tall,OK,
-Window,W3 Pantry South,H=600 W=1570 → 1.57m wide × 0.6m tall,addWin 1.57 wide 0.6 tall,OK,
-Window,W4 Dining East,H=3000 W=4000 → 4.0m wide × 3.0m tall,"addWin 4.0 wide 2.7 tall (capped at wall height-sill)",WARN,"Height capped from 3.0m to 2.7m due to 3.0m wall + 0.15m sill. Should be virtually full height"
-Window,W5 Family North,H=1800 W=1570 → 1.57m wide × 1.8m tall,addWin 1.57 wide 1.8 tall,OK,
-Window,W6 Family North,H=1800 W=1570 → 1.57m wide × 1.8m tall,addWin 1.57 wide 1.8 tall,OK,
-Window,W7 Family West,H=1800 W=1810 → 1.81m wide × 1.8m tall,addWin 1.81 wide 1.8 tall,OK,
-Window,W8 Media East,H=1200 W=1810 → 1.81m wide × 1.2m tall,addWin 1.81 wide 1.2 tall,OK,
-Window,W9 Guest West,H=1800 W=2170 → 2.17m wide × 1.8m tall,addWin 2.17 wide 1.8 tall,OK,
-Position,W1 cx along south wall,-4.0m from centre,Estimated — no plan dimension,QUERY,Position is approximate. Need floor plan dimension for exact placement
-Position,W2 cx along south wall,-2.0m from centre,Estimated,QUERY,Position approximate
-Position,W3 cx along south wall,+0.5m from centre,Estimated,QUERY,Position approximate
-Position,W4 cz along east wall,+2.0m from centre,Estimated,QUERY,Position approximate
-Position,W5 cx along north wall,+1.5m from centre,Estimated,QUERY,"All window positions along walls are estimated — exact positions require measuring from dimensioned floor plans at higher resolution"
-Position,W6 cx along north wall,+4.0m from centre,Estimated,QUERY,
-Position,W7 cz along west wall,+3.0m from centre,Estimated,QUERY,
-Position,W8 cz along east wall,-4.0m from centre,Estimated,QUERY,
-Position,W9 cz along west wall,-4.0m from centre,Estimated,QUERY,
+ROOFS,,,,
+Roof,Main roof form,5-deg skillion; ridge RL 38.970 at street; 600 eave o/h,Sloped box high at z=+11.97 (Y10.08) falling to garden; Monument fascias; gutter at low edge,OK,"FIXED: previous flat slab at Y9.325"
+Roof,GF garden roof,5-deg skillion over GF garden zone tucking under FF; 600 o/h,Two planes (east of alfresco void full-depth; west part from bed2 wall); fascia + gutters at garden edges,OK,
+Roof,Side strips,2-deg planes + box gutters flanking FF where GF is wider,Modelled both sides with dark box-gutter strips,OK,
+Roof,Parapets,RL 35.890 (800 above GF ceiling) both long sides + street returns,Y7.0 parapets with Surfmist capping,OK,
+Roof,Skylights W25 W26,FCM 2230 pair in the GF garden roof over ensuite/WIR,Two units on the garden roof plane,OK,"FIXED: were previously on the FF roof"
+Roof,PV system,6.63kW on FF roof,18-panel array on the FF skillion,OK,
+Roof,Vergola,S&I 200mm louvres Surfmist over alfresco,Louvre set + frame at LGF ceiling level with posts at the open garden edge,OK,
 ,,,,
-LOWER FLOOR DOORS,,,,
-Door,D1 Laundry South,"H=2100 W=900 → 0.9m×2.1m, Hume XF3","0.9m×2.1m, M.render colour",OK,Colour matches Grey Pebble per schedule
-Door,D3 East Stacker,"H=3000 W=4700 → 4.7m×3.0m, alum",4.7m wide × 2.85m tall (capped),WARN,Height capped to fit 3.0m wall minus sill
-Position,D1 cx,-3.0m from centre,Estimated,QUERY,
-Position,D3 cz,-3.0m from centre,Estimated,QUERY,
+ELEVATIONS / MATERIALS,,,,
+Material,Scyon Axon Monument,West (street) elevation FF band only,FF street facade Axon with 133mm vertical battens; venetian blind over W20,OK,"FIXED: was wrongly on the model-west long walls; street facade = TRUE west"
+Material,Render Grey Pebble 1/2 Str,All cavity brick + EPS walls,#cec8c1 all elevations except Axon band,OK,Colour discrepancy note retained in legend (plans say Quarter strength)
+Material,EPS decorative band,700 band at slab junctions,Garden + side faces at LGF/GF junction; FF slab edge,OK,No longer floats across the alfresco opening
+Material,Windows/doors,PC aluminium Monument; black hardware,Monument frames on all openings; real reveals (openings cut through walls),OK,
+Elevation,Street (true W),"Garage D4 5000x2380 (730 from W corner), porch + D5 pivot 1200, W9; FF: W20 + venetian, D6 loggia",All present at plan positions,OK,
+Elevation,Garden (true E),"LGF: W4 4000x3000 dining + open alfresco; GF: W12 4000x1800 master + seat, W14 over void; FF: W21 900x4560 + D7 + framed balcony screens",All present; W21 rebuilt full-width 2026-07-10,OK,
+Elevation,North long side (model W),"LGF D2/W5/W6 + fireplace between; stair W7/W17/W18 + W22 opaque F3718; GF W15/W16 + W19 garage strip; FF W23/W24",All present; W18 tall unit runs into void band; W22 spans Y5.55-9.25,OK,
+Elevation,South long side (model E),"LGF W1/W2/W3 + D1 at stair base; GF W10/W11; external stair descending street-to-garden; A/C + GAS HWS",All present,OK,
 ,,,,
-GROUND FLOOR,,,,
-Dimension,Width (E-W),12010mm,12.01m (GF_W),OK,
-Dimension,Depth (N-S),~21020mm,21.02m (GF_D),OK,Matches plan dimension chain on page 9 (21020mm on left edge)
-Dimension,Floor-to-ceiling height,2750mm (35.090-32.340),2.75m (GF_H),OK,
-Dimension,Wall thickness,270mm,0.27m,OK,
-Area,Ground Floor,163.0 m²,"12.01×21.02=252.3 m²",ERROR,"Model is full rectangle. Plan says 163.0 m². Ground floor is NOT a full rectangle — it has the garage as a separate volume and internal voids/stairs"
-Feature,Garage,"~5000mm × 8460mm = 46.2 m², NW corner",Not carved out — garage door on west wall,ERROR,"Garage should be an identifiable volume in the NW corner. Currently just a door on the west wall with no volume distinction"
-Feature,Porch,2.8 m² near entry,1.5m × 3.0m = 4.5 m²,WARN,"Porch area oversized. Plan says 2.8 m², model shows ~4.5 m²"
-Alignment,South edge,Aligns with Lower Floor south,GF_S = LF_S = -9.355,OK,
-Alignment,North edge,Extends north of LF for garage,GF_N = +11.665 (2.31m north of LF),OK,
+WINDOW SCHEDULE (codes = h x w mm),,,,
+Window,W1 AF0615 bath LGF east,1510x600 sill ~1800,1.51x0.6 sill 1.8,OK,
+Window,W2 A1204 laundry east,450x1200,0.45x1.2 sill 0.9,OK,
+Window,W3 A0616 pantry east,1570x600 sill 925,1.57x0.6 sill 0.925,OK,
+Window,W4 AFA3040T dining garden,4000x3000 full height,4.0x2.86 sill 0.06,OK,
+Window,W5/W6 AF1815T family west,1570x1800 pair with fireplace joinery between,1.57x1.8 sill 0.6 at cz -4.1/-0.9,OK,
+Window,W7 AA1818 stair lightwell,1810x1800,1.81x1.8 on notch face,OK,Position approximated within the lightwell
+Window,W8 AF1218 media west,1810x1200,1.81x1.2 sill 0.9,WARN,Plan tags W7/W8 both at the stair notch; W8 placed on media wall (matches old audit read) — verify against a higher-res crop if it matters
+Window,W9 AF1822 guest street,2170x~2100,2.17x2.1 sill 0.3,OK,
+Window,W10 A0618 bath GF east,1810x600 sill 1800,1.81x0.6 sill 1.8,OK,
+Window,W11 AA0616 ensuite east,1570x600 sill 1800,1.57x0.6 sill 1.8,OK,
+Window,W12 AFA1840 master garden,4000x1800 + window seat,4.0x1.8 sill 0.5 + seat joinery,OK,
+Window,W13 AA1818 master west over void,1810x1800,1.81x1.8 sill 0.6,OK,
+Window,W14 AA1430 bed2 garden,3010x1400,3.01x1.4 sill 0.9,OK,
+Window,W15/W16 AA0924 beds west,2410x900 sill 1500,2.41x0.9 sill 1.5,OK,
+Window,W17 AA1410 stair west GF,1000x1400,1.0x1.4 sill 0.9,OK,
+Window,W18 F3018 stair west tall,1810x2950,1.81x2.95 sill 0.3 (runs into void band),OK,
+Window,W19 AFA0630 garage west,3010x600 high,3.01x0.6 sill 1.95,OK,
+Window,W20 AF1832 FF guest street,3170x1800 + motorised venetian,3.17x1.8 sill 0.3 + blind slats,OK,
+Window,W21 FFF0946 stair/rumpus garden fixed,4560x900 at x -3.0..1.56 (chain 345|4560|610|1810|935),4.56x0.9 sill 1.2 c-0.72,OK,mm-verified vs Rev S p10 + Rev U DXF
+Window,W22 F3718 stair opaque,1810x3700 spans GF/FF,1.81x3.7 opaque glazing Y5.55-9.25,OK,
+Window,W23 A0612 powder west,1210x600 sill 1800 at powder band z5.185-7.075,1.21x0.6 sill 1.8 c6.13,OK,powder room itself moved 1.7m streetward per p10 chain
+Window,W24 AA1224 FF guest west,2410x1200 head 2400 (sill 1200),2.41x1.2 sill 1.2 c9.6,OK,
 ,,,,
-GROUND FLOOR WINDOWS,,,,
-Window,W10 Bath South,H=600 W=1810 → 1.81m wide × 0.6m tall,addWin 1.81 wide 0.6 tall,OK,
-Window,W14 Bed2 East,H=1370 W=3000 → 3.0m wide × 1.37m tall,addWin 3.0 wide 1.37 tall,OK,
-Window,W15 Bed2 North,H=900 W=2410 → 2.41m wide × 0.9m tall,addWin 2.41 wide 0.9 tall,OK,
-Window,W16 Bed3 North,H=900 W=2410 → 2.41m wide × 0.9m tall,addWin 2.41 wide 0.9 tall,OK,
-Window,W17 Bed3 West,H=1370 W=1000 → 1.0m wide × 1.37m tall,addWin 1.0 wide 1.37 tall,OK,
-Window,W18 Stairs North,H=2950 W=1810 → 1.81m wide × 2.95m tall,"addWin 1.81 wide 2.5 tall (capped at GF_H-0.25)",WARN,"Height capped from 2.95m to 2.5m. May span across floor slab in reality (stairwell)"
-Window,W19 Garage North,H=600 W=3010 → 3.01m wide × 0.6m tall,addWin 3.01 wide 0.6 tall,OK,
-Window,W22 Stairs North,"H=3680 W=1810 → 1.81m wide × 3.68m tall, spans LF/GF","addWin on LF_N wall, 1.81 wide × 3.0 tall (capped)",WARN,"Height capped from 3.68m to 3.0m. This window spans two floors — should extend from LF through GF. Currently only 3.0m on LF north wall"
-Window,W23 Powder North,H=600 W=1210 → 1.21m wide × 0.6m tall,addWin 1.21 wide 0.6 tall,OK,
-Position,W15 on GF_N wall,"cx=+4.5, but GF_N=+11.665","Window at Z=+11.665, X=+4.5",QUERY,"X position +4.5 means 4.5m east of centre. Bed2 is on east side so plausible but unverified"
-Position,W18 on GF_N wall,"cx=-1.5, GF_N=+11.665",X=-1.5 (1.5m west of centre),QUERY,Stairs are central-west so plausible
-Position,W19 on GF_N wall,"cx=-4.5, GF_N=+11.665",X=-4.5 (4.5m west — in garage zone),OK,Garage is on west side
-Position,W22 on LF_N wall,"cx=-3.0, LF_N=+9.355",X=-3.0,QUERY,"Should this be on GF_N (+11.665) not LF_N (+9.355)? Stairs connect both levels but the window is on the north wall. The GF north wall is 2.3m further north."
+DOOR SCHEDULE,,,,
+Door,D1 laundry east,900x2100 Hume XF3,0.9x2.1 leaf ajar,OK,
+Door,D2 XXF3032 dining-alfresco,3200x3000 stacker,3.2x2.9 glass stacker with walk gap,OK,
+Door,D3 FXX3047 family-alfresco,4700x3000 stacker,4.7x2.9 glass stacker with walk gap,OK,
+Door,D4 garage,5000x2380 B&D Madrid,5.0x2.38 Monument panel with profile lines,OK,
+Door,D5 entry,1200x2340 pivot Hume Savoy Pacific Maple,1.2x2.34 timber leaf ajar in porch recess,OK,
+Door,D6 FXX2436 rumpus-front balcony,3610x2400 stacker,3.61x2.4 glass stacker with walk gap,OK,
+Door,D7 XF2118 to rear balcony,1810x2100 slider in the balcony north wall,1.81x2.1 glass slider in the z=3.46 wall (rumpus side) per the 300dpi FF plan crop,OK,"FIXED from the earlier compromise — balcony re-set to x0.315..4.665 z0.09..3.46 (15.6 m2 check passes)"
+Door,Internal doors,2340 LGF/GF; 2040 FF; 110 brick / 90 framed walls,All partitions with cut openings at those heights,OK,
 ,,,,
-GROUND FLOOR DOORS,,,,
-Door,D2 North Stacker,"H=3000 W=3250 → 3.25m×3.0m, alum","3.25m wide × 2.6m tall (capped at GF_H-0.15)",WARN,Height capped from 3.0m to 2.6m
-Door,D4 Garage West,"H=2380 W=5000 → 5.0m×2.38m, B&D Madrid","5.0m wide × 2.38m tall on west wall",OK,Dimensions match. West wall per door schedule
-Door,D5 Entry West,"H=2340 W=1200 → 1.2m×2.34m, Hume Savoy",1.2m × 2.34m on west wall,OK,Timber colour applied
-Door,D7 East Stacker,"H=2100 W=1810 → 1.81m×2.1m, alum",1.81m wide × 2.1m tall on east wall,OK,
-Position,D4 garage Z,garZ = GF_N - 4.0 = +7.665,Estimated — garage in NW,QUERY,Should be verified against floor plan
-Position,D5 entry Z,entryZ = garZ - 4.5 = +3.165,Estimated,QUERY,Entry should be south of garage but exact position unverified
-Position,D2 cx on north wall,+2.0m east of centre,Estimated,QUERY,
-Position,D7 cz on east wall,+5.0m north of centre,Estimated,QUERY,
+INTERIORS (NEW),,,,
+Rooms,LGF,"Family/Dining, Kitchen (island 1000x3000 + bench + overheads + fridge), Pantry, L'dry (+chute), Bath, Media (carpet), Wine cellar (racks), WIL/Storage, Hall, stair w/ store under",All modelled with floor finishes per legend (TF/tiles/carpet),OK,
+Rooms,GF,"Master (bed/seat) + WIR + Ensuite, Bed2, Bed3 + robes band, Bath (1500 tub), WIL + chute, Guest/Study + robe, Entry + porch, Mud, Workshop, Garage",All modelled,OK,Wet rooms tiled; beds carpet; halls timber
+Rooms,FF,"Rumpus (bar + REF niche), Guest, Powder (V1200), void over stair, both balconies",All modelled,OK,
+Stairs,Dog-leg 2x10R per level; open risers GF-FF; landing at west window wall,"Both stairs + landings + rails + glass void balustrades; walkable (verified: LGF-GF-FF both directions)",OK,
+Fireplace,LOPI 4415HO GS2 family west wall,Firebox + joinery + glow,OK,
+Walk mode,Pointer-lock WASD + touch + level jump,"Eye 1.6m, gravity, wall collision, stair ramps, balcony + alfresco + garden access verified programmatically",OK,
 ,,,,
-FIRST FLOOR,,,,
-Dimension,Width (E-W),8260mm,8.26m (FF_W),OK,
-Dimension,Depth (N-S),~11370mm,11.37m (FF_D),OK,
-Dimension,Floor-to-ceiling height,2600mm (38.140-35.540),2.6m (FF_H),OK,
-Dimension,Wall thickness,"185mm EPS clad framed wall (per plan note: EXTERNAL WALL 185 EPS CLAD FRAMED WALL)",0.27m (uses WALL=0.27),ERROR,"First floor uses 185mm EPS walls not 270mm cavity brick. Model uses 270mm for all floors"
-Area,First Floor,65.9 m²,"8.26×11.37=93.9 m²",ERROR,"Model full rectangle = 93.9 m². Plan says 65.9 m² — first floor has voids, stairwell, irregular shape"
-Alignment,FF north edge,Per sections: roughly aligns with LF north edge,FF_N = LF_N = +9.355,OK,"Reasonable assumption from Section A-A"
-Alignment,FF E-W centering,Centred on building,FF_E=+4.13 FF_Wst=-4.13 (centred),QUERY,"First floor may not be centred E-W. From elevations it appears offset. Need high-res plan to confirm"
-Feature,Front Balcony,6.5 m²,"8.26m × 1.0m = 8.26 m²",WARN,"Balcony area oversized: 8.26 m² vs plan's 6.5 m². Width may not span full FF width"
-Feature,Rear Balcony,15.6 m²,"5.5m × 2.8m = 15.4 m²",OK,Close match (15.4 vs 15.6 m²)
+SITE,,,,
+Site,Slope,Street ~RL 33.5-34 (Y4.6-5.1) falling to garden ~RL 28.5,Terrain function + mesh; driveway ramp cut to garage apron; east cut bank at external stair; west retained bank stepping down to garden,OK,
+Site,External stair,19R concrete + Monument balustrade along east face street-to-garden,Modelled + walkable ramp,OK,
+Site,Pool,3.5 x 5.6 coping RL 28.450 (site plan p17),Modelled with coping deck + water + guard collider,OK,Landscaping beyond pool is indicative only
+Site,A/C + HWS,Acoustic enclosure east side (Actron LRC-071CS) + 2x GAS HWS,Modelled,OK,
+Site,Fences/retaining,1.8 boundary fences + retaining walls,Indicative,WARN,Boundary geometry simplified to a rectangle; true lot is a trapezoid
 ,,,,
-FIRST FLOOR WINDOWS,,,,
-Window,W11 Ensuite South,H=600 W=1570 → 1.57m wide × 0.6m tall,"addWin on FF_S, 1.57 wide × 0.6 tall",OK,Correctly placed on first floor
-Window,W12 Master East,H=1800 W=4000 → 4.0m wide × 1.8m tall,"addWin on FF_E, 4.0 wide × 1.8 tall",OK,
-Window,W13 Master North,H=1800 W=1810 → 1.81m wide × 1.8m tall,"addWin on FF_N, 1.81 wide × 1.8 tall",OK,
-Window,W20 Guest West,H=1800 W=3120 → 3.12m wide × 1.8m tall,"addWin on FF_Wst, 3.12 wide × 1.8 tall",OK,
-Window,W21 Stairs East,H=900 W=4560 → 4.56m wide × 0.9m tall,"addWin on FF_E, 4.56 wide × 0.9 tall",OK,
-Window,W24 Guest North,H=1200 W=2410 → 2.41m wide × 1.2m tall,"addWin on FF_N, 2.41 wide × 1.2 tall",OK,
-Window,W27 Stairs North,H=2950 W=1810 → 1.81m wide × 2.95m tall,"addWin on FF_N, 1.81 wide × 2.4 tall (capped)",WARN,Height capped from 2.95m to 2.4m to fit 2.6m wall
-Window,W12 wallX,Uses FF_E = +4.13,"LF_E = +6.005 for GF east wall, but FF_E = +4.13",QUERY,"W12 is on the first floor east wall at X=+4.13 — correct for FF. But the plan may show it projecting further east if master has a bump-out"
-,,,,
-FIRST FLOOR DOORS,,,,
-Door,D6 West Stacker,"H=2400 W=3610 → 3.61m×2.4m, alum","3.61m wide × 2.2m tall (capped from 2.4m)",WARN,Height slightly reduced
-,,,,
-ROOF,,,,
-Dimension,Roof pitch main,5°,"rotation.x = 5°×π/180",OK,
-Dimension,Roof pitch secondary,2°,"rotation.x = 2°×π/180",OK,Applied to south GF roof section
-Dimension,Finished Ridge height,RL 38.970 (Y=10.08),"Roof slab at Y ≈ 9.325 (FF_Y+FF_H+0.075)",ERROR,"Ridge ~0.755m too low. With 5° pitch over ~6m half-span, rise = 6×tan(5°) = 0.52m. So ridge should be at 9.25+0.52 = 9.77m. Still short of 10.08m. Parapet height makes up some difference but ridge itself is under-height"
-Feature,Kliplock profile,Sheet metal,Surfmist material applied,OK,Colour correct
-Feature,Skylights W25 W26,"2× FCM 2230, 720×550mm","2× boxes 0.72×0.55m on roof",OK,Dimensions match
-Feature,PV panels 6.63kW,East-facing roof section,"3×6 panel array on east roof",OK,General indication present
-Feature,Parapet west,Full-length west parapet,"WALL thick × 0.8m tall, full GF_D",OK,
-Feature,Parapet cap,Colorbond Surfmist,M.surfmist 0.35m wide cap,OK,
-,,,,
-EXTERNAL FEATURES,,,,
-Feature,Vergola,"S&I Lifestyle Louvres 200mm, Surfmist, over alfresco","5.5m×5.2m louvre structure, Surfmist",QUERY,"Size estimated — alfresco is 28.6 m². Vergola sized at 28.6 m² = ~5.5×5.2m is reasonable"
-Feature,External stairs,"Concrete + tile, south elevation, from GF to LF","18 steps, 1.2m wide, east of south elevation",OK,General form correct
-Feature,Stair balustrade,PC Aluminium Monument Panorama,Monument vertical bars + top rail,OK,
-Feature,Venetian blind W20,Motorised LLV80 Monument west elevation,0.05×2.0×3.2m box on west of FF,OK,General indication
-Feature,Glass balustrade front,"12mm toughened glass + U-channel, Monument","Glass panel + Monument U-channel + top rail",OK,
-Feature,Privacy screen,"70×16mm slat, Monument, balcony","12 slats on each side of front balcony",OK,
-Feature,Timber posts porch,"3× 180×65 dressed, Monument","3 posts 0.065×0.18m, Monument",OK,Dimensions match
-Feature,Timber posts balcony,"3× 180×65 dressed, Monument","3 posts on front balcony",OK,
-Feature,Downpipes,"90mm PVC painted Grey Pebble",4 corner downpipes r=45mm M.render colour,OK,
-Feature,Guttering,"Round line flatback half round, Monument",Cylinder mesh M.monument,OK,
-Feature,Eaves lining,Grey Pebble 1/2 Strength,"Single soffit panel, M.render",WARN,Only one eaves soffit modelled (south FF). Should be on all eaves
-,,,,
-COLOURS,,,,
-Colour,Render walls,Dulux Grey Pebble 1/2 Str S14B1H #cec8c1,0xcec8c1,OK,
-Colour,Monument,Colorbond Monument #3d4040,0x3d4040,OK,
-Colour,Surfmist,Colorbond Surfmist #e8e1d4,0xe8e1d4,OK,
-Colour,Timber entry door,Pacific Maple clear stain #8b6f47,0x8b6f47,OK,
-Colour,Glass tint,N/A (visual representation),0x8ec8d8,OK,Stylistic choice
-Colour,Concrete stairs,N/A #b0a898,0xb0a898,OK,
-Colour,Discrepancy flag,"Plans say Quarter (S14B1Q #e3e0da), Schedule says 1/2 Str (S14B1H #cec8c1)",Flagged in legend,OK,Warning present in UI
-Colour,25yr powder coat note,Required for all PC alum items,Noted in legend,OK,
-,,,,
-ORIENTATION & SITE,,,,
-Site,Ground slope,"North=high(street RL~32-33), South=low(harbour RL~28-29)","Terrain slopes N-high to S-low, north≈Y=3.5 south≈Y=0.5",OK,Correct direction
-Site,LF burial,"LF north wall mostly buried in hillside","Ground terrain at Z=+9.4 is at Y≈2.45, LF north wall top at Y=3.0 — partially buried",OK,Reasonable representation
-Site,GF at street level,"Ground floor entry at street level","GF_Y=3.45, terrain at north≈3.5",OK,
-,,,,
-MISSING FEATURES,,,,
-Missing,Lower floor is not L-shaped,Plans show non-rectangular lower floor (191.4 vs 224.7 m²),Modelled as full rectangle,ERROR,Should have recesses or excluded areas
-Missing,Ground floor is not rectangular,Plans show 163.0 m² vs model 252.3 m²,Modelled as full rectangle,ERROR,"Ground floor has significant void areas, stairwell, garage separation"
-Missing,First floor is not rectangular,Plans show 65.9 m² vs model 93.9 m²,Modelled as full rectangle,ERROR,"First floor has stairwell void, irregular shape"
-Missing,Internal courtyard/void,Sections show void areas between floors,Not modelled,WARN,Some sections show double-height voids
-Missing,Alfresco as distinct area,28.6 m² separate covered area on south,Merged into LF rectangle,ERROR,Should be shown as separate open-sided area
-Missing,GF-to-FF intermediate walls,"Where GF is wider than FF, there should be visible step-back",Side roof strips cover it but no visible wall step,WARN,The setback between GF (12.01m) and FF (8.26m) should show exposed GF roof
-,,,,
-SUMMARY,,,,
-Total items checked,~80,,,,
-OK,~45,,,,"Dimensions, colours, and features that match plans"
-WARN,~10,,,,"Minor discrepancies: capped heights, approximate sizes"
-QUERY,~16,,,,Window/door positions estimated — need higher-res plans to verify exact placement along walls
-ERROR,~8,,,,"Significant issues: floor shapes all rectangles vs actual irregular footprints; ridge height; FF wall thickness; alfresco not distinct"
+KNOWN APPROXIMATIONS,,,,
+Approx,Window positions along walls,Dimension chains p8/p9/p10,Placed from chains; typical tolerance +/-0.1m,WARN,
+Feature,Stepped street facade,"Garage block to RL line at z_max; guest bay set back 2310 (face at LGF street line) with W9; porch void 1740x1600 between, pivot D5 at its back",Modelled per GF slab plan + p9 crop,OK,"FIXED: facade was previously flat; porch now the covered 1740x1600 void (2.8 m2)"
+Feature,GF east wing chain,master 4850 / WIR 3390 / ENS 1780 / WIL 1560 / BATH 2280 / robe 600 / GUEST 3110 (90/110 walls),Rebuilt to chain; skylight hall + WIR positions correct,OK,Was drifted ~0.4m
+Feature,Bed wing,"Beds 5340 wide, single 110 divider, 510 robe nooks, doors off the hall, 1470 CSD at master-suite entry",Rebuilt per p9 crop,OK,Was a wrong 1180 robe band
+Feature,Stair well setout,270 wall | 3300 well | 110 | 1470 hall; 1160 landing + 2250 flights,x -3.095..+0.205 with W8 on the lightwell south cheek; media room windowless (retained wall),OK,
+Feature,FF layout,"P'der 1890 beside stair; guest 3320w at street with robe 2240; rumpus 4480w from x+0.25; hall open to rumpus at the stair mouth",Rebuilt per p10 crops,OK,W21 modelled as a 2.2m clerestory strip in the z2.38 void wall — full FFF0946 4560 does not fit that wall; flagged
+Approx,GF east room split (WIR/ENS/WIL/BATH),Right-side chains p9,"Stacked N-S per chains: master 4850, WIR 3390, ENS 1780, WIL 1560, BATH 2280, robe 600, guest 3110",OK,Internal jogs simplified
+Approx,Furniture,Not in contract,Indicative only (beds/sofas/tables),OK,Per GOAL: rooms must read; full furnishing out of scope
+Feature,FF wall/roof junction,Walls follow the 5deg roofline (no open wedge; p11/p12 show walls meeting roof underside),Raking head bands added on E/W faces + street closer band; garden wall trimmed to 9.21,OK,fixed 2026-07-10 (was a 0-0.66m open sky slot = "floating walls")
+Feature,Rear balcony privacy screens,Framed slat panels min 1.5m from balcony level (p11 note),13 slats + stiles/rails both sides; 1.87m tall,OK,frames added 2026-07-10
+Audit,Openings audit 2026-07-11 (5-agent + adversarial verify),All 27 windows + 7 external doors + internal doors vs schedule p2 + elevations + Rev U DXF,20 verified correct; 21 confirmed defects FIXED,OK,"fixed: W4 full-height 3000; D2/D3 3000h; W1/W10/W11/W23 obscure glass; W2-D1 order swap; W5/W6 sill 1200; W7 to family lightwell cheek; W8 to media cheek; W13 c-7.82; W17 to GF cheek (was phantom on facade); W18 F3018 into void band Y1.74-4.69; W19 c7.66; W21 c-0.72; W22 down to Y5.07-8.75 + de-encased; W25 x0.97 + both skylights 550x720; W27 added (NX-plane stair glazing); D5 porch deepened to 2310 (PORCHZ0 9.355) + D7 c3.075; master 870 door + single 820 CSD; wir-ens CSD c4.27; WIL hall door added; media/guest/bath/wil/beds doors repositioned; bed robes to plan recesses; bed3-stair 1470 CSD added; garage east wall to plan plane 0.24 (no phantom entry door, garage 5920 wide); mud slider SS910W; mud door hugs west end; FF powder room moved to z5.185-7.075 + linen closet added"
+Audit,Walk regression 2026-07-11,All door crossings passable,26/26 pass (glass stackers modelled slid-open 55/45; garage panel door closed by design),OK,fixtures relocated clear of corrected doors: LGF bath vanity / GF ens flipped west shower + NE vanity + SE wc / WIL shelf / GF guest desk / FF powder wc
+Audit,Room-by-room audit 2026-07-11 (partial - spend limit killed 4 of 6 zones + all verifiers),LGF-service + GF-master zones fully audited; 13 rooms verified clean; 26 findings applied,OK,"applied: LGF bath rebuilt to p8 symbols (was 0.8m adrift, WC in the laundry); ens rebuilt as the p9 L-shape with the around-the-corner 1650x1450 shower leg + V1700 + WC at the west end; GF east recess extended past WIR+ENS to the bath band (W11 moved into it); GF bath rebuilt (east shower strip, tub mid-room, WC nook + nook wall, V1700); guest/study phantom wall + robe deleted + bay wall to the p9 plane (W9 now visible inside, parapets follow); WIL L/C bank; WIR robes deepened; master bed to the north wall; laundry chute shaft, doors laundry/bath/wine/wil repositioned; stair spine wall added; partitions run to the east wall; MAIN ROOF CUT OUT over the rear balcony per p15 (checkerboard); pool moved to the east + survey-quad boundary fences + material picker added"
+Audit,Zones NOT yet room-audited (spend limit),lgf-living / gf-street detail / ff detail / courtyard-agent,PENDING,openings + walls already verified by earlier audits; fixture-level detail pass outstanding for kitchen/alfresco/beds/rumpus
