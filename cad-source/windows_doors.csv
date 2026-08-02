@@ -1,0 +1,26 @@
+floor,layer,tag_code,kind,type,x_mm,y_mm,rot_deg,width_mm,height_mm,block
+Lower Ground,A-DOOR,FXX3047 SP,door,door,31658,24164,0.0,3000,4700,Stacker Door
+Lower Ground,A-GLAZ,AF0615,window,awning + fixed,39850,13304,270.0,600,1500,2 panel 1 mullion
+Lower Ground,A-GLAZ,F3018,window,fixed,30750,16819,270.0,3000,1800,F_AA 0606
+Lower Ground,A-GLAZ,AA1818,window,awning x2,29400,18084,180.0,1800,1800,slim awning centre transom
+Lower Ground,A-DOOR,XXF3032 SP,door,door,34690,26124,270.0,3000,3200,Stacker Door
+Lower Ground,A-GLAZ,AF1218,window,awning + fixed,29390,15604,180.0,1200,1800,2 panel 1 mullion
+Lower Ground,A-GLAZ,AF1815T SP,window,awning + fixed,28110,19184,270.0,1800,1500,Custom
+Lower Ground,A-GLAZ,AF1815T SP,window,awning + fixed,28110,23064,90.0,1800,1500,Custom
+Ground,A-DOOR,5000,door,door,31205,7394,180.0,5000,0,Panelift Door
+Ground,A-DOOR,2400,door,door,38307,13014,180.0,2400,0,3 panel robe door _stretchable_
+Ground,A-GLAZ,AF1822,window,awning + fixed,37795,9724,180.0,1800,2200,2 panel 1 mullion_900
+Ground,A-GLAZ,F3718,window,fixed,30793,16844,270.0,3700,1800,F_AA 0606
+Ground,A-DOOR,1470CSD,door,door,35150,18178,0.0,1400,7000,Cavity slider
+Ground,A-GLAZ,F3018,window,fixed,30750,16819,270.0,3000,1800,F_AA 0606
+Ground,A-GLAZ,AFA1842 SP,window,awning-fixed-awning,37845,28164,180.0,1800,4200,3 PANEL 2 transom
+Ground,A-DOOR,2400,door,door,33630,19266,270.0,2400,0,3 panel robe door _stretchable_
+Ground,A-DOOR,2400,door,door,33630,23966,270.0,2400,0,3 panel robe door _stretchable_
+Ground,A-GLAZ,AA1410 SP,window,awning x2,29310,18084,180.0,1400,1000,F_AA 0606
+First,A-DOOR,FXX2436,door,door,36370,10417,180.0,2400,3600,Stacker Door
+First,A-DOOR,XF2118,door,door,37246,16822,180.0,2100,1800,Sliding Door
+First,A-GLAZ,AF1832T,window,awning + fixed,32545,9102,180.0,1800,3200,2 panel 1 mullion_900
+First,A-GLAZ,C01,window,other,0,0,0.0,,,VELUX FS   deck mounted   fixed
+First,A-DOOR,2400,door,door,32014,12954,0.0,2400,0,3 panel robe door _stretchable_
+First,A-GLAZ,C01,window,other,2795,-380,0.0,,,VELUX FS   deck mounted   fixed
+First,A-GLAZ,FFF0946,window,fixed x3,34195,18202,180.0,900,4600,3 PANEL 2 transom
